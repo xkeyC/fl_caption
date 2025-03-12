@@ -1,0 +1,64 @@
+name: fl_caption
+description: "A new Flutter project."
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.7.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  flutter_riverpod: ^2.6.1
+  riverpod_annotation: ^2.6.1
+  flutter_hooks: ^0.21.2
+  hooks_riverpod: ^2.6.1
+  json_annotation: ^4.9.0
+  flutter_rust_bridge: ^2.7.1
+  fluent_ui: ^4.11.2
+  freezed_annotation: ^2.4.1
+  rust_lib_fl_caption:
+    path: rust_builder
+
+  # Desktop window tools
+  bitsdojo_window: ^0.1.6
+  window_manager: ^0.4.3
+  flutter_acrylic: ^1.1.4
+  desktop_multi_window: ^0.2.1
+
+  # KV Store
+  hive_ce: ^2.10.1
+  hive_ce_flutter: ^2.2.0
+
+  # local store
+  path_provider: ^2.1.5
+
+  # Network
+  dio: ^5.8.0+1
+  dio_compatibility_layer: ^0.1.0
+  rhttp: ^0.10.0
+
+  synchronized: ^3.3.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  msix: ^3.16.4
+  build_runner: ^2.4.8
+  freezed: ^2.4.5
+  json_serializable: ^6.7.1
+  riverpod_generator: ^2.6.2
+  custom_lint: ^0.7.0
+  riverpod_lint: ^2.6.2
+  ffigen: ^16.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/whisper/
+  fonts:
+    - family: SourceHanSansCN-Regular
+      fonts:
+        - asset: assets/SourceHanSansCN-Regular.otf

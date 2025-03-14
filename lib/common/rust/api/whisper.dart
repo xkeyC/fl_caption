@@ -7,32 +7,33 @@ import '../frb_generated.dart';
 import '../whisper_caption/whisper.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-Future<CancellationToken> createCancellationToken() =>
+Future<String> createCancellationToken() =>
     RustLib.instance.api.crateApiWhisperCreateCancellationToken();
 
-Future<void> cancelCancellationToken({required CancellationToken token}) =>
-    RustLib.instance.api.crateApiWhisperCancelCancellationToken(token: token);
+Future<void> cancelCancellationToken({required String tokenId}) => RustLib
+    .instance
+    .api
+    .crateApiWhisperCancelCancellationToken(tokenId: tokenId);
 
 Stream<List<Segment>> launchCaption({
   required WhisperClient whisperClient,
   String? audioDevice,
   bool? audioDeviceIsInput,
   String? audioLanguage,
-  required CancellationToken cancelToken,
+  required String cancelTokenId,
   bool? withTimestamps,
   bool? verbose,
+  bool? tryWithCuda,
 }) => RustLib.instance.api.crateApiWhisperLaunchCaption(
   whisperClient: whisperClient,
   audioDevice: audioDevice,
   audioDeviceIsInput: audioDeviceIsInput,
   audioLanguage: audioLanguage,
-  cancelToken: cancelToken,
+  cancelTokenId: cancelTokenId,
   withTimestamps: withTimestamps,
   verbose: verbose,
+  tryWithCuda: tryWithCuda,
 );
-
-// Rust type: RustOpaqueNom<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CancellationToken>>
-abstract class CancellationToken implements RustOpaqueInterface {}
 
 class WhisperClient {
   final String whisperModel;

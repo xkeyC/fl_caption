@@ -6,6 +6,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import 'common/settings_provider.dart';
+import 'common/whisper/language.dart';
 import 'common/whisper/models.dart';
 import 'dialogs/model_download_dialog.dart';
 import 'dialogs/model_download_provider.dart';
@@ -76,6 +77,8 @@ class SettingsApp extends HookConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            _buildSubtitleSettingsSection(appSettingsData),
+            const SizedBox(height: 32),
             _buildWhisperSection(
               appSettingsData: appSettingsData,
               modelDirController: modelDirController,
@@ -98,6 +101,90 @@ class SettingsApp extends HookConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildSubtitleSettingsSection(
+    ValueNotifier<AppSettingsData?> appSettingsData,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "字幕设置",
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  InfoLabel(label: "音频语言:"),
+                  ComboBox<String?>(
+                    placeholder: const Text('自动检测'),
+                    isExpanded: true,
+                    value: appSettingsData.value?.audioLanguage,
+                    items: [
+                      const ComboBoxItem<String?>(
+                        value: null,
+                        child: Text('自动检测'),
+                      ),
+                      ...whisperLanguages.entries.map(
+                        (e) => ComboBoxItem<String?>(
+                          value: e.key,
+                          child: Text(
+                            "${e.value.displayLocaleName} (${e.value.displayName})",
+                          ),
+                        ),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      appSettingsData.value = appSettingsData.value?.copyWith(
+                        audioLanguage: value,
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  InfoLabel(label: "字幕语言:"),
+                  ComboBox<String?>(
+                    placeholder: const Text('无字幕'),
+                    isExpanded: true,
+                    value: appSettingsData.value?.captionLanguage,
+                    items: [
+                      const ComboBoxItem<String?>(
+                        value: null,
+                        child: Text('无字幕'),
+                      ),
+                      ...whisperLanguages.entries.map(
+                        (e) => ComboBoxItem<String?>(
+                          value: e.key,
+                          child: Text(
+                            "${e.value.displayLocaleName} (${e.value.displayName})",
+                          ),
+                        ),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      appSettingsData.value = appSettingsData.value?.copyWith(
+                        captionLanguage: value,
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -132,6 +219,17 @@ class SettingsApp extends HookConsumerWidget {
               ),
             ),
           ],
+        ),
+        const SizedBox(height: 16),
+        // CUDA toggle
+        ToggleSwitch(
+          checked: appSettingsData.value?.tryWithCuda ?? true,
+          onChanged: (value) {
+            appSettingsData.value = appSettingsData.value?.copyWith(
+              tryWithCuda: value,
+            );
+          },
+          content: const Text("启用 CUDA 加速 (需要 NVIDIA 显卡)"),
         ),
       ],
     );

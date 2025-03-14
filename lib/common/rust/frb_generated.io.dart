@@ -19,24 +19,8 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     required super.portManager,
   });
 
-  CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_CancellationTokenPtr =>
-      wire._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancellationTokenPtr;
-
   @protected
   AnyhowException dco_decode_AnyhowException(dynamic raw);
-
-  @protected
-  CancellationToken
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancellationToken(
-    dynamic raw,
-  );
-
-  @protected
-  CancellationToken
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancellationToken(
-    dynamic raw,
-  );
 
   @protected
   RustStreamSink<List<Segment>> dco_decode_StreamSink_list_segment_Dco(
@@ -45,6 +29,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   String dco_decode_String(dynamic raw);
+
+  @protected
+  BigInt dco_decode_U128(dynamic raw);
 
   @protected
   bool dco_decode_bool(dynamic raw);
@@ -77,6 +64,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   String? dco_decode_opt_String(dynamic raw);
 
   @protected
+  BigInt? dco_decode_opt_U128(dynamic raw);
+
+  @protected
   bool? dco_decode_opt_box_autoadd_bool(dynamic raw);
 
   @protected
@@ -92,25 +82,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void dco_decode_unit(dynamic raw);
 
   @protected
-  BigInt dco_decode_usize(dynamic raw);
-
-  @protected
   WhisperClient dco_decode_whisper_client(dynamic raw);
 
   @protected
   AnyhowException sse_decode_AnyhowException(SseDeserializer deserializer);
-
-  @protected
-  CancellationToken
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancellationToken(
-    SseDeserializer deserializer,
-  );
-
-  @protected
-  CancellationToken
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancellationToken(
-    SseDeserializer deserializer,
-  );
 
   @protected
   RustStreamSink<List<Segment>> sse_decode_StreamSink_list_segment_Dco(
@@ -119,6 +94,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   String sse_decode_String(SseDeserializer deserializer);
+
+  @protected
+  BigInt sse_decode_U128(SseDeserializer deserializer);
 
   @protected
   bool sse_decode_bool(SseDeserializer deserializer);
@@ -153,6 +131,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   String? sse_decode_opt_String(SseDeserializer deserializer);
 
   @protected
+  BigInt? sse_decode_opt_U128(SseDeserializer deserializer);
+
+  @protected
   bool? sse_decode_opt_box_autoadd_bool(SseDeserializer deserializer);
 
   @protected
@@ -166,9 +147,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_decode_unit(SseDeserializer deserializer);
-
-  @protected
-  BigInt sse_decode_usize(SseDeserializer deserializer);
 
   @protected
   WhisperClient sse_decode_whisper_client(SseDeserializer deserializer);
@@ -202,6 +180,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ffi.Pointer<wire_cst_list_prim_u_8_strict> cst_encode_String(String raw) {
     // Codec=Cst (C-struct based), see doc to use other codecs
     return cst_encode_list_prim_u_8_strict(utf8.encoder.convert(raw));
+  }
+
+  @protected
+  ffi.Pointer<wire_cst_list_prim_u_8_strict> cst_encode_U128(BigInt raw) {
+    // Codec=Cst (C-struct based), see doc to use other codecs
+    return cst_encode_String(raw.toString());
   }
 
   @protected
@@ -271,15 +255,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   }
 
   @protected
-  ffi.Pointer<ffi.Bool> cst_encode_opt_box_autoadd_bool(bool? raw) {
+  ffi.Pointer<wire_cst_list_prim_u_8_strict> cst_encode_opt_U128(BigInt? raw) {
     // Codec=Cst (C-struct based), see doc to use other codecs
-    return raw == null ? ffi.nullptr : cst_encode_box_autoadd_bool(raw);
+    return raw == null ? ffi.nullptr : cst_encode_U128(raw);
   }
 
   @protected
-  int cst_encode_usize(BigInt raw) {
+  ffi.Pointer<ffi.Bool> cst_encode_opt_box_autoadd_bool(bool? raw) {
     // Codec=Cst (C-struct based), see doc to use other codecs
-    return raw.toSigned(64).toInt();
+    return raw == null ? ffi.nullptr : cst_encode_box_autoadd_bool(raw);
   }
 
   @protected
@@ -308,6 +292,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     wireObj.start = cst_encode_f_64(apiObj.start);
     wireObj.duration = cst_encode_f_64(apiObj.duration);
     cst_api_fill_to_wire_decoding_result(apiObj.dr, wireObj.dr);
+    wireObj.reasoning_duration = cst_encode_opt_U128(apiObj.reasoningDuration);
+    wireObj.reasoning_lang = cst_encode_opt_String(apiObj.reasoningLang);
+    wireObj.audio_duration = cst_encode_opt_U128(apiObj.audioDuration);
   }
 
   @protected
@@ -323,18 +310,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     wireObj.is_multilingual = cst_encode_bool(apiObj.isMultilingual);
     wireObj.is_quantized = cst_encode_bool(apiObj.isQuantized);
   }
-
-  @protected
-  int
-  cst_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancellationToken(
-    CancellationToken raw,
-  );
-
-  @protected
-  int
-  cst_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancellationToken(
-    CancellationToken raw,
-  );
 
   @protected
   bool cst_encode_bool(bool raw);
@@ -358,20 +333,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
-  void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancellationToken(
-    CancellationToken self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancellationToken(
-    CancellationToken self,
-    SseSerializer serializer,
-  );
-
-  @protected
   void sse_encode_StreamSink_list_segment_Dco(
     RustStreamSink<List<Segment>> self,
     SseSerializer serializer,
@@ -379,6 +340,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_String(String self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_U128(BigInt self, SseSerializer serializer);
 
   @protected
   void sse_encode_bool(bool self, SseSerializer serializer);
@@ -423,6 +387,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_opt_String(String? self, SseSerializer serializer);
 
   @protected
+  void sse_encode_opt_U128(BigInt? self, SseSerializer serializer);
+
+  @protected
   void sse_encode_opt_box_autoadd_bool(bool? self, SseSerializer serializer);
 
   @protected
@@ -436,9 +403,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_unit(void self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_usize(BigInt self, SseSerializer serializer);
 
   @protected
   void sse_encode_whisper_client(WhisperClient self, SseSerializer serializer);
@@ -487,17 +451,24 @@ class RustLibWire implements BaseWire {
 
   void wire__crate__api__whisper__cancel_cancellation_token(
     int port_,
-    int token,
+    ffi.Pointer<wire_cst_list_prim_u_8_strict> token_id,
   ) {
-    return _wire__crate__api__whisper__cancel_cancellation_token(port_, token);
+    return _wire__crate__api__whisper__cancel_cancellation_token(
+      port_,
+      token_id,
+    );
   }
 
   late final _wire__crate__api__whisper__cancel_cancellation_tokenPtr = _lookup<
-    ffi.NativeFunction<ffi.Void Function(ffi.Int64, ffi.UintPtr)>
+    ffi.NativeFunction<
+      ffi.Void Function(ffi.Int64, ffi.Pointer<wire_cst_list_prim_u_8_strict>)
+    >
   >('frbgen_fl_caption_wire__crate__api__whisper__cancel_cancellation_token');
   late final _wire__crate__api__whisper__cancel_cancellation_token =
       _wire__crate__api__whisper__cancel_cancellation_tokenPtr
-          .asFunction<void Function(int, int)>();
+          .asFunction<
+            void Function(int, ffi.Pointer<wire_cst_list_prim_u_8_strict>)
+          >();
 
   void wire__crate__api__whisper__create_cancellation_token(int port_) {
     return _wire__crate__api__whisper__create_cancellation_token(port_);
@@ -517,9 +488,10 @@ class RustLibWire implements BaseWire {
     ffi.Pointer<wire_cst_list_prim_u_8_strict> audio_device,
     ffi.Pointer<ffi.Bool> audio_device_is_input,
     ffi.Pointer<wire_cst_list_prim_u_8_strict> audio_language,
-    int cancel_token,
+    ffi.Pointer<wire_cst_list_prim_u_8_strict> cancel_token_id,
     ffi.Pointer<ffi.Bool> with_timestamps,
     ffi.Pointer<ffi.Bool> verbose,
+    ffi.Pointer<ffi.Bool> try_with_cuda,
   ) {
     return _wire__crate__api__whisper__launch_caption(
       port_,
@@ -528,9 +500,10 @@ class RustLibWire implements BaseWire {
       audio_device,
       audio_device_is_input,
       audio_language,
-      cancel_token,
+      cancel_token_id,
       with_timestamps,
       verbose,
+      try_with_cuda,
     );
   }
 
@@ -543,7 +516,8 @@ class RustLibWire implements BaseWire {
         ffi.Pointer<wire_cst_list_prim_u_8_strict>,
         ffi.Pointer<ffi.Bool>,
         ffi.Pointer<wire_cst_list_prim_u_8_strict>,
-        ffi.UintPtr,
+        ffi.Pointer<wire_cst_list_prim_u_8_strict>,
+        ffi.Pointer<ffi.Bool>,
         ffi.Pointer<ffi.Bool>,
         ffi.Pointer<ffi.Bool>,
       )
@@ -559,7 +533,8 @@ class RustLibWire implements BaseWire {
               ffi.Pointer<wire_cst_list_prim_u_8_strict>,
               ffi.Pointer<ffi.Bool>,
               ffi.Pointer<wire_cst_list_prim_u_8_strict>,
-              int,
+              ffi.Pointer<wire_cst_list_prim_u_8_strict>,
+              ffi.Pointer<ffi.Bool>,
               ffi.Pointer<ffi.Bool>,
               ffi.Pointer<ffi.Bool>,
             )
@@ -607,40 +582,6 @@ class RustLibWire implements BaseWire {
               bool,
             )
           >();
-
-  void
-  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancellationToken(
-    ffi.Pointer<ffi.Void> ptr,
-  ) {
-    return _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancellationToken(
-      ptr,
-    );
-  }
-
-  late final _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancellationTokenPtr =
-      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
-        'frbgen_fl_caption_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancellationToken',
-      );
-  late final _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancellationToken =
-      _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancellationTokenPtr
-          .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
-
-  void
-  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancellationToken(
-    ffi.Pointer<ffi.Void> ptr,
-  ) {
-    return _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancellationToken(
-      ptr,
-    );
-  }
-
-  late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancellationTokenPtr =
-      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
-        'frbgen_fl_caption_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancellationToken',
-      );
-  late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancellationToken =
-      _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancellationTokenPtr
-          .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
 
   ffi.Pointer<ffi.Bool> cst_new_box_autoadd_bool(bool value) {
     return _cst_new_box_autoadd_bool(value);
@@ -809,6 +750,12 @@ final class wire_cst_segment extends ffi.Struct {
   external double duration;
 
   external wire_cst_decoding_result dr;
+
+  external ffi.Pointer<wire_cst_list_prim_u_8_strict> reasoning_duration;
+
+  external ffi.Pointer<wire_cst_list_prim_u_8_strict> reasoning_lang;
+
+  external ffi.Pointer<wire_cst_list_prim_u_8_strict> audio_duration;
 }
 
 final class wire_cst_list_segment extends ffi.Struct {

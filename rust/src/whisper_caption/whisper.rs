@@ -57,6 +57,9 @@ pub struct Segment {
     pub start: f64,
     pub duration: f64,
     pub dr: DecodingResult,
+    pub reasoning_duration: Option<u128>,
+    pub reasoning_lang: Option<String>,
+    pub audio_duration: Option<u128>,
 }
 
 #[allow(dead_code)]
@@ -69,7 +72,6 @@ pub struct DecodingResult {
     pub temperature: f64,
     pub compression_ratio: f64,
 }
-
 
 pub struct Decoder {
     model: Model,
@@ -280,6 +282,9 @@ impl Decoder {
                 start: time_offset,
                 duration: segment_duration,
                 dr,
+                reasoning_duration: None,
+                reasoning_lang: None,
+                audio_duration: None,
             };
             if self.timestamps {
                 println!(
@@ -364,4 +369,16 @@ pub fn token_id(tokenizer: &Tokenizer, token: &str) -> candle_core::Result<u32> 
         None => candle_core::bail!("no token-id for {token}"),
         Some(id) => Ok(id),
     }
+}
+
+pub(crate) fn get_token_name_by_id(p0: &Tokenizer, p1: u32) -> Option<String> {
+    let token = p0.id_to_token(p1);
+    if token.is_none() {
+        return None;
+    }
+    let mut token = token.unwrap();
+    if token.starts_with("<|") && token.ends_with("|>") {
+        token = token[2..token.len() - 2].to_string();
+    }
+    Some(token.to_string())
 }

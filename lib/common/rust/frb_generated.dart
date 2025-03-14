@@ -75,19 +75,20 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
 
 abstract class RustLibApi extends BaseApi {
   Future<void> crateApiWhisperCancelCancellationToken({
-    required CancellationToken token,
+    required String tokenId,
   });
 
-  Future<CancellationToken> crateApiWhisperCreateCancellationToken();
+  Future<String> crateApiWhisperCreateCancellationToken();
 
   Stream<List<Segment>> crateApiWhisperLaunchCaption({
     required WhisperClient whisperClient,
     String? audioDevice,
     bool? audioDeviceIsInput,
     String? audioLanguage,
-    required CancellationToken cancelToken,
+    required String cancelTokenId,
     bool? withTimestamps,
     bool? verbose,
+    bool? tryWithCuda,
   });
 
   Future<WhisperClient> crateApiWhisperWhisperClientNew({
@@ -97,15 +98,6 @@ abstract class RustLibApi extends BaseApi {
     required bool isMultilingual,
     required bool isQuantized,
   });
-
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_CancellationToken;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_CancellationToken;
-
-  CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_CancellationTokenPtr;
 }
 
 class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
@@ -118,15 +110,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @override
   Future<void> crateApiWhisperCancelCancellationToken({
-    required CancellationToken token,
+    required String tokenId,
   }) {
     return handler.executeNormal(
       NormalTask(
         callFfi: (port_) {
-          var arg0 =
-              cst_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancellationToken(
-                token,
-              );
+          var arg0 = cst_encode_String(tokenId);
           return wire.wire__crate__api__whisper__cancel_cancellation_token(
             port_,
             arg0,
@@ -137,7 +126,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           decodeErrorData: null,
         ),
         constMeta: kCrateApiWhisperCancelCancellationTokenConstMeta,
-        argValues: [token],
+        argValues: [tokenId],
         apiImpl: this,
       ),
     );
@@ -146,11 +135,11 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   TaskConstMeta get kCrateApiWhisperCancelCancellationTokenConstMeta =>
       const TaskConstMeta(
         debugName: "cancel_cancellation_token",
-        argNames: ["token"],
+        argNames: ["tokenId"],
       );
 
   @override
-  Future<CancellationToken> crateApiWhisperCreateCancellationToken() {
+  Future<String> crateApiWhisperCreateCancellationToken() {
     return handler.executeNormal(
       NormalTask(
         callFfi: (port_) {
@@ -159,8 +148,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: DcoCodec(
-          decodeSuccessData:
-              dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancellationToken,
+          decodeSuccessData: dco_decode_String,
           decodeErrorData: null,
         ),
         constMeta: kCrateApiWhisperCreateCancellationTokenConstMeta,
@@ -179,9 +167,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     String? audioDevice,
     bool? audioDeviceIsInput,
     String? audioLanguage,
-    required CancellationToken cancelToken,
+    required String cancelTokenId,
     bool? withTimestamps,
     bool? verbose,
+    bool? tryWithCuda,
   }) {
     final streamSink = RustStreamSink<List<Segment>>();
     unawaited(
@@ -193,12 +182,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             var arg2 = cst_encode_opt_String(audioDevice);
             var arg3 = cst_encode_opt_box_autoadd_bool(audioDeviceIsInput);
             var arg4 = cst_encode_opt_String(audioLanguage);
-            var arg5 =
-                cst_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancellationToken(
-                  cancelToken,
-                );
+            var arg5 = cst_encode_String(cancelTokenId);
             var arg6 = cst_encode_opt_box_autoadd_bool(withTimestamps);
             var arg7 = cst_encode_opt_box_autoadd_bool(verbose);
+            var arg8 = cst_encode_opt_box_autoadd_bool(tryWithCuda);
             return wire.wire__crate__api__whisper__launch_caption(
               port_,
               arg0,
@@ -209,6 +196,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
               arg5,
               arg6,
               arg7,
+              arg8,
             );
           },
           codec: DcoCodec(
@@ -222,9 +210,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             audioDevice,
             audioDeviceIsInput,
             audioLanguage,
-            cancelToken,
+            cancelTokenId,
             withTimestamps,
             verbose,
+            tryWithCuda,
           ],
           apiImpl: this,
         ),
@@ -242,9 +231,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           "audioDevice",
           "audioDeviceIsInput",
           "audioLanguage",
-          "cancelToken",
+          "cancelTokenId",
           "withTimestamps",
           "verbose",
+          "tryWithCuda",
         ],
       );
 
@@ -302,36 +292,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         ],
       );
 
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_CancellationToken =>
-      wire.rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancellationToken;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_CancellationToken =>
-      wire.rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancellationToken;
-
   @protected
   AnyhowException dco_decode_AnyhowException(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return AnyhowException(raw as String);
-  }
-
-  @protected
-  CancellationToken
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancellationToken(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return CancellationTokenImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  CancellationToken
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancellationToken(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return CancellationTokenImpl.frbInternalDcoDecode(raw as List<dynamic>);
   }
 
   @protected
@@ -346,6 +310,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   String dco_decode_String(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as String;
+  }
+
+  @protected
+  BigInt dco_decode_U128(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return BigInt.parse(raw);
   }
 
   @protected
@@ -419,6 +389,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  BigInt? dco_decode_opt_U128(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_U128(raw);
+  }
+
+  @protected
   bool? dco_decode_opt_box_autoadd_bool(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw == null ? null : dco_decode_box_autoadd_bool(raw);
@@ -428,12 +404,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   Segment dco_decode_segment(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 3)
-      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    if (arr.length != 6)
+      throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
     return Segment(
       start: dco_decode_f_64(arr[0]),
       duration: dco_decode_f_64(arr[1]),
       dr: dco_decode_decoding_result(arr[2]),
+      reasoningDuration: dco_decode_opt_U128(arr[3]),
+      reasoningLang: dco_decode_opt_String(arr[4]),
+      audioDuration: dco_decode_opt_U128(arr[5]),
     );
   }
 
@@ -453,12 +432,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   void dco_decode_unit(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return;
-  }
-
-  @protected
-  BigInt dco_decode_usize(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dcoDecodeU64(raw);
   }
 
   @protected
@@ -484,30 +457,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  CancellationToken
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancellationToken(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return CancellationTokenImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  CancellationToken
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancellationToken(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return CancellationTokenImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
   RustStreamSink<List<Segment>> sse_decode_StreamSink_list_segment_Dco(
     SseDeserializer deserializer,
   ) {
@@ -520,6 +469,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var inner = sse_decode_list_prim_u_8_strict(deserializer);
     return utf8.decoder.convert(inner);
+  }
+
+  @protected
+  BigInt sse_decode_U128(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var inner = sse_decode_String(deserializer);
+    return BigInt.parse(inner);
   }
 
   @protected
@@ -612,6 +568,17 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  BigInt? sse_decode_opt_U128(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_U128(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
   bool? sse_decode_opt_box_autoadd_bool(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
@@ -628,7 +595,17 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_start = sse_decode_f_64(deserializer);
     var var_duration = sse_decode_f_64(deserializer);
     var var_dr = sse_decode_decoding_result(deserializer);
-    return Segment(start: var_start, duration: var_duration, dr: var_dr);
+    var var_reasoningDuration = sse_decode_opt_U128(deserializer);
+    var var_reasoningLang = sse_decode_opt_String(deserializer);
+    var var_audioDuration = sse_decode_opt_U128(deserializer);
+    return Segment(
+      start: var_start,
+      duration: var_duration,
+      dr: var_dr,
+      reasoningDuration: var_reasoningDuration,
+      reasoningLang: var_reasoningLang,
+      audioDuration: var_audioDuration,
+    );
   }
 
   @protected
@@ -646,12 +623,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   @protected
   void sse_decode_unit(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-  }
-
-  @protected
-  BigInt sse_decode_usize(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return deserializer.buffer.getBigUint64();
   }
 
   @protected
@@ -675,26 +646,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   int sse_decode_i_32(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return deserializer.buffer.getInt32();
-  }
-
-  @protected
-  int
-  cst_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancellationToken(
-    CancellationToken raw,
-  ) {
-    // Codec=Cst (C-struct based), see doc to use other codecs
-    // ignore: invalid_use_of_internal_member
-    return (raw as CancellationTokenImpl).frbInternalCstEncode(move: true);
-  }
-
-  @protected
-  int
-  cst_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancellationToken(
-    CancellationToken raw,
-  ) {
-    // Codec=Cst (C-struct based), see doc to use other codecs
-    // ignore: invalid_use_of_internal_member
-    return (raw as CancellationTokenImpl).frbInternalCstEncode();
   }
 
   @protected
@@ -737,32 +688,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancellationToken(
-    CancellationToken self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as CancellationTokenImpl).frbInternalSseEncode(move: true),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancellationToken(
-    CancellationToken self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as CancellationTokenImpl).frbInternalSseEncode(move: null),
-      serializer,
-    );
-  }
-
-  @protected
   void sse_encode_StreamSink_list_segment_Dco(
     RustStreamSink<List<Segment>> self,
     SseSerializer serializer,
@@ -783,6 +708,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   void sse_encode_String(String self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_list_prim_u_8_strict(utf8.encoder.convert(self), serializer);
+  }
+
+  @protected
+  void sse_encode_U128(BigInt self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.toString(), serializer);
   }
 
   @protected
@@ -878,6 +809,16 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_opt_U128(BigInt? self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_U128(self, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_opt_box_autoadd_bool(bool? self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
@@ -893,6 +834,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_f_64(self.start, serializer);
     sse_encode_f_64(self.duration, serializer);
     sse_encode_decoding_result(self.dr, serializer);
+    sse_encode_opt_U128(self.reasoningDuration, serializer);
+    sse_encode_opt_String(self.reasoningLang, serializer);
+    sse_encode_opt_U128(self.audioDuration, serializer);
   }
 
   @protected
@@ -913,12 +857,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  void sse_encode_usize(BigInt self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    serializer.buffer.putBigUint64(self);
-  }
-
-  @protected
   void sse_encode_whisper_client(WhisperClient self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.whisperModel, serializer);
@@ -933,29 +871,4 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     serializer.buffer.putInt32(self);
   }
-}
-
-@sealed
-class CancellationTokenImpl extends RustOpaque implements CancellationToken {
-  // Not to be used by end users
-  CancellationTokenImpl.frbInternalDcoDecode(List<dynamic> wire)
-    : super.frbInternalDcoDecode(wire, _kStaticData);
-
-  // Not to be used by end users
-  CancellationTokenImpl.frbInternalSseDecode(
-    BigInt ptr,
-    int externalSizeOnNative,
-  ) : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
-
-  static final _kStaticData = RustArcStaticData(
-    rustArcIncrementStrongCount:
-        RustLib.instance.api.rust_arc_increment_strong_count_CancellationToken,
-    rustArcDecrementStrongCount:
-        RustLib.instance.api.rust_arc_decrement_strong_count_CancellationToken,
-    rustArcDecrementStrongCountPtr:
-        RustLib
-            .instance
-            .api
-            .rust_arc_decrement_strong_count_CancellationTokenPtr,
-  );
 }

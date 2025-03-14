@@ -25,7 +25,6 @@
 
 // Section: imports
 
-use crate::api::whisper::*;
 use flutter_rust_bridge::for_generated::byteorder::{NativeEndian, ReadBytesExt, WriteBytesExt};
 use flutter_rust_bridge::for_generated::{transform_result_dco, Lifetimeable, Lockable};
 use flutter_rust_bridge::{Handler, IntoIntoDart};
@@ -48,7 +47,7 @@ flutter_rust_bridge::frb_generated_default_handler!();
 
 fn wire__crate__api__whisper__cancel_cancellation_token_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
-    token: impl CstDecode<CancellationToken>,
+    token_id: impl CstDecode<String>,
 ) {
     FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::DcoCodec, _, _>(
         flutter_rust_bridge::for_generated::TaskInfo {
@@ -57,11 +56,11 @@ fn wire__crate__api__whisper__cancel_cancellation_token_impl(
             mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
         },
         move || {
-            let api_token = token.cst_decode();
+            let api_token_id = token_id.cst_decode();
             move |context| {
                 transform_result_dco::<_, _, ()>((move || {
                     let output_ok = Result::<_, ()>::Ok({
-                        crate::api::whisper::cancel_cancellation_token(api_token);
+                        crate::api::whisper::cancel_cancellation_token(api_token_id);
                     })?;
                     Ok(output_ok)
                 })())
@@ -101,9 +100,10 @@ fn wire__crate__api__whisper__launch_caption_impl(
     audio_device: impl CstDecode<Option<String>>,
     audio_device_is_input: impl CstDecode<Option<bool>>,
     audio_language: impl CstDecode<Option<String>>,
-    cancel_token: impl CstDecode<CancellationToken>,
+    cancel_token_id: impl CstDecode<String>,
     with_timestamps: impl CstDecode<Option<bool>>,
     verbose: impl CstDecode<Option<bool>>,
+    try_with_cuda: impl CstDecode<Option<bool>>,
 ) {
     FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::DcoCodec, _, _, _>(
         flutter_rust_bridge::for_generated::TaskInfo {
@@ -117,9 +117,10 @@ fn wire__crate__api__whisper__launch_caption_impl(
             let api_audio_device = audio_device.cst_decode();
             let api_audio_device_is_input = audio_device_is_input.cst_decode();
             let api_audio_language = audio_language.cst_decode();
-            let api_cancel_token = cancel_token.cst_decode();
+            let api_cancel_token_id = cancel_token_id.cst_decode();
             let api_with_timestamps = with_timestamps.cst_decode();
             let api_verbose = verbose.cst_decode();
+            let api_try_with_cuda = try_with_cuda.cst_decode();
             move |context| async move {
                 transform_result_dco::<_, _, flutter_rust_bridge::for_generated::anyhow::Error>(
                     (move || async move {
@@ -129,9 +130,10 @@ fn wire__crate__api__whisper__launch_caption_impl(
                             api_audio_device,
                             api_audio_device_is_input,
                             api_audio_language,
-                            api_cancel_token,
+                            api_cancel_token_id,
                             api_with_timestamps,
                             api_verbose,
+                            api_try_with_cuda,
                         )
                         .await?;
                         Ok(output_ok)
@@ -204,37 +206,11 @@ impl CstDecode<u8> for u8 {
         self
     }
 }
-impl CstDecode<usize> for usize {
-    // Codec=Cst (C-struct based), see doc to use other codecs
-    fn cst_decode(self) -> usize {
-        self
-    }
-}
 impl SseDecode for flutter_rust_bridge::for_generated::anyhow::Error {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut inner = <String>::sse_decode(deserializer);
         return flutter_rust_bridge::for_generated::anyhow::anyhow!("{}", inner);
-    }
-}
-
-impl SseDecode for CancellationToken {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut inner = <RustOpaqueNom<
-            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CancellationToken>,
-        >>::sse_decode(deserializer);
-        return flutter_rust_bridge::for_generated::rust_auto_opaque_decode_owned(inner);
-    }
-}
-
-impl SseDecode
-    for RustOpaqueNom<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CancellationToken>>
-{
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut inner = <usize>::sse_decode(deserializer);
-        return unsafe { decode_rust_opaque_nom(inner) };
     }
 }
 
@@ -256,6 +232,14 @@ impl SseDecode for String {
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut inner = <Vec<u8>>::sse_decode(deserializer);
         return String::from_utf8(inner).unwrap();
+    }
+}
+
+impl SseDecode for u128 {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <String>::sse_decode(deserializer);
+        return inner.parse().unwrap();
     }
 }
 
@@ -342,6 +326,17 @@ impl SseDecode for Option<String> {
     }
 }
 
+impl SseDecode for Option<u128> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<u128>::sse_decode(deserializer));
+        } else {
+            return None;
+        }
+    }
+}
+
 impl SseDecode for Option<bool> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -360,10 +355,16 @@ impl SseDecode for crate::whisper_caption::whisper::Segment {
         let mut var_duration = <f64>::sse_decode(deserializer);
         let mut var_dr =
             <crate::whisper_caption::whisper::DecodingResult>::sse_decode(deserializer);
+        let mut var_reasoningDuration = <Option<u128>>::sse_decode(deserializer);
+        let mut var_reasoningLang = <Option<String>>::sse_decode(deserializer);
+        let mut var_audioDuration = <Option<u128>>::sse_decode(deserializer);
         return crate::whisper_caption::whisper::Segment {
             start: var_start,
             duration: var_duration,
             dr: var_dr,
+            reasoning_duration: var_reasoningDuration,
+            reasoning_lang: var_reasoningLang,
+            audio_duration: var_audioDuration,
         };
     }
 }
@@ -385,13 +386,6 @@ impl SseDecode for u8 {
 impl SseDecode for () {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {}
-}
-
-impl SseDecode for usize {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        deserializer.cursor.read_u64::<NativeEndian>().unwrap() as _
-    }
 }
 
 impl SseDecode for crate::api::whisper::WhisperClient {
@@ -447,21 +441,6 @@ fn pde_ffi_dispatcher_sync_impl(
 // Section: rust2dart
 
 // Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for FrbWrapper<CancellationToken> {
-    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
-        flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, StdArc<_>>(self.0)
-            .into_dart()
-    }
-}
-impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for FrbWrapper<CancellationToken> {}
-
-impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<CancellationToken>> for CancellationToken {
-    fn into_into_dart(self) -> FrbWrapper<CancellationToken> {
-        self.into()
-    }
-}
-
-// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::whisper_caption::whisper::DecodingResult {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
@@ -493,6 +472,9 @@ impl flutter_rust_bridge::IntoDart for crate::whisper_caption::whisper::Segment 
             self.start.into_into_dart().into_dart(),
             self.duration.into_into_dart().into_dart(),
             self.dr.into_into_dart().into_dart(),
+            self.reasoning_duration.into_into_dart().into_dart(),
+            self.reasoning_lang.into_into_dart().into_dart(),
+            self.audio_duration.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -540,24 +522,6 @@ impl SseEncode for flutter_rust_bridge::for_generated::anyhow::Error {
     }
 }
 
-impl SseEncode for CancellationToken {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <RustOpaqueNom<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CancellationToken>>>::sse_encode(flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, StdArc<_>>(self), serializer);
-    }
-}
-
-impl SseEncode
-    for RustOpaqueNom<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CancellationToken>>
-{
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        let (ptr, size) = self.sse_encode_raw();
-        <usize>::sse_encode(ptr, serializer);
-        <i32>::sse_encode(size, serializer);
-    }
-}
-
 impl SseEncode
     for StreamSink<
         Vec<crate::whisper_caption::whisper::Segment>,
@@ -574,6 +538,13 @@ impl SseEncode for String {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <Vec<u8>>::sse_encode(self.into_bytes(), serializer);
+    }
+}
+
+impl SseEncode for u128 {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.to_string(), serializer);
     }
 }
 
@@ -643,6 +614,16 @@ impl SseEncode for Option<String> {
     }
 }
 
+impl SseEncode for Option<u128> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <u128>::sse_encode(value, serializer);
+        }
+    }
+}
+
 impl SseEncode for Option<bool> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -659,6 +640,9 @@ impl SseEncode for crate::whisper_caption::whisper::Segment {
         <f64>::sse_encode(self.start, serializer);
         <f64>::sse_encode(self.duration, serializer);
         <crate::whisper_caption::whisper::DecodingResult>::sse_encode(self.dr, serializer);
+        <Option<u128>>::sse_encode(self.reasoning_duration, serializer);
+        <Option<String>>::sse_encode(self.reasoning_lang, serializer);
+        <Option<u128>>::sse_encode(self.audio_duration, serializer);
     }
 }
 
@@ -679,16 +663,6 @@ impl SseEncode for u8 {
 impl SseEncode for () {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {}
-}
-
-impl SseEncode for usize {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        serializer
-            .cursor
-            .write_u64::<NativeEndian>(self as _)
-            .unwrap();
-    }
 }
 
 impl SseEncode for crate::api::whisper::WhisperClient {
@@ -717,7 +691,6 @@ mod io {
     // Section: imports
 
     use super::*;
-    use crate::api::whisper::*;
     use flutter_rust_bridge::for_generated::byteorder::{
         NativeEndian, ReadBytesExt, WriteBytesExt,
     };
@@ -736,33 +709,6 @@ mod io {
         // Codec=Cst (C-struct based), see doc to use other codecs
         fn cst_decode(self) -> flutter_rust_bridge::for_generated::anyhow::Error {
             unimplemented!()
-        }
-    }
-    impl CstDecode<CancellationToken> for usize {
-        // Codec=Cst (C-struct based), see doc to use other codecs
-        fn cst_decode(self) -> CancellationToken {
-            flutter_rust_bridge::for_generated::rust_auto_opaque_decode_owned(CstDecode::<
-                RustOpaqueNom<
-                    flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CancellationToken>,
-                >,
-            >::cst_decode(
-                self
-            ))
-        }
-    }
-    impl
-        CstDecode<
-            RustOpaqueNom<
-                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CancellationToken>,
-            >,
-        > for usize
-    {
-        // Codec=Cst (C-struct based), see doc to use other codecs
-        fn cst_decode(
-            self,
-        ) -> RustOpaqueNom<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CancellationToken>>
-        {
-            unsafe { decode_rust_opaque_nom(self as _) }
         }
     }
     impl
@@ -789,6 +735,12 @@ mod io {
         fn cst_decode(self) -> String {
             let vec: Vec<u8> = self.cst_decode();
             String::from_utf8(vec).unwrap()
+        }
+    }
+    impl CstDecode<u128> for *mut wire_cst_list_prim_u_8_strict {
+        // Codec=Cst (C-struct based), see doc to use other codecs
+        fn cst_decode(self) -> u128 {
+            CstDecode::<String>::cst_decode(self).parse().unwrap()
         }
     }
     impl CstDecode<bool> for *mut bool {
@@ -861,6 +813,9 @@ mod io {
                 start: self.start.cst_decode(),
                 duration: self.duration.cst_decode(),
                 dr: self.dr.cst_decode(),
+                reasoning_duration: self.reasoning_duration.cst_decode(),
+                reasoning_lang: self.reasoning_lang.cst_decode(),
+                audio_duration: self.audio_duration.cst_decode(),
             }
         }
     }
@@ -899,6 +854,9 @@ mod io {
                 start: Default::default(),
                 duration: Default::default(),
                 dr: Default::default(),
+                reasoning_duration: core::ptr::null_mut(),
+                reasoning_lang: core::ptr::null_mut(),
+                audio_duration: core::ptr::null_mut(),
             }
         }
     }
@@ -927,9 +885,9 @@ mod io {
     #[no_mangle]
     pub extern "C" fn frbgen_fl_caption_wire__crate__api__whisper__cancel_cancellation_token(
         port_: i64,
-        token: usize,
+        token_id: *mut wire_cst_list_prim_u_8_strict,
     ) {
-        wire__crate__api__whisper__cancel_cancellation_token_impl(port_, token)
+        wire__crate__api__whisper__cancel_cancellation_token_impl(port_, token_id)
     }
 
     #[no_mangle]
@@ -947,9 +905,10 @@ mod io {
         audio_device: *mut wire_cst_list_prim_u_8_strict,
         audio_device_is_input: *mut bool,
         audio_language: *mut wire_cst_list_prim_u_8_strict,
-        cancel_token: usize,
+        cancel_token_id: *mut wire_cst_list_prim_u_8_strict,
         with_timestamps: *mut bool,
         verbose: *mut bool,
+        try_with_cuda: *mut bool,
     ) {
         wire__crate__api__whisper__launch_caption_impl(
             port_,
@@ -958,9 +917,10 @@ mod io {
             audio_device,
             audio_device_is_input,
             audio_language,
-            cancel_token,
+            cancel_token_id,
             with_timestamps,
             verbose,
+            try_with_cuda,
         )
     }
 
@@ -981,24 +941,6 @@ mod io {
             is_multilingual,
             is_quantized,
         )
-    }
-
-    #[no_mangle]
-    pub extern "C" fn frbgen_fl_caption_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancellationToken(
-        ptr: *const std::ffi::c_void,
-    ) {
-        unsafe {
-            StdArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CancellationToken>>::increment_strong_count(ptr as _);
-        }
-    }
-
-    #[no_mangle]
-    pub extern "C" fn frbgen_fl_caption_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCancellationToken(
-        ptr: *const std::ffi::c_void,
-    ) {
-        unsafe {
-            StdArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CancellationToken>>::decrement_strong_count(ptr as _);
-        }
     }
 
     #[no_mangle]
@@ -1101,6 +1043,9 @@ mod io {
         start: f64,
         duration: f64,
         dr: wire_cst_decoding_result,
+        reasoning_duration: *mut wire_cst_list_prim_u_8_strict,
+        reasoning_lang: *mut wire_cst_list_prim_u_8_strict,
+        audio_duration: *mut wire_cst_list_prim_u_8_strict,
     }
     #[repr(C)]
     #[derive(Clone, Copy)]

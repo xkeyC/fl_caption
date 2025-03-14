@@ -42,7 +42,7 @@ class _ModelDownloadDialogState extends ConsumerState<ModelDownloadDialog> {
               .startDownload();
       if (!context.mounted) return;
       if (!mounted) return;
-      Navigator.maybePop(context, ok);
+      if (ok) Navigator.maybePop(context, ok);
     }();
   }
 
@@ -70,7 +70,7 @@ class _ModelDownloadDialogState extends ConsumerState<ModelDownloadDialog> {
 
             // 计算下载速度 (假设总大小从model.size中解析)
             final progressDiff = downloadState.progress - lastProgress;
-            final totalSizeInBytes = _parseSize(widget.model.size);
+            final totalSizeInBytes = _parseSize(widget.model.sizeInt);
             final bytesPerSecond = (progressDiff / 100) * totalSizeInBytes;
 
             setState(() {
@@ -86,22 +86,8 @@ class _ModelDownloadDialogState extends ConsumerState<ModelDownloadDialog> {
     });
   }
 
-  double _parseSize(String size) {
-    // 简单解析像 "1.5 GiB" 或 "514 MiB" 的字符串
-    final parts = size.split(' ');
-    if (parts.length != 2) return 0;
-
-    final value = double.tryParse(parts[0]) ?? 0;
-    final unit = parts[1];
-
-    switch (unit) {
-      case 'GiB':
-        return value * 1024 * 1024 * 1024;
-      case 'MiB':
-        return value * 1024 * 1024;
-      default:
-        return value;
-    }
+  double _parseSize(int size) {
+    return size * 1024.0;
   }
 
   String _formatDuration(Duration duration) {

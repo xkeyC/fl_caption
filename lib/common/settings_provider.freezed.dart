@@ -25,6 +25,9 @@ mixin _$AppSettingsData {
   String get llmProviderUrl => throw _privateConstructorUsedError;
   String get llmProviderKey => throw _privateConstructorUsedError;
   String get llmProviderModel => throw _privateConstructorUsedError;
+  bool get tryWithCuda => throw _privateConstructorUsedError;
+  String? get audioLanguage => throw _privateConstructorUsedError;
+  String? get captionLanguage => throw _privateConstructorUsedError;
 
   /// Serializes this AppSettingsData to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -47,7 +50,10 @@ abstract class $AppSettingsDataCopyWith<$Res> {
       String whisperModel,
       String llmProviderUrl,
       String llmProviderKey,
-      String llmProviderModel});
+      String llmProviderModel,
+      bool tryWithCuda,
+      String? audioLanguage,
+      String? captionLanguage});
 }
 
 /// @nodoc
@@ -70,6 +76,9 @@ class _$AppSettingsDataCopyWithImpl<$Res, $Val extends AppSettingsData>
     Object? llmProviderUrl = null,
     Object? llmProviderKey = null,
     Object? llmProviderModel = null,
+    Object? tryWithCuda = null,
+    Object? audioLanguage = freezed,
+    Object? captionLanguage = freezed,
   }) {
     return _then(_value.copyWith(
       modelWorkingDir: null == modelWorkingDir
@@ -92,6 +101,18 @@ class _$AppSettingsDataCopyWithImpl<$Res, $Val extends AppSettingsData>
           ? _value.llmProviderModel
           : llmProviderModel // ignore: cast_nullable_to_non_nullable
               as String,
+      tryWithCuda: null == tryWithCuda
+          ? _value.tryWithCuda
+          : tryWithCuda // ignore: cast_nullable_to_non_nullable
+              as bool,
+      audioLanguage: freezed == audioLanguage
+          ? _value.audioLanguage
+          : audioLanguage // ignore: cast_nullable_to_non_nullable
+              as String?,
+      captionLanguage: freezed == captionLanguage
+          ? _value.captionLanguage
+          : captionLanguage // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -109,7 +130,10 @@ abstract class _$$AppSettingsDataImplCopyWith<$Res>
       String whisperModel,
       String llmProviderUrl,
       String llmProviderKey,
-      String llmProviderModel});
+      String llmProviderModel,
+      bool tryWithCuda,
+      String? audioLanguage,
+      String? captionLanguage});
 }
 
 /// @nodoc
@@ -130,6 +154,9 @@ class __$$AppSettingsDataImplCopyWithImpl<$Res>
     Object? llmProviderUrl = null,
     Object? llmProviderKey = null,
     Object? llmProviderModel = null,
+    Object? tryWithCuda = null,
+    Object? audioLanguage = freezed,
+    Object? captionLanguage = freezed,
   }) {
     return _then(_$AppSettingsDataImpl(
       modelWorkingDir: null == modelWorkingDir
@@ -152,6 +179,18 @@ class __$$AppSettingsDataImplCopyWithImpl<$Res>
           ? _value.llmProviderModel
           : llmProviderModel // ignore: cast_nullable_to_non_nullable
               as String,
+      tryWithCuda: null == tryWithCuda
+          ? _value.tryWithCuda
+          : tryWithCuda // ignore: cast_nullable_to_non_nullable
+              as bool,
+      audioLanguage: freezed == audioLanguage
+          ? _value.audioLanguage
+          : audioLanguage // ignore: cast_nullable_to_non_nullable
+              as String?,
+      captionLanguage: freezed == captionLanguage
+          ? _value.captionLanguage
+          : captionLanguage // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -166,7 +205,10 @@ class _$AppSettingsDataImpl
       required this.whisperModel,
       required this.llmProviderUrl,
       required this.llmProviderKey,
-      required this.llmProviderModel});
+      required this.llmProviderModel,
+      required this.tryWithCuda,
+      this.audioLanguage,
+      this.captionLanguage});
 
   factory _$AppSettingsDataImpl.fromJson(Map<String, dynamic> json) =>
       _$$AppSettingsDataImplFromJson(json);
@@ -181,10 +223,16 @@ class _$AppSettingsDataImpl
   final String llmProviderKey;
   @override
   final String llmProviderModel;
+  @override
+  final bool tryWithCuda;
+  @override
+  final String? audioLanguage;
+  @override
+  final String? captionLanguage;
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'AppSettingsData(modelWorkingDir: $modelWorkingDir, whisperModel: $whisperModel, llmProviderUrl: $llmProviderUrl, llmProviderKey: $llmProviderKey, llmProviderModel: $llmProviderModel)';
+    return 'AppSettingsData(modelWorkingDir: $modelWorkingDir, whisperModel: $whisperModel, llmProviderUrl: $llmProviderUrl, llmProviderKey: $llmProviderKey, llmProviderModel: $llmProviderModel, tryWithCuda: $tryWithCuda, audioLanguage: $audioLanguage, captionLanguage: $captionLanguage)';
   }
 
   @override
@@ -196,7 +244,10 @@ class _$AppSettingsDataImpl
       ..add(DiagnosticsProperty('whisperModel', whisperModel))
       ..add(DiagnosticsProperty('llmProviderUrl', llmProviderUrl))
       ..add(DiagnosticsProperty('llmProviderKey', llmProviderKey))
-      ..add(DiagnosticsProperty('llmProviderModel', llmProviderModel));
+      ..add(DiagnosticsProperty('llmProviderModel', llmProviderModel))
+      ..add(DiagnosticsProperty('tryWithCuda', tryWithCuda))
+      ..add(DiagnosticsProperty('audioLanguage', audioLanguage))
+      ..add(DiagnosticsProperty('captionLanguage', captionLanguage));
   }
 
   @override
@@ -213,13 +264,27 @@ class _$AppSettingsDataImpl
             (identical(other.llmProviderKey, llmProviderKey) ||
                 other.llmProviderKey == llmProviderKey) &&
             (identical(other.llmProviderModel, llmProviderModel) ||
-                other.llmProviderModel == llmProviderModel));
+                other.llmProviderModel == llmProviderModel) &&
+            (identical(other.tryWithCuda, tryWithCuda) ||
+                other.tryWithCuda == tryWithCuda) &&
+            (identical(other.audioLanguage, audioLanguage) ||
+                other.audioLanguage == audioLanguage) &&
+            (identical(other.captionLanguage, captionLanguage) ||
+                other.captionLanguage == captionLanguage));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, modelWorkingDir, whisperModel,
-      llmProviderUrl, llmProviderKey, llmProviderModel);
+  int get hashCode => Object.hash(
+      runtimeType,
+      modelWorkingDir,
+      whisperModel,
+      llmProviderUrl,
+      llmProviderKey,
+      llmProviderModel,
+      tryWithCuda,
+      audioLanguage,
+      captionLanguage);
 
   /// Create a copy of AppSettingsData
   /// with the given fields replaced by the non-null parameter values.
@@ -244,7 +309,10 @@ abstract class _AppSettingsData implements AppSettingsData {
       required final String whisperModel,
       required final String llmProviderUrl,
       required final String llmProviderKey,
-      required final String llmProviderModel}) = _$AppSettingsDataImpl;
+      required final String llmProviderModel,
+      required final bool tryWithCuda,
+      final String? audioLanguage,
+      final String? captionLanguage}) = _$AppSettingsDataImpl;
 
   factory _AppSettingsData.fromJson(Map<String, dynamic> json) =
       _$AppSettingsDataImpl.fromJson;
@@ -259,6 +327,12 @@ abstract class _AppSettingsData implements AppSettingsData {
   String get llmProviderKey;
   @override
   String get llmProviderModel;
+  @override
+  bool get tryWithCuda;
+  @override
+  String? get audioLanguage;
+  @override
+  String? get captionLanguage;
 
   /// Create a copy of AppSettingsData
   /// with the given fields replaced by the non-null parameter values.

@@ -86,39 +86,78 @@ class App extends HookConsumerWidget {
           child: Stack(
             children: [
               Center(
-                child: caption.maybeWhen(
-                  orElse: () => SizedBox(),
-                  data: (w) {
-                    return Column(
-                      mainAxisSize: MainAxisSize.min,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (caption.hasValue) ...[
+                      Text(
+                        caption.value!.text.isEmpty
+                            ? "<wait for Whisper ...>"
+                            : caption.value!.text,
+                        style: TextStyle(fontSize: 16, color: Colors.white),
+                        maxLines: 1,
+                      ),
+                      SizedBox(height: 12),
+                      Consumer(
+                        builder: (
+                          BuildContext context,
+                          WidgetRef ref,
+                          Widget? child,
+                        ) {
+                          final text = ref.watch(translateProviderProvider);
+                          return Text(
+                            text,
+                            style: TextStyle(fontSize: 22),
+                            maxLines: 3,
+                          );
+                        },
+                      ),
+                    ],
+                    if (caption.hasError)
+                      HomeErrorWidget(
+                        errorType: caption.value?.errorType,
+                        errorInfo: caption.error,
+                      ),
+                  ],
+                ),
+              ),
+              Positioned(
+                left: 12,
+                bottom: 12,
+                child: Row(
+                  children: [
+                    // 状态指示器，显示当前识别的语言，以及解码速度
+                    Row(
                       children: [
-                        Text(
-                          w,
-                          style: TextStyle(fontSize: 16, color: Colors.white),
-                          maxLines: 1,
-                        ),
-                        SizedBox(height: 12),
-                        Consumer(
-                          builder: (
-                            BuildContext context,
-                            WidgetRef ref,
-                            Widget? child,
-                          ) {
-                            final text = ref.watch(translateProviderProvider);
-                            return Text(
-                              text,
-                              style: TextStyle(fontSize: 22),
-                              maxLines: 3,
-                            );
-                          },
-                        ),
+                        if (caption.hasValue) ...[
+                          Text(
+                            "audioLang: ${caption.value?.reasoningLang ?? "unknown"}",
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.white.withValues(alpha: .6),
+                            ),
+                          ),
+                          SizedBox(width: 6),
+                          Text(
+                            "reasoningSpeed: ${caption.value?.reasoningDuration?.inMilliseconds ?? "?"}ms",
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.white.withValues(alpha: .6),
+                            ),
+                          ),
+                          SizedBox(width: 6),
+                          // auto duration
+                          Text(
+                            "audioDuration: ${((caption.value?.audioDuration?.inMilliseconds ?? 0) / 1000).toStringAsFixed(2)}s",
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.white.withValues(alpha: .6),
+                            ),
+                          ),
+                        ],
                       ],
-                    );
-                  },
-                  loading: () => ProgressRing(),
-                  error:
-                      (error, __) =>
-                          HomeErrorWidget(errorType: null, errorInfo: error),
+                    ),
+                  ],
                 ),
               ),
               Positioned(

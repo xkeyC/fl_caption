@@ -14,6 +14,9 @@ _$AppSettingsDataImpl _$$AppSettingsDataImplFromJson(
       llmProviderUrl: json['llmProviderUrl'] as String,
       llmProviderKey: json['llmProviderKey'] as String,
       llmProviderModel: json['llmProviderModel'] as String,
+      tryWithCuda: json['tryWithCuda'] as bool,
+      audioLanguage: json['audioLanguage'] as String?,
+      captionLanguage: json['captionLanguage'] as String?,
     );
 
 Map<String, dynamic> _$$AppSettingsDataImplToJson(
@@ -24,13 +27,16 @@ Map<String, dynamic> _$$AppSettingsDataImplToJson(
       'llmProviderUrl': instance.llmProviderUrl,
       'llmProviderKey': instance.llmProviderKey,
       'llmProviderModel': instance.llmProviderModel,
+      'tryWithCuda': instance.tryWithCuda,
+      'audioLanguage': instance.audioLanguage,
+      'captionLanguage': instance.captionLanguage,
     };
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$appSettingsHash() => r'b76895f1a641e3b3eed28f1ee0d851a0586b7d78';
+String _$appSettingsHash() => r'038cba810a33aa08fa7b2fca815ab6ce5e2a8b87';
 
 /// See also [AppSettings].
 @ProviderFor(AppSettings)

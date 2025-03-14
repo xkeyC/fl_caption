@@ -1,4 +1,3 @@
-
 import 'package:flutter/foundation.dart';
 import 'package:hive_ce/hive.dart';
 import 'package:path_provider/path_provider.dart';
@@ -17,6 +16,9 @@ class AppSettingsData with _$AppSettingsData {
     required String llmProviderUrl,
     required String llmProviderKey,
     required String llmProviderModel,
+    required bool tryWithCuda,
+    String? audioLanguage,
+    String? captionLanguage,
   }) = _AppSettingsData;
 
   factory AppSettingsData.fromJson(Map<String, dynamic> json) =>
@@ -33,10 +35,7 @@ class AppSettings extends _$AppSettings {
       defaultValue:
           "${(await getApplicationSupportDirectory()).absolute.path.replaceAll("\\", "/")}/whisper",
     );
-    final String whisperModel = box.get(
-      "whisper_model",
-      defaultValue: "base",
-    );
+    final String whisperModel = box.get("whisper_model", defaultValue: "base");
     final String llmProviderUrl = box.get(
       "llm_provider_url",
       defaultValue: "http://localhost:11434/v1/chat/completions",
@@ -46,12 +45,19 @@ class AppSettings extends _$AppSettings {
       "llm_provider_model",
       defaultValue: "",
     );
+    final String? audioLanguage = box.get("audio_language");
+    final String? captionLanguage = box.get("caption_language");
+    final bool tryWithCuda = box.get("try_with_cuda", defaultValue: true);
+
     return AppSettingsData(
       modelWorkingDir: modelWorkingDir,
       whisperModel: whisperModel,
       llmProviderUrl: llmProviderUrl,
       llmProviderKey: llmProviderKey,
       llmProviderModel: llmProviderModel,
+      audioLanguage: audioLanguage,
+      captionLanguage: captionLanguage,
+      tryWithCuda: tryWithCuda,
     );
   }
 
@@ -69,6 +75,8 @@ class AppSettings extends _$AppSettings {
       await box.put("llm_provider_url", state.value!.llmProviderUrl);
       await box.put("llm_provider_key", state.value!.llmProviderKey);
       await box.put("llm_provider_model", state.value!.llmProviderModel);
+      await box.put("audio_language", state.value!.audioLanguage);
+      await box.put("caption_language", state.value!.captionLanguage);
       return true;
     } catch (e) {
       debugPrint("Error saving settings: $e");

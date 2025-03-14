@@ -49,15 +49,27 @@ class Segment {
   final double start;
   final double duration;
   final DecodingResult dr;
+  final BigInt? reasoningDuration;
+  final String? reasoningLang;
+  final BigInt? audioDuration;
 
   const Segment({
     required this.start,
     required this.duration,
     required this.dr,
+    this.reasoningDuration,
+    this.reasoningLang,
+    this.audioDuration,
   });
 
   @override
-  int get hashCode => start.hashCode ^ duration.hashCode ^ dr.hashCode;
+  int get hashCode =>
+      start.hashCode ^
+      duration.hashCode ^
+      dr.hashCode ^
+      reasoningDuration.hashCode ^
+      reasoningLang.hashCode ^
+      audioDuration.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -66,5 +78,8 @@ class Segment {
           runtimeType == other.runtimeType &&
           start == other.start &&
           duration == other.duration &&
-          dr == other.dr;
+          dr == other.dr &&
+          reasoningDuration == other.reasoningDuration &&
+          reasoningLang == other.reasoningLang &&
+          audioDuration == other.audioDuration;
 }

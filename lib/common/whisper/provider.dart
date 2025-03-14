@@ -67,35 +67,62 @@ class DartWhisper extends _$DartWhisper {
   }
 }
 
+class DartWhisperCaptionResult {
+  final String text;
+  final Duration? reasoningDuration;
+  final Duration? audioDuration;
+  final String? reasoningLang;
+  final DartWhisperClientError? errorType;
+
+  const DartWhisperCaptionResult({
+    required this.text,
+    this.reasoningDuration,
+    this.audioDuration,
+    this.reasoningLang,
+    this.errorType,
+  });
+}
+
 @riverpod
 class DartWhisperCaption extends _$DartWhisperCaption {
-  rs.CancellationToken? _cancelToken;
-
   @override
-  Future<String> build() async {
+  Future<DartWhisperCaptionResult> build() async {
     debugPrint("[DartWhisperCaption] build");
     final dartWhisper = await ref.watch(dartWhisperProvider.future);
     debugPrint("[DartWhisperCaption] WhisperClient: ${dartWhisper.client}");
-    _cancelToken = await rs.createCancellationToken();
+    final cancelToken = await rs.createCancellationToken();
     debugPrint("[DartWhisperCaption] launchCaption");
+    final appSettings = await ref.read(appSettingsProvider.future);
     final sub = rs
         .launchCaption(
           whisperClient: dartWhisper.client,
-          cancelToken: _cancelToken!,
+          cancelTokenId: cancelToken,
           audioDeviceIsInput: false,
+          audioLanguage: appSettings.audioLanguage,
+          tryWithCuda: appSettings.tryWithCuda,
         )
         .listen(
           (data) {
             if (data.isNotEmpty) {
-              debugPrint("[DartWhisperCaption] Data: $data");
+              // debugPrint("[DartWhisperCaption] Data: $data");
               final newData = data.map((e) => e.dr.text).toList().join(" ");
-              // 如果 newData + state 大于 120 字符 ，则作为一个新的 state
-              final stateLen = (state.value?.length ?? 0);
-              final newDataLen = newData.length;
-              if (stateLen + newDataLen > 240) {
-                state = AsyncValue.data(newData);
-              } else {
-                state = AsyncValue.data((state.value ?? "") + newData);
+              if (newData.isNotEmpty) {
+                // debugPrint("[DartWhisperCaption] New Data: $newData");
+                state = AsyncData(
+                  DartWhisperCaptionResult(
+                    text: newData,
+                    reasoningDuration: Duration(
+                      milliseconds:
+                          data.lastOrNull?.reasoningDuration?.toInt() ?? 0,
+                    ),
+                    audioDuration: Duration(
+                      milliseconds:
+                          data.lastOrNull?.audioDuration?.toInt() ?? 0,
+                    ),
+                    reasoningLang: data.lastOrNull?.reasoningLang,
+                    errorType: dartWhisper.errorType,
+                  ),
+                );
               }
             }
           },
@@ -107,16 +134,15 @@ class DartWhisperCaption extends _$DartWhisperCaption {
           },
         );
     ref.onDispose(() {
+      debugPrint("[DartWhisperCaption] Dispose");
       sub.cancel();
+      cancel(cancelToken);
     });
-    return "";
+    return DartWhisperCaptionResult(text: "", errorType: dartWhisper.errorType);
   }
 
-  void cancel() {
+  void cancel(String cancelToken) {
     debugPrint("[DartWhisperCaption] Cancel");
-    if (_cancelToken != null) {
-      rs.cancelCancellationToken(token: _cancelToken!);
-      _cancelToken = null;
-    }
+    rs.cancelCancellationToken(tokenId: cancelToken);
   }
 }

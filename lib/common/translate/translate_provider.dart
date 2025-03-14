@@ -1,11 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:fl_caption/common/io/http.dart';
 import 'package:fl_caption/common/settings_provider.dart';
+import 'package:fl_caption/common/whisper/language.dart';
 import 'package:fl_caption/common/whisper/provider.dart';
+import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:synchronized/synchronized.dart';
 
@@ -16,23 +17,32 @@ class TranslateProvider extends _$TranslateProvider {
   @override
   String build() {
     ref.listen(dartWhisperCaptionProvider, (p, n) async {
-      _updateTranslate(p ?? AsyncValue.data(""), n);
+      _updateTranslate(p?.value?.text, n.value?.text, n.value?.reasoningLang);
     });
     return "";
   }
 
-  void _updateTranslate(AsyncValue<String> p, AsyncValue<String> n) async {
-    final appSettings = await ref.read(appSettingsProvider.future);
+  void _updateTranslate(String? p, String? n, String? lang) async {
+    final appSettings = await ref.watch(appSettingsProvider.future);
     if (appSettings.llmProviderUrl.isEmpty ||
         appSettings.llmProviderModel.isEmpty) {
-      state = "<no config llm>";
+      state = "<Not config llm>";
       return;
     }
-    final pText = p.value ?? "";
-    final text = n.value ?? "";
+    if (appSettings.captionLanguage == null) {
+      state = "<Not config captionLanguage>";
+      return;
+    }
+    final captionLanguage = whisperLanguages[appSettings.captionLanguage!]!;
+    final pText = p ?? "";
+    final text = n ?? "";
     if (pText == text) return;
     if (text.isEmpty) return;
-    _doTranslate(text: text, appSettings: appSettings);
+    _doTranslate(
+      text: text,
+      appSettings: appSettings,
+      captionLanguage: captionLanguage,
+    );
   }
 
   final _asyncLock = Lock();
@@ -42,10 +52,16 @@ class TranslateProvider extends _$TranslateProvider {
   void _doTranslate({
     required String text,
     required AppSettingsData appSettings,
+    required WhisperLanguage captionLanguage,
   }) async {
     await _asyncLock.synchronized(() async {
       // state = "";
       _dio ??= await RDio.createRDioClient();
+      final cancelToken = CancelToken();
+      ref.onDispose(() {
+        cancelToken.cancel();
+        _dio = null;
+      });
       try {
         // Set up streaming request
         final response = await _dio!.post(
@@ -56,13 +72,13 @@ class TranslateProvider extends _$TranslateProvider {
               {
                 "role": "system",
                 "content":
-                    r"<system>You are an online subtitle translator, translating user input into Chinese (zh_CN), and do not output subtitle content.</system>",
+                    "<system>You are an online subtitle translator, translating user input into ${captionLanguage.displayName} (${captionLanguage.code}), and out put to result block; eg: <result>This is Translate Output</result>> </system>",
               },
               {"role": "user", "content": text},
             ],
-            "temperature": 0.6,
+            "temperature": 0.1,
             "stream": true, // Enable streaming
-            "max_tokens": 512,
+            "max_tokens": 256,
           },
           options: Options(
             headers: {
@@ -72,7 +88,10 @@ class TranslateProvider extends _$TranslateProvider {
               "Accept-Charset": "utf-8",
             },
             responseType: ResponseType.stream, // Set response type to stream
+            sendTimeout: Duration(seconds: 1),
+            receiveTimeout: Duration(seconds: 1),
           ),
+          cancelToken: cancelToken,
         );
 
         String partialTranslation = "";
@@ -100,9 +119,16 @@ class TranslateProvider extends _$TranslateProvider {
             }
           }
         }
-        state = partialTranslation;
+        // Update the state with the final translation [partialTranslation] eg:<result>This is Translate Output</result>
+        final resultRegex = RegExp(r'<result>(.*?)</result>', dotAll: true);
+        final match = resultRegex.firstMatch(partialTranslation);
+        if (match != null && match.groupCount >= 1) {
+          state = match.group(1) ?? "";
+        } else {
+          state = partialTranslation;
+        }
       } catch (e) {
-        state = "Error: $e";
+        debugPrint("[TranslateProvider] Error: $e");
       }
     });
   }

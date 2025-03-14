@@ -49,6 +49,7 @@ class ModelDownloadState extends _$ModelDownloadState {
   CancelToken? _downloadCancelToken;
 
   Future<bool> startDownload() async {
+    state = state.copyWith(errorText: null);
     if (state.isReady) return true;
     final dir = Directory(state.modelPath);
     if (!await dir.exists()) {

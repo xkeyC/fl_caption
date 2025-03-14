@@ -1,13 +1,31 @@
 use crate::{frb_generated::StreamSink, whisper_caption};
+use once_cell::sync::Lazy;
+use std::collections::HashMap;
+use std::sync::Mutex;
+use uuid::Uuid;
 
 pub type CancellationToken = tokio_util::sync::CancellationToken;
 
-pub fn create_cancellation_token() -> CancellationToken {
-    CancellationToken::new()
+static TOKEN_STORE: Lazy<Mutex<HashMap<String, CancellationToken>>> =
+    Lazy::new(|| Mutex::new(HashMap::new()));
+
+pub fn create_cancellation_token() -> String {
+    let token = CancellationToken::new();
+    let uuid = Uuid::new_v4().to_string();
+
+    if let Ok(mut store) = TOKEN_STORE.lock() {
+        store.insert(uuid.clone(), token);
+    }
+
+    uuid
 }
 
-pub fn cancel_cancellation_token(token: CancellationToken) {
-    token.cancel();
+pub fn cancel_cancellation_token(token_id: String) {
+    if let Ok(mut store) = TOKEN_STORE.lock() {
+        if let Some(token) = store.remove(&token_id) {
+            token.cancel();
+        }
+    }
 }
 
 pub struct WhisperClient {
@@ -42,10 +60,22 @@ pub async fn launch_caption(
     audio_device: Option<String>,
     audio_device_is_input: Option<bool>,
     audio_language: Option<String>,
-    cancel_token: CancellationToken,
+    cancel_token_id: String,
     with_timestamps: Option<bool>,
     verbose: Option<bool>,
+    try_with_cuda: Option<bool>,
 ) -> anyhow::Result<()> {
+    let cancel_token = if let Ok(store) = TOKEN_STORE.lock() {
+        store
+            .get(&cancel_token_id)
+            .cloned()
+            .unwrap_or_else(CancellationToken::new)
+    } else {
+        return Err(anyhow::Error::msg(
+            "Failed to get cancellation token",
+        ));
+    };
+
     whisper_caption::launch_caption(
         whisper_client.whisper_model,
         &whisper_client.whisper_config,
@@ -58,6 +88,7 @@ pub async fn launch_caption(
         cancel_token,
         with_timestamps,
         verbose,
+        try_with_cuda.unwrap_or(false),
         move |segments| {
             let _ = stream_sink.add(segments);
         },

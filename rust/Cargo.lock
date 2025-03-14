@@ -144,6 +144,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "bindgen_cuda"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1f8489af5b7d17a81bffe37e0f4d6e1e4de87c87329d05447f22c35d95a1227d"
+dependencies = [
+ "glob",
+ "num_cpus",
+ "rayon",
+]
+
+[[package]]
 name = "bit-set"
 version = "0.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -230,6 +241,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bef79e00300acaaa6b0b33168e2ed5050f06125d1add87e7103c40a119083581"
 dependencies = [
  "byteorder",
+ "candle-kernels",
+ "cudarc",
  "gemm 0.17.1",
  "half",
  "memmap2",
@@ -241,8 +254,18 @@ dependencies = [
  "safetensors",
  "thiserror",
  "ug",
+ "ug-cuda",
  "yoke",
  "zip",
+]
+
+[[package]]
+name = "candle-kernels"
+version = "0.8.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e3134cc19a080a326f95bdcbe057ecaa9658598e5146e37ba1a8cd550c342a9b"
+dependencies = [
+ "bindgen_cuda",
 ]
 
 [[package]]
@@ -452,6 +475,16 @@ checksum = "1bfb12502f3fc46cca1bb51ac28df9d618d813cdc3d2f25b9fe775a34af26bb3"
 dependencies = [
  "generic-array",
  "typenum",
+]
+
+[[package]]
+name = "cudarc"
+version = "0.13.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "486c221362668c63a1636cfa51463b09574433b39029326cff40864b3ba12b6e"
+dependencies = [
+ "half",
+ "libloading",
 ]
 
 [[package]]
@@ -1930,6 +1963,7 @@ dependencies = [
  "candle-transformers",
  "cpal",
  "flutter_rust_bridge",
+ "once_cell",
  "rand 0.9.0",
  "rand_distr 0.5.1",
  "rubato",
@@ -1937,6 +1971,7 @@ dependencies = [
  "tokenizers",
  "tokio",
  "tokio-util",
+ "uuid",
 ]
 
 [[package]]
@@ -2353,6 +2388,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "ug-cuda"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "50758486d7941f8b0a636ba7e29455c07071f41590beac1fd307ec893e8db69a"
+dependencies = [
+ "cudarc",
+ "half",
+ "serde",
+ "thiserror",
+ "ug",
+]
+
+[[package]]
 name = "unicode-ident"
 version = "1.0.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2384,6 +2432,15 @@ name = "unicode_categories"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39ec24b3121d976906ece63c9daad25b85969647682eee313cb5779fdd69e14e"
+
+[[package]]
+name = "uuid"
+version = "1.16.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "458f7a779bf54acc9f347480ac654f68407d3aab21269a6e3c9f922acd9e2da9"
+dependencies = [
+ "getrandom 0.3.1",
+]
 
 [[package]]
 name = "version_check"

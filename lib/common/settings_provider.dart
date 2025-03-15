@@ -13,10 +13,11 @@ class AppSettingsData with _$AppSettingsData {
   factory AppSettingsData({
     required String modelWorkingDir,
     required String whisperModel,
+    required bool tryWithCuda,
     required String llmProviderUrl,
     required String llmProviderKey,
     required String llmProviderModel,
-    required bool tryWithCuda,
+    required bool llmContextOptimization,
     String? audioLanguage,
     String? captionLanguage,
   }) = _AppSettingsData;
@@ -45,6 +46,11 @@ class AppSettings extends _$AppSettings {
       "llm_provider_model",
       defaultValue: "",
     );
+    final llmContextOptimization = box.get(
+      "llm_context_optimization",
+      defaultValue: true,
+    );
+
     final String? audioLanguage = box.get("audio_language");
     final String? captionLanguage = box.get("caption_language");
     final bool tryWithCuda = box.get("try_with_cuda", defaultValue: true);
@@ -58,6 +64,7 @@ class AppSettings extends _$AppSettings {
       audioLanguage: audioLanguage,
       captionLanguage: captionLanguage,
       tryWithCuda: tryWithCuda,
+      llmContextOptimization: llmContextOptimization,
     );
   }
 
@@ -77,6 +84,11 @@ class AppSettings extends _$AppSettings {
       await box.put("llm_provider_model", state.value!.llmProviderModel);
       await box.put("audio_language", state.value!.audioLanguage);
       await box.put("caption_language", state.value!.captionLanguage);
+      await box.put("try_with_cuda", state.value!.tryWithCuda);
+      await box.put(
+        "llm_context_optimization",
+        state.value!.llmContextOptimization,
+      );
       return true;
     } catch (e) {
       debugPrint("Error saving settings: $e");

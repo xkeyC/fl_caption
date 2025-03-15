@@ -22,10 +22,11 @@ AppSettingsData _$AppSettingsDataFromJson(Map<String, dynamic> json) {
 mixin _$AppSettingsData {
   String get modelWorkingDir => throw _privateConstructorUsedError;
   String get whisperModel => throw _privateConstructorUsedError;
+  bool get tryWithCuda => throw _privateConstructorUsedError;
   String get llmProviderUrl => throw _privateConstructorUsedError;
   String get llmProviderKey => throw _privateConstructorUsedError;
   String get llmProviderModel => throw _privateConstructorUsedError;
-  bool get tryWithCuda => throw _privateConstructorUsedError;
+  bool get llmContextOptimization => throw _privateConstructorUsedError;
   String? get audioLanguage => throw _privateConstructorUsedError;
   String? get captionLanguage => throw _privateConstructorUsedError;
 
@@ -48,10 +49,11 @@ abstract class $AppSettingsDataCopyWith<$Res> {
   $Res call(
       {String modelWorkingDir,
       String whisperModel,
+      bool tryWithCuda,
       String llmProviderUrl,
       String llmProviderKey,
       String llmProviderModel,
-      bool tryWithCuda,
+      bool llmContextOptimization,
       String? audioLanguage,
       String? captionLanguage});
 }
@@ -73,10 +75,11 @@ class _$AppSettingsDataCopyWithImpl<$Res, $Val extends AppSettingsData>
   $Res call({
     Object? modelWorkingDir = null,
     Object? whisperModel = null,
+    Object? tryWithCuda = null,
     Object? llmProviderUrl = null,
     Object? llmProviderKey = null,
     Object? llmProviderModel = null,
-    Object? tryWithCuda = null,
+    Object? llmContextOptimization = null,
     Object? audioLanguage = freezed,
     Object? captionLanguage = freezed,
   }) {
@@ -89,6 +92,10 @@ class _$AppSettingsDataCopyWithImpl<$Res, $Val extends AppSettingsData>
           ? _value.whisperModel
           : whisperModel // ignore: cast_nullable_to_non_nullable
               as String,
+      tryWithCuda: null == tryWithCuda
+          ? _value.tryWithCuda
+          : tryWithCuda // ignore: cast_nullable_to_non_nullable
+              as bool,
       llmProviderUrl: null == llmProviderUrl
           ? _value.llmProviderUrl
           : llmProviderUrl // ignore: cast_nullable_to_non_nullable
@@ -101,9 +108,9 @@ class _$AppSettingsDataCopyWithImpl<$Res, $Val extends AppSettingsData>
           ? _value.llmProviderModel
           : llmProviderModel // ignore: cast_nullable_to_non_nullable
               as String,
-      tryWithCuda: null == tryWithCuda
-          ? _value.tryWithCuda
-          : tryWithCuda // ignore: cast_nullable_to_non_nullable
+      llmContextOptimization: null == llmContextOptimization
+          ? _value.llmContextOptimization
+          : llmContextOptimization // ignore: cast_nullable_to_non_nullable
               as bool,
       audioLanguage: freezed == audioLanguage
           ? _value.audioLanguage
@@ -128,10 +135,11 @@ abstract class _$$AppSettingsDataImplCopyWith<$Res>
   $Res call(
       {String modelWorkingDir,
       String whisperModel,
+      bool tryWithCuda,
       String llmProviderUrl,
       String llmProviderKey,
       String llmProviderModel,
-      bool tryWithCuda,
+      bool llmContextOptimization,
       String? audioLanguage,
       String? captionLanguage});
 }
@@ -151,10 +159,11 @@ class __$$AppSettingsDataImplCopyWithImpl<$Res>
   $Res call({
     Object? modelWorkingDir = null,
     Object? whisperModel = null,
+    Object? tryWithCuda = null,
     Object? llmProviderUrl = null,
     Object? llmProviderKey = null,
     Object? llmProviderModel = null,
-    Object? tryWithCuda = null,
+    Object? llmContextOptimization = null,
     Object? audioLanguage = freezed,
     Object? captionLanguage = freezed,
   }) {
@@ -167,6 +176,10 @@ class __$$AppSettingsDataImplCopyWithImpl<$Res>
           ? _value.whisperModel
           : whisperModel // ignore: cast_nullable_to_non_nullable
               as String,
+      tryWithCuda: null == tryWithCuda
+          ? _value.tryWithCuda
+          : tryWithCuda // ignore: cast_nullable_to_non_nullable
+              as bool,
       llmProviderUrl: null == llmProviderUrl
           ? _value.llmProviderUrl
           : llmProviderUrl // ignore: cast_nullable_to_non_nullable
@@ -179,9 +192,9 @@ class __$$AppSettingsDataImplCopyWithImpl<$Res>
           ? _value.llmProviderModel
           : llmProviderModel // ignore: cast_nullable_to_non_nullable
               as String,
-      tryWithCuda: null == tryWithCuda
-          ? _value.tryWithCuda
-          : tryWithCuda // ignore: cast_nullable_to_non_nullable
+      llmContextOptimization: null == llmContextOptimization
+          ? _value.llmContextOptimization
+          : llmContextOptimization // ignore: cast_nullable_to_non_nullable
               as bool,
       audioLanguage: freezed == audioLanguage
           ? _value.audioLanguage
@@ -203,10 +216,11 @@ class _$AppSettingsDataImpl
   _$AppSettingsDataImpl(
       {required this.modelWorkingDir,
       required this.whisperModel,
+      required this.tryWithCuda,
       required this.llmProviderUrl,
       required this.llmProviderKey,
       required this.llmProviderModel,
-      required this.tryWithCuda,
+      required this.llmContextOptimization,
       this.audioLanguage,
       this.captionLanguage});
 
@@ -218,13 +232,15 @@ class _$AppSettingsDataImpl
   @override
   final String whisperModel;
   @override
+  final bool tryWithCuda;
+  @override
   final String llmProviderUrl;
   @override
   final String llmProviderKey;
   @override
   final String llmProviderModel;
   @override
-  final bool tryWithCuda;
+  final bool llmContextOptimization;
   @override
   final String? audioLanguage;
   @override
@@ -232,7 +248,7 @@ class _$AppSettingsDataImpl
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'AppSettingsData(modelWorkingDir: $modelWorkingDir, whisperModel: $whisperModel, llmProviderUrl: $llmProviderUrl, llmProviderKey: $llmProviderKey, llmProviderModel: $llmProviderModel, tryWithCuda: $tryWithCuda, audioLanguage: $audioLanguage, captionLanguage: $captionLanguage)';
+    return 'AppSettingsData(modelWorkingDir: $modelWorkingDir, whisperModel: $whisperModel, tryWithCuda: $tryWithCuda, llmProviderUrl: $llmProviderUrl, llmProviderKey: $llmProviderKey, llmProviderModel: $llmProviderModel, llmContextOptimization: $llmContextOptimization, audioLanguage: $audioLanguage, captionLanguage: $captionLanguage)';
   }
 
   @override
@@ -242,10 +258,12 @@ class _$AppSettingsDataImpl
       ..add(DiagnosticsProperty('type', 'AppSettingsData'))
       ..add(DiagnosticsProperty('modelWorkingDir', modelWorkingDir))
       ..add(DiagnosticsProperty('whisperModel', whisperModel))
+      ..add(DiagnosticsProperty('tryWithCuda', tryWithCuda))
       ..add(DiagnosticsProperty('llmProviderUrl', llmProviderUrl))
       ..add(DiagnosticsProperty('llmProviderKey', llmProviderKey))
       ..add(DiagnosticsProperty('llmProviderModel', llmProviderModel))
-      ..add(DiagnosticsProperty('tryWithCuda', tryWithCuda))
+      ..add(
+          DiagnosticsProperty('llmContextOptimization', llmContextOptimization))
       ..add(DiagnosticsProperty('audioLanguage', audioLanguage))
       ..add(DiagnosticsProperty('captionLanguage', captionLanguage));
   }
@@ -259,14 +277,16 @@ class _$AppSettingsDataImpl
                 other.modelWorkingDir == modelWorkingDir) &&
             (identical(other.whisperModel, whisperModel) ||
                 other.whisperModel == whisperModel) &&
+            (identical(other.tryWithCuda, tryWithCuda) ||
+                other.tryWithCuda == tryWithCuda) &&
             (identical(other.llmProviderUrl, llmProviderUrl) ||
                 other.llmProviderUrl == llmProviderUrl) &&
             (identical(other.llmProviderKey, llmProviderKey) ||
                 other.llmProviderKey == llmProviderKey) &&
             (identical(other.llmProviderModel, llmProviderModel) ||
                 other.llmProviderModel == llmProviderModel) &&
-            (identical(other.tryWithCuda, tryWithCuda) ||
-                other.tryWithCuda == tryWithCuda) &&
+            (identical(other.llmContextOptimization, llmContextOptimization) ||
+                other.llmContextOptimization == llmContextOptimization) &&
             (identical(other.audioLanguage, audioLanguage) ||
                 other.audioLanguage == audioLanguage) &&
             (identical(other.captionLanguage, captionLanguage) ||
@@ -279,10 +299,11 @@ class _$AppSettingsDataImpl
       runtimeType,
       modelWorkingDir,
       whisperModel,
+      tryWithCuda,
       llmProviderUrl,
       llmProviderKey,
       llmProviderModel,
-      tryWithCuda,
+      llmContextOptimization,
       audioLanguage,
       captionLanguage);
 
@@ -307,10 +328,11 @@ abstract class _AppSettingsData implements AppSettingsData {
   factory _AppSettingsData(
       {required final String modelWorkingDir,
       required final String whisperModel,
+      required final bool tryWithCuda,
       required final String llmProviderUrl,
       required final String llmProviderKey,
       required final String llmProviderModel,
-      required final bool tryWithCuda,
+      required final bool llmContextOptimization,
       final String? audioLanguage,
       final String? captionLanguage}) = _$AppSettingsDataImpl;
 
@@ -322,13 +344,15 @@ abstract class _AppSettingsData implements AppSettingsData {
   @override
   String get whisperModel;
   @override
+  bool get tryWithCuda;
+  @override
   String get llmProviderUrl;
   @override
   String get llmProviderKey;
   @override
   String get llmProviderModel;
   @override
-  bool get tryWithCuda;
+  bool get llmContextOptimization;
   @override
   String? get audioLanguage;
   @override

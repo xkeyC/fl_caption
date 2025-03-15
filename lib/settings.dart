@@ -71,36 +71,42 @@ class SettingsApp extends HookConsumerWidget {
       return const Center(child: ProgressRing());
     }
 
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSubtitleSettingsSection(appSettingsData),
-            const SizedBox(height: 32),
-            _buildWhisperSection(
-              appSettingsData: appSettingsData,
-              modelDirController: modelDirController,
-              ref: ref,
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildSubtitleSettingsSection(appSettingsData),
+                  const SizedBox(height: 32),
+                  _buildWhisperSection(
+                    appSettingsData: appSettingsData,
+                    modelDirController: modelDirController,
+                    ref: ref,
+                  ),
+                  const SizedBox(height: 32),
+                  _buildLlmProviderSection(
+                    apiUrlController: apiUrlController,
+                    apiKeyController: apiKeyController,
+                    apiModelController: apiModelController,
+                    appSettingsData: appSettingsData,
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 32),
-            _buildLlmProviderSection(
-              apiUrlController: apiUrlController,
-              apiKeyController: apiKeyController,
-              apiModelController: apiModelController,
-            ),
-            const SizedBox(height: 32),
-            _buildSaveButton(
-              appSettingsData: appSettingsData,
-              modelDirController: modelDirController,
-              apiUrlController: apiUrlController,
-              apiKeyController: apiKeyController,
-              apiModelController: apiModelController,
-            ),
-          ],
+          ),
         ),
-      ),
+        _buildSaveButton(
+          appSettingsData: appSettingsData,
+          modelDirController: modelDirController,
+          apiUrlController: apiUrlController,
+          apiKeyController: apiKeyController,
+          apiModelController: apiModelController,
+        ),
+      ],
     );
   }
 
@@ -353,6 +359,7 @@ class SettingsApp extends HookConsumerWidget {
     required TextEditingController apiUrlController,
     required TextEditingController apiKeyController,
     required TextEditingController apiModelController,
+    required ValueNotifier<AppSettingsData?> appSettingsData,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -377,6 +384,17 @@ class SettingsApp extends HookConsumerWidget {
         const SizedBox(height: 16),
         InfoLabel(label: "模型名称"),
         TextBox(controller: apiModelController, placeholder: "例如：qwen2.5:32b"),
+        const SizedBox(height: 16),
+        // llm_context_optimization
+        ToggleSwitch(
+          checked: appSettingsData.value?.llmContextOptimization ?? true,
+          onChanged: (value) {
+            appSettingsData.value = appSettingsData.value?.copyWith(
+              llmContextOptimization: value,
+            );
+          },
+          content: const Text("启用上下文优化（使用更多 token）"),
+        ),
       ],
     );
   }

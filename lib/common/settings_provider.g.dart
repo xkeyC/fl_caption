@@ -11,10 +11,11 @@ _$AppSettingsDataImpl _$$AppSettingsDataImplFromJson(
     _$AppSettingsDataImpl(
       modelWorkingDir: json['modelWorkingDir'] as String,
       whisperModel: json['whisperModel'] as String,
+      tryWithCuda: json['tryWithCuda'] as bool,
       llmProviderUrl: json['llmProviderUrl'] as String,
       llmProviderKey: json['llmProviderKey'] as String,
       llmProviderModel: json['llmProviderModel'] as String,
-      tryWithCuda: json['tryWithCuda'] as bool,
+      llmContextOptimization: json['llmContextOptimization'] as bool,
       audioLanguage: json['audioLanguage'] as String?,
       captionLanguage: json['captionLanguage'] as String?,
     );
@@ -24,10 +25,11 @@ Map<String, dynamic> _$$AppSettingsDataImplToJson(
     <String, dynamic>{
       'modelWorkingDir': instance.modelWorkingDir,
       'whisperModel': instance.whisperModel,
+      'tryWithCuda': instance.tryWithCuda,
       'llmProviderUrl': instance.llmProviderUrl,
       'llmProviderKey': instance.llmProviderKey,
       'llmProviderModel': instance.llmProviderModel,
-      'tryWithCuda': instance.tryWithCuda,
+      'llmContextOptimization': instance.llmContextOptimization,
       'audioLanguage': instance.audioLanguage,
       'captionLanguage': instance.captionLanguage,
     };
@@ -36,7 +38,7 @@ Map<String, dynamic> _$$AppSettingsDataImplToJson(
 // RiverpodGenerator
 // **************************************************************************
 
-String _$appSettingsHash() => r'038cba810a33aa08fa7b2fca815ab6ce5e2a8b87';
+String _$appSettingsHash() => r'30ae0e6d5dacba828b2a6836c3f5fe55c034f56a';
 
 /// See also [AppSettings].
 @ProviderFor(AppSettings)

@@ -136,8 +136,8 @@ class App extends HookConsumerWidget {
                       icon: Icon(Icons.logout),
                       onPressed: () async {
                         ref.read(dartWhisperCaptionProvider.notifier).pause();
-                        await Future.delayed(const Duration(milliseconds: 100));
-                        exit(0);
+                        Future.delayed(Duration(milliseconds: 200));
+                        _exitApp();
                       },
                     ),
                   ],
@@ -182,5 +182,16 @@ class App extends HookConsumerWidget {
         return await WindowController.fromWindowId(fromWindowId).close();
     }
     return null;
+  }
+
+  _exitApp() async {
+    // close all sub windows
+    final subWindowIds = await DesktopMultiWindow.getAllSubWindowIds();
+    for (final id in subWindowIds) {
+      await WindowController.fromWindowId(id).close();
+    }
+    // dispose winManager
+    await windowManager.destroy();
+    exit(0);
   }
 }

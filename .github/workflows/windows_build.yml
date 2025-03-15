@@ -12,7 +12,6 @@ jobs:
       - name: Set up MSbuild
         uses: microsoft/setup-msbuild@v2
       - name: Setup CUDA Toolkit
-        if: contains(matrix.args, 'cuda')
         id: cuda-toolkit
         shell: pwsh
         run: scripts/setup_cuda.ps1

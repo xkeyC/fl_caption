@@ -24,7 +24,7 @@ class WhisperModelData {
     // check HF_ENDPOINT environment variable
     final hfEndpoint = Platform.environment['HF_ENDPOINT'];
     if (hfEndpoint != null && hfEndpoint.isNotEmpty) {
-      return downloadUrl.replaceFirst('huggingface.co', hfEndpoint);
+      return downloadUrl.replaceFirst('https://huggingface.co', hfEndpoint);
     }
     return downloadUrl;
   }

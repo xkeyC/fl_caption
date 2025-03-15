@@ -2,6 +2,7 @@ use crate::{frb_generated::StreamSink, whisper_caption};
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::sync::Mutex;
+use std::time::Duration;
 use uuid::Uuid;
 
 pub type CancellationToken = tokio_util::sync::CancellationToken;
@@ -89,6 +90,8 @@ pub async fn launch_caption(
         with_timestamps,
         verbose,
         try_with_cuda.unwrap_or(false),
+        Some(Duration::from_secs(2)),
+        Some(128),
         move |segments| {
             let _ = stream_sink.add(segments);
         },

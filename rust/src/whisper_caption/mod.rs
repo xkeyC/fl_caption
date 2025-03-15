@@ -27,6 +27,8 @@ pub async fn launch_caption<F>(
     with_timestamps: Option<bool>,
     verbose: Option<bool>,
     try_with_cuda: bool,
+    inference_timeout: Option<Duration>,  // 推理总超时参数
+    max_tokens_per_segment: Option<usize>, // 防止幻觉的每段最大token数
     mut result_callback: F,
 ) -> anyhow::Result<()>
 where
@@ -323,7 +325,7 @@ where
         }
 
         // 运行解码器并获取结果
-        let mut segments = decoder.run(&mel, None)?;
+        let mut segments = decoder.run(&mel, None, inference_timeout, max_tokens_per_segment)?;
         // 计算推理用时并输出
         let inference_duration = inference_start.elapsed();
 

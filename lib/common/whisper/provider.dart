@@ -85,18 +85,22 @@ class DartWhisperCaptionResult {
 
 @riverpod
 class DartWhisperCaption extends _$DartWhisperCaption {
+  String? _cancelToken;
+
+  bool _isPaused = false;
+
   @override
   Future<DartWhisperCaptionResult> build() async {
     debugPrint("[DartWhisperCaption] build");
     final dartWhisper = await ref.watch(dartWhisperProvider.future);
     debugPrint("[DartWhisperCaption] WhisperClient: ${dartWhisper.client}");
-    final cancelToken = await rs.createCancellationToken();
+    _cancelToken = await rs.createCancellationToken();
     debugPrint("[DartWhisperCaption] launchCaption");
     final appSettings = await ref.read(appSettingsProvider.future);
     final sub = rs
         .launchCaption(
           whisperClient: dartWhisper.client,
-          cancelTokenId: cancelToken,
+          cancelTokenId: _cancelToken ?? "",
           audioDeviceIsInput: false,
           audioLanguage: appSettings.audioLanguage,
           tryWithCuda: appSettings.tryWithCuda,
@@ -136,13 +140,29 @@ class DartWhisperCaption extends _$DartWhisperCaption {
     ref.onDispose(() {
       debugPrint("[DartWhisperCaption] Dispose");
       sub.cancel();
-      cancel(cancelToken);
+      cancel(_cancelToken);
     });
     return DartWhisperCaptionResult(text: "", errorType: dartWhisper.errorType);
   }
 
-  void cancel(String cancelToken) {
+  bool get isPaused => _isPaused;
+
+  void pause() {
+    debugPrint("[DartWhisperCaption] Pause");
+    _isPaused = true;
+    cancel(_cancelToken);
+  }
+
+  void resume() {
+    debugPrint("[DartWhisperCaption] Resume");
+    _isPaused = false;
+    ref.invalidateSelf();
+  }
+
+  void cancel(String? cancelToken) {
+    if (cancelToken == null) return;
     debugPrint("[DartWhisperCaption] Cancel");
     rs.cancelCancellationToken(tokenId: cancelToken);
+    _cancelToken = null;
   }
 }

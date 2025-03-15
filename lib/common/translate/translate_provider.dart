@@ -24,8 +24,7 @@ class TranslateProvider extends _$TranslateProvider {
 
   void _updateTranslate(String? p, String? n, String? lang) async {
     final appSettings = await ref.watch(appSettingsProvider.future);
-    if (appSettings.llmProviderUrl.isEmpty ||
-        appSettings.llmProviderModel.isEmpty) {
+    if (appSettings.llmProviderUrl.isEmpty || appSettings.llmProviderModel.isEmpty) {
       state = "<Not config llm>";
       return;
     }
@@ -38,11 +37,7 @@ class TranslateProvider extends _$TranslateProvider {
     final text = n ?? "";
     if (pText == text) return;
     if (text.isEmpty) return;
-    _doTranslate(
-      text: text,
-      appSettings: appSettings,
-      captionLanguage: captionLanguage,
-    );
+    _doTranslate(text: text, appSettings: appSettings, captionLanguage: captionLanguage);
   }
 
   final _asyncLock = Lock();
@@ -96,11 +91,7 @@ class TranslateProvider extends _$TranslateProvider {
                 },
               if (appSettings.llmContextOptimization)
                 for (final entry in _historyMessage.entries)
-                  {
-                    "role": "user",
-                    "content":
-                        "<history> ${entry.key} -> ${entry.value} </history>",
-                  },
+                  {"role": "user", "content": "<history> ${entry.key} -> ${entry.value} </history>"},
               {"role": "user", "content": "<live>$fixedText</live>"},
             ],
             "temperature": 0.1,
@@ -135,8 +126,7 @@ class TranslateProvider extends _$TranslateProvider {
             if (line.trim().isEmpty || line.trim() == '[DONE]') continue;
             try {
               final jsonData = jsonDecode(line);
-              final content =
-                  jsonData['choices']?[0]?['delta']?['content'] as String?;
+              final content = jsonData['choices']?[0]?['delta']?['content'] as String?;
               if (content != null) {
                 partialTranslation += content;
               }
@@ -171,12 +161,11 @@ class TranslateProvider extends _$TranslateProvider {
     });
   }
 
-  StreamTransformer<Uint8List, List<int>> unit8Transformer =
-      StreamTransformer.fromHandlers(
-        handleData: (List<int> data, sink) {
-          sink.add(data);
-        },
-      );
+  StreamTransformer<Uint8List, List<int>> unit8Transformer = StreamTransformer.fromHandlers(
+    handleData: (List<int> data, sink) {
+      sink.add(data);
+    },
+  );
 
   String _checkText(String text) {
     // 检测存在重复的字符或段落，数字优化，避免挤爆 Llm
@@ -191,9 +180,7 @@ class TranslateProvider extends _$TranslateProvider {
       }
 
       // If a single character is repeated more than 70% of the text
-      final mostRepeatedChar = charCounts.entries.reduce(
-        (a, b) => a.value > b.value ? a : b,
-      );
+      final mostRepeatedChar = charCounts.entries.reduce((a, b) => a.value > b.value ? a : b);
       if (mostRepeatedChar.value > chars.length * 0.7) {
         return '${mostRepeatedChar.key} x ${mostRepeatedChar.value}';
       }
@@ -214,14 +201,9 @@ class TranslateProvider extends _$TranslateProvider {
 
         final mostRepeatedPhrase = phraseMap.entries
             .where((e) => e.value >= 3)
-            .fold<MapEntry<String, int>?>(
-              null,
-              (a, b) => (a == null || a.value < b.value) ? b : a,
-            );
+            .fold<MapEntry<String, int>?>(null, (a, b) => (a == null || a.value < b.value) ? b : a);
 
-        if (mostRepeatedPhrase != null &&
-            mostRepeatedPhrase.value * phraseLength.toDouble() / words.length >
-                0.5) {
+        if (mostRepeatedPhrase != null && mostRepeatedPhrase.value * phraseLength.toDouble() / words.length > 0.5) {
           return '${mostRepeatedPhrase.key} x ${mostRepeatedPhrase.value}';
         }
       }

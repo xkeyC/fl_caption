@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
@@ -6,6 +7,7 @@ import 'package:fl_caption/common/translate/translate_provider.dart';
 import 'package:fl_caption/settings.dart';
 import 'package:fl_caption/widgets/error.dart';
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/material.dart' show Icons;
 import 'package:flutter/services.dart';
 import 'package:flutter_acrylic/flutter_acrylic.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -38,7 +40,7 @@ Future<void> main(List<String> args) async {
   doWhenWindowReady(() async {
     appWindow
       ..minSize = Size(640, 80)
-      ..size = Size(1920, 180)
+      ..size = Size(1320, 180)
       ..alignment = Alignment.bottomCenter
       ..show();
     await Window.setEffect(effect: WindowEffect.transparent, dark: false);
@@ -47,8 +49,7 @@ Future<void> main(List<String> args) async {
 
 Future<void> _handleMultiWindow(List<String> args) async {
   // final windowId = int.parse(args[1]);
-  final argument =
-      args[2].isEmpty ? const {} : jsonDecode(args[2]) as Map<String, dynamic>;
+  final argument = args[2].isEmpty ? const {} : jsonDecode(args[2]) as Map<String, dynamic>;
   switch (argument["window_type"]) {
     case 'settings':
       await Rhttp.init();
@@ -67,9 +68,7 @@ class App extends HookConsumerWidget {
     final caption = ref.watch(dartWhisperCaptionProvider);
 
     useEffect(() {
-      DesktopMultiWindow.setMethodHandler(
-        (c, h) => _subWindowMethodHandler(c, h, ref),
-      );
+      DesktopMultiWindow.setMethodHandler((c, h) => _subWindowMethodHandler(c, h, ref));
       return null;
     }, const []);
 
@@ -77,12 +76,9 @@ class App extends HookConsumerWidget {
       child: FluentApp(
         debugShowCheckedModeBanner: false,
         title: 'Fluent UI',
-        theme: FluentThemeData(
-          brightness: Brightness.dark,
-          fontFamily: "SourceHanSansCN-Regular",
-        ),
+        theme: FluentThemeData(brightness: Brightness.dark, fontFamily: "SourceHanSansCN-Regular"),
         home: Container(
-          color: Colors.black.withValues(alpha: .6),
+          color: Colors.black.withValues(alpha: .7),
           child: Stack(
             children: [
               Center(
@@ -91,71 +87,58 @@ class App extends HookConsumerWidget {
                   children: [
                     if (caption.hasValue) ...[
                       Text(
-                        caption.value!.text.isEmpty
-                            ? "<wait for Whisper ...>"
-                            : caption.value!.text,
+                        caption.value!.text.isEmpty ? "<wait for Whisper ...>" : caption.value!.text,
                         style: TextStyle(fontSize: 16, color: Colors.white),
                         maxLines: 1,
                       ),
                       SizedBox(height: 12),
                       Consumer(
-                        builder: (
-                          BuildContext context,
-                          WidgetRef ref,
-                          Widget? child,
-                        ) {
+                        builder: (BuildContext context, WidgetRef ref, Widget? child) {
                           final text = ref.watch(translateProviderProvider);
-                          return Text(
-                            text,
-                            style: TextStyle(fontSize: 22),
-                            maxLines: 3,
-                          );
+                          return Text(text, style: TextStyle(fontSize: 22), maxLines: 3);
                         },
                       ),
                     ],
                     if (caption.hasError)
-                      HomeErrorWidget(
-                        errorType: caption.value?.errorType,
-                        errorInfo: caption.error,
-                      ),
+                      HomeErrorWidget(errorType: caption.value?.errorType, errorInfo: caption.error),
                   ],
                 ),
               ),
               Positioned(
                 left: 12,
+                right: 12,
                 bottom: 12,
                 child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // 状态指示器，显示当前识别的语言，以及解码速度
                     Row(
                       children: [
                         if (caption.hasValue) ...[
                           Text(
                             "audioLang: ${caption.value?.reasoningLang ?? "unknown"}",
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.white.withValues(alpha: .6),
-                            ),
+                            style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: .6)),
                           ),
                           SizedBox(width: 6),
                           Text(
                             "reasoningSpeed: ${caption.value?.reasoningDuration?.inMilliseconds ?? "?"}ms",
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.white.withValues(alpha: .6),
-                            ),
+                            style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: .6)),
                           ),
                           SizedBox(width: 6),
                           // auto duration
                           Text(
                             "audioDuration: ${((caption.value?.audioDuration?.inMilliseconds ?? 0) / 1000).toStringAsFixed(2)}s",
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.white.withValues(alpha: .6),
-                            ),
+                            style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: .6)),
                           ),
                         ],
                       ],
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.logout),
+                      onPressed: () async {
+                        ref.read(dartWhisperCaptionProvider.notifier).pause();
+                        await Future.delayed(const Duration(milliseconds: 100));
+                        exit(0);
+                      },
                     ),
                   ],
                 ),
@@ -163,14 +146,7 @@ class App extends HookConsumerWidget {
               Positioned(
                 right: 12,
                 top: 12,
-                child: Row(
-                  children: [
-                    IconButton(
-                      icon: Icon(FluentIcons.settings),
-                      onPressed: _openSettings,
-                    ),
-                  ],
-                ),
+                child: Row(children: [IconButton(icon: Icon(FluentIcons.settings), onPressed: _openSettings)]),
               ),
             ],
           ),
@@ -182,16 +158,11 @@ class App extends HookConsumerWidget {
   Future<void> _openSettings() async {
     final windows = await DesktopMultiWindow.getAllSubWindowIds();
     if (windows.isEmpty) {
-      final window = await DesktopMultiWindow.createWindow(
-        jsonEncode({'window_type': 'settings'}),
-      );
+      final window = await DesktopMultiWindow.createWindow(jsonEncode({'window_type': 'settings'}));
       window.setTitle("Settings");
       await window.center();
       await window.show();
-      DesktopMultiWindow.invokeMethod(
-        window.windowId,
-        'main_window_id_broadcast',
-      );
+      DesktopMultiWindow.invokeMethod(window.windowId, 'main_window_id_broadcast');
     } else {
       WindowController.fromWindowId(windows.first)
         ..show()
@@ -199,18 +170,12 @@ class App extends HookConsumerWidget {
     }
   }
 
-  Future _subWindowMethodHandler(
-    MethodCall call,
-    int fromWindowId,
-    WidgetRef ref,
-  ) async {
+  Future _subWindowMethodHandler(MethodCall call, int fromWindowId, WidgetRef ref) async {
     switch (call.method) {
       case "get_app_settings":
         return (await ref.read(appSettingsProvider.future)).toJson();
       case "set_app_settings":
-        final settings = AppSettingsData.fromJson(
-          Map<String, dynamic>.from(call.arguments as Map),
-        );
+        final settings = AppSettingsData.fromJson(Map<String, dynamic>.from(call.arguments as Map));
         await ref.read(appSettingsProvider.notifier).setSettings(settings);
         return true;
       case "close_mine_window":

@@ -6,7 +6,7 @@ part of 'translate_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$translateProviderHash() => r'dab63679036b1f2fe7d8f687235b6eaa5b9704b5';
+String _$translateProviderHash() => r'2fbe13f2500c37e456fca18d8dbbf26a7f5b4725';
 
 /// See also [TranslateProvider].
 @ProviderFor(TranslateProvider)

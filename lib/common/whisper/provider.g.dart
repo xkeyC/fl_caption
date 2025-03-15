@@ -22,7 +22,7 @@ final dartWhisperProvider =
 
 typedef _$DartWhisper = AutoDisposeAsyncNotifier<DartWhisperClient>;
 String _$dartWhisperCaptionHash() =>
-    r'452b4efc58da0cfd15390cdf0f708c3739b47e45';
+    r'b74d6c5667c3d12e55881f952428eeb8935105b2';
 
 /// See also [DartWhisperCaption].
 @ProviderFor(DartWhisperCaption)

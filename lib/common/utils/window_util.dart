@@ -25,19 +25,12 @@ class MultiWindowWindowUtil {
   }
 
   static Future<AppSettingsData> getAppSettingsData() async {
-    final result = await DesktopMultiWindow.invokeMethod(
-      mainWindowId,
-      "get_app_settings",
-    );
+    final result = await DesktopMultiWindow.invokeMethod(mainWindowId, "get_app_settings");
     return AppSettingsData.fromJson(Map<String, dynamic>.from(result as Map));
   }
 
   static Future<bool> setAppSettingsData(AppSettingsData settings) async {
-    final result = await DesktopMultiWindow.invokeMethod(
-      mainWindowId,
-      "set_app_settings",
-      settings.toJson(),
-    );
+    final result = await DesktopMultiWindow.invokeMethod(mainWindowId, "set_app_settings", settings.toJson());
     return result as bool;
   }
 }

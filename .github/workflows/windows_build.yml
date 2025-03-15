@@ -9,10 +9,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: set up CUDA Toolkit
-        uses: Jimver/cuda-toolkit@v0.2.22
       - name: Set up MSbuild
         uses: microsoft/setup-msbuild@v2
+      - name: Setup CUDA Toolkit
+        if: contains(matrix.args, 'cuda')
+        id: cuda-toolkit
+        shell: pwsh
+        run: scripts/setup_cuda.ps1
+        env:
+          INPUT_CUDA_VERSION: 12.5.0
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:

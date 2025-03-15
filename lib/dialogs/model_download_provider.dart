@@ -21,8 +21,7 @@ class ModelDownloadStateData with _$ModelDownloadStateData {
     String? errorText,
   }) = _ModelDownloadStateData;
 
-  factory ModelDownloadStateData.fromJson(Map<String, dynamic> json) =>
-      _$ModelDownloadStateDataFromJson(json);
+  factory ModelDownloadStateData.fromJson(Map<String, dynamic> json) => _$ModelDownloadStateDataFromJson(json);
 }
 
 @riverpod
@@ -57,7 +56,7 @@ class ModelDownloadState extends _$ModelDownloadState {
     }
     final modelFile = File("${state.modelPath}/${state.modelName}.downloading");
     final dio = await RDio.createRDioClient();
-    final downloadUrl = whisperModels[state.modelName]?.downloadUrl ?? "";
+    final downloadUrl = whisperModels[state.modelName]?.getDownloadUrl() ?? "";
     _downloadCancelToken = CancelToken();
     try {
       final response = await dio.download(
@@ -66,9 +65,7 @@ class ModelDownloadState extends _$ModelDownloadState {
         cancelToken: _downloadCancelToken,
         onReceiveProgress: (received, total) {
           if (total != -1) {
-            state = state.copyWith(
-              progress: (received / total * 100).toDouble(),
-            );
+            state = state.copyWith(progress: (received / total * 100).toDouble());
           }
         },
       );
@@ -76,23 +73,13 @@ class ModelDownloadState extends _$ModelDownloadState {
       if (response.statusCode == 200) {
         await modelFile.rename("${state.modelPath}/${state.modelName}");
         state = state.copyWith(isReady: true, progress: 100);
-        debugPrint(
-          "Model ${state.modelName} downloaded successfully to ${state.modelPath}",
-        );
+        debugPrint("Model ${state.modelName} downloaded successfully to ${state.modelPath}");
         return true;
       } else {
-        state = state.copyWith(
-          errorText: "下载失败: ${response.statusCode}",
-          isReady: false,
-          progress: 0,
-        );
+        state = state.copyWith(errorText: "下载失败: ${response.statusCode}", isReady: false, progress: 0);
       }
     } catch (e) {
-      state = state.copyWith(
-        errorText: "下载失败: $e",
-        isReady: false,
-        progress: 0,
-      );
+      state = state.copyWith(errorText: "下载失败: $e", isReady: false, progress: 0);
     }
     return false;
   }

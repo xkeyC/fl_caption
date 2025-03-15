@@ -1,3 +1,5 @@
+import 'dart:io';
+
 /// Models for the Whisper API
 class WhisperModelData {
   final String name;
@@ -17,6 +19,15 @@ class WhisperModelData {
     required this.isQuantized,
     required this.downloadUrl,
   });
+
+  String getDownloadUrl() {
+    // check HF_ENDPOINT environment variable
+    final hfEndpoint = Platform.environment['HF_ENDPOINT'];
+    if (hfEndpoint != null && hfEndpoint.isNotEmpty) {
+      return downloadUrl.replaceFirst('huggingface.co', hfEndpoint);
+    }
+    return downloadUrl;
+  }
 }
 
 const Map<String, WhisperModelData> whisperModels = {

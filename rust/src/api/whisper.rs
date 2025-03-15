@@ -90,7 +90,7 @@ pub async fn launch_caption(
         with_timestamps,
         verbose,
         try_with_cuda.unwrap_or(false),
-        Some(Duration::from_secs(2)),
+        Some(Duration::from_millis(1500)),
         Some(128),
         move |segments| {
             let _ = stream_sink.add(segments);

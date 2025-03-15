@@ -136,7 +136,7 @@ class App extends HookConsumerWidget {
                       icon: Icon(Icons.logout),
                       onPressed: () async {
                         ref.read(dartWhisperCaptionProvider.notifier).pause();
-                        Future.delayed(Duration(milliseconds: 200));
+                        await Future.delayed(Duration(milliseconds: 200));
                         _exitApp();
                       },
                     ),

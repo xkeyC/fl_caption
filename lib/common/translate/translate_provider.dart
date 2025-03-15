@@ -62,6 +62,7 @@ class TranslateProvider extends _$TranslateProvider {
       try {
         var fixedText = _checkText(text);
         // Set up streaming request
+        final workingDur = Duration(seconds: 2);
         final response = await _dio!.post(
           appSettings.llmProviderUrl,
           data: {
@@ -119,7 +120,8 @@ class TranslateProvider extends _$TranslateProvider {
         await for (final chunk in stream
             .transform(unit8Transformer)
             .transform(const Utf8Decoder())
-            .transform(const LineSplitter())) {
+            .transform(const LineSplitter())
+            .timeout(workingDur)) {
           // Split by "data: " for SSE format
           final lines = chunk.split('data: ');
           for (final line in lines) {
@@ -155,6 +157,7 @@ class TranslateProvider extends _$TranslateProvider {
         if (_historyMessage.length > 2) {
           _historyMessage.remove(_historyMessage.keys.first);
         }
+        debugPrint("_historyMessage len == ${_historyMessage.length}");
       } catch (e) {
         debugPrint("[TranslateProvider] Error: $e");
       }

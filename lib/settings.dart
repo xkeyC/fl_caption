@@ -310,7 +310,7 @@ class SettingsApp extends HookConsumerWidget {
         TextBox(controller: apiKeyController, placeholder: "请输入 API 密钥 (Ollam 默认为空)", obscureText: true),
         const SizedBox(height: 16),
         InfoLabel(label: "模型名称"),
-        TextBox(controller: apiModelController, placeholder: "例如：qwen2.5:32b"),
+        TextBox(controller: apiModelController, placeholder: "例如：phi4:14b"),
         const SizedBox(height: 16),
         // llm_context_optimization
         ToggleSwitch(

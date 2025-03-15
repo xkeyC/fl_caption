@@ -99,4 +99,10 @@ Write-Output "CMAKE_CUDA_COMPILER=$dst\bin\nvcc.exe" >> $env:GITHUB_ENV
 Write-Output "NVCC_APPEND_FLAGS=-allow-unsupported-compiler" >> $env:GITHUB_ENV
 
 Write-Output "CUDA_VERSION=$CUDA_VERSION_FULL" >> $env:GITHUB_ENV
+
+# Add to GITHUB PATH use echo "" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+# https://stackoverflow.com/questions/60169752
+Write-Output "Adding CUDA to PATH..."
+Write-Output "$dst\bin" >> $env:GITHUB_PATH
+
 Write-Output "Setup completed."

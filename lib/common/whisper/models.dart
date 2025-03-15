@@ -26,8 +26,15 @@ const Map<String, WhisperModelData> whisperModels = {
     sizeInt: 290 * 1024,
     isMultilingual: true,
     isQuantized: false,
-    downloadUrl:
-        'https://huggingface.co/openai/whisper-base/resolve/main/model.safetensors',
+    downloadUrl: 'https://huggingface.co/openai/whisper-base/resolve/main/model.safetensors',
+  ),
+  "medium_q4k": WhisperModelData(
+    name: 'medium_q4k',
+    size: '444 MB',
+    sizeInt: 444 * 1024,
+    isMultilingual: true,
+    isQuantized: true,
+    downloadUrl: 'https://huggingface.co/OllmOne/whisper-medium-GGUF/resolve/main/model-q4k.gguf',
   ),
   "large-v3_q4k": WhisperModelData(
     name: 'large-v3_q4k',
@@ -35,7 +42,6 @@ const Map<String, WhisperModelData> whisperModels = {
     sizeInt: 891 * 1024,
     isMultilingual: true,
     isQuantized: true,
-    downloadUrl:
-        'https://huggingface.co/OllmOne/whisper-large-v3-GGUF/resolve/main/model-q4k.gguf',
+    downloadUrl: 'https://huggingface.co/OllmOne/whisper-large-v3-GGUF/resolve/main/model-q4k.gguf',
   ),
 };

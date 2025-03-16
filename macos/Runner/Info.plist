@@ -28,5 +28,7 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>NSAudioCaptureUsageDescription</key>
+	<string>用于展示实时字幕</string>
 </dict>
 </plist>

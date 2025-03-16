@@ -27,7 +27,7 @@ pub async fn launch_caption<F>(
     with_timestamps: Option<bool>,
     verbose: Option<bool>,
     try_with_cuda: bool,
-    inference_timeout: Option<Duration>,  // 推理总超时参数
+    inference_timeout: Option<Duration>,   // 推理总超时参数
     max_tokens_per_segment: Option<usize>, // 防止幻觉的每段最大token数
     mut result_callback: F,
 ) -> anyhow::Result<()>
@@ -35,7 +35,11 @@ where
     F: FnMut(Vec<Segment>) + Send + 'static,
 {
     let device = if try_with_cuda {
-        candle_core::Device::cuda_if_available(0)?
+        if cfg!(target_os = "macos") {
+            candle_core::Device::new_metal(0)?
+        } else {
+            candle_core::Device::cuda_if_available(0)?
+        }
     } else {
         candle_core::Device::Cpu
     };
@@ -47,6 +51,12 @@ where
 
     let config: Config = serde_json::from_str(config_data)?;
     let tokenizer = Tokenizer::from_bytes(tokenizer_data).unwrap();
+
+    // check model path
+    if !std::path::Path::new(&model_path).exists() {
+        anyhow::bail!("model path does not exist: {model_path}");
+    }
+
     let model = if is_quantized {
         let vb = candle_transformers::quantized_var_builder::VarBuilder::from_gguf(
             &model_path,
@@ -132,33 +142,64 @@ where
     let audio_thread = thread::spawn(move || {
         let audio_cancel_token_clone = audio_cancel_token.child_token();
         // 在标准线程中创建并管理音频流
-        let stream = match audio_device.build_input_stream(
-            &audio_config.config(),
-            move |pcm: &[f32], _: &cpal::InputCallbackInfo| {
-                if audio_cancel_token.is_cancelled() {
+        let stream = if cfg!(target_os = "macos") && !is_input {
+            match audio_device.build_output_stream(
+                &audio_config.config(),
+                move |pcm: &mut [f32], _: &cpal::OutputCallbackInfo| {
+                    if audio_cancel_token.is_cancelled() {
+                        return;
+                    }
+                    let captured_pcm = pcm
+                        .iter()
+                        .step_by(channel_count)
+                        .copied()
+                        .collect::<Vec<f32>>();
+
+                    if !captured_pcm.is_empty() {
+                        // 使用 send 发送音频数据
+                        let _ = tx.send(captured_pcm);
+                    }
+                },
+                move |err| {
+                    eprintln!("an error occurred on stream: {}", err);
+                },
+                None,
+            ) {
+                Ok(s) => s,
+                Err(e) => {
+                    eprintln!("Failed to create audio stream: {}", e);
                     return;
                 }
+            }
+        } else {
+            match audio_device.build_input_stream(
+                &audio_config.config(),
+                move |pcm: &[f32], _: &cpal::InputCallbackInfo| {
+                    if audio_cancel_token.is_cancelled() {
+                        return;
+                    }
 
-                let pcm = pcm
-                    .iter()
-                    .step_by(channel_count)
-                    .copied()
-                    .collect::<Vec<f32>>();
+                    let pcm = pcm
+                        .iter()
+                        .step_by(channel_count)
+                        .copied()
+                        .collect::<Vec<f32>>();
 
-                if !pcm.is_empty() {
-                    // 使用 send 发送音频数据
-                    let _ = tx.send(pcm);
+                    if !pcm.is_empty() {
+                        // 使用 send 发送音频数据
+                        let _ = tx.send(pcm);
+                    }
+                },
+                move |err| {
+                    eprintln!("an error occurred on stream: {}", err);
+                },
+                None,
+            ) {
+                Ok(s) => s,
+                Err(e) => {
+                    eprintln!("Failed to create audio stream: {}", e);
+                    return;
                 }
-            },
-            move |err| {
-                eprintln!("an error occurred on stream: {}", err);
-            },
-            None,
-        ) {
-            Ok(s) => s,
-            Err(e) => {
-                eprintln!("Failed to create audio stream: {}", e);
-                return;
             }
         };
 
@@ -269,13 +310,13 @@ where
 
         // 更新历史数据为当前的组合数据（保持原始采样率）
         history_pcm = combined_pcm.clone();
-        
+
         // 清理缓冲区
         buffered_pcm.clear();
 
         let mut resampled_pcm = vec![];
         let full_chunks = combined_pcm.len() / 1024;
-        
+
         // 处理音频数据进行推理
         use rubato::Resampler;
         for chunk in 0..full_chunks {

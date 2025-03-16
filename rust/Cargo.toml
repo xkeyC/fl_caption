@@ -11,9 +11,9 @@ flutter_rust_bridge = "=2.9.0"
 tokio = { version = "1.44.0", features = ["full"] }
 tokio-util = "0.7.13"
 anyhow = "1.0"
-candle-core = { version = "0.8.3", features = ["cuda"] }
-candle-nn = { version = "0.8.3", features = ["cuda"] }
-candle-transformers = { version = "0.8.3", features = ["cuda"] }
+candle-core = { version = "0.8.4" }
+candle-nn = { version = "0.8.4" }
+candle-transformers = { version = "0.8.4" }
 tokenizers = "0.21.0"
 serde_json = "1.0.140"
 rand = "0.9.0"
@@ -23,6 +23,16 @@ byteorder = "1.5.0"
 rubato = "0.16.1"
 once_cell = "1.18.0"
 uuid = { version = "1.4.1", features = ["v4"] }
+
+[target.'cfg(any(target_os = "windows", target_os = "linux"))'.dependencies]
+candle-core = { version = "0.8.4", features = ["cuda"] }
+candle-nn = { version = "0.8.4", features = ["cuda"] }
+candle-transformers = { version = "0.8.4", features = ["cuda"] }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+candle-core = { version = "0.8.4", features = ["metal"] }
+candle-nn = { version = "0.8.4", features = ["metal"] }
+candle-transformers = { version = "0.8.4", features = ["metal"] }
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(frb_expand)'] }

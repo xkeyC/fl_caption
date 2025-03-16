@@ -53,6 +53,7 @@ Future<void> _handleMultiWindow(List<String> args) async {
   switch (argument["window_type"]) {
     case 'settings':
       await Rhttp.init();
+      debugPrint("_handleMultiWindow -> settings window");
       runApp(ProviderScope(child: SettingsApp()));
       return;
     default:
@@ -156,11 +157,14 @@ class App extends HookConsumerWidget {
   }
 
   Future<void> _openSettings() async {
+    debugPrint("open settings");
     final windows = await DesktopMultiWindow.getAllSubWindowIds();
     if (windows.isEmpty) {
       final window = await DesktopMultiWindow.createWindow(jsonEncode({'window_type': 'settings'}));
       window.setTitle("Settings");
-      await window.center();
+      window
+        ..setFrame(const Offset(0, 0) & const Size(1280, 720))
+        ..center();
       await window.show();
       DesktopMultiWindow.invokeMethod(window.windowId, 'main_window_id_broadcast');
     } else {

@@ -17,10 +17,7 @@ enum DartWhisperClientError { modelNotFound, unknown }
 
 @freezed
 class DartWhisperClient with _$DartWhisperClient {
-  factory DartWhisperClient({
-    required rs.WhisperClient client,
-    DartWhisperClientError? errorType,
-  }) = _DartWhisperClient;
+  factory DartWhisperClient({required rs.WhisperClient client, DartWhisperClientError? errorType}) = _DartWhisperClient;
 }
 
 @riverpod
@@ -31,17 +28,13 @@ class DartWhisper extends _$DartWhisper {
     DartWhisperClientError? errorType;
     final appSettings = await ref.watch(appSettingsProvider.future);
     // check file exist
-    final modelFile = File(
-      '${appSettings.modelWorkingDir}/${appSettings.whisperModel}',
-    );
+    final modelFile = File('${appSettings.modelWorkingDir}/${appSettings.whisperModel}');
     if (!await modelFile.exists()) {
       errorType = DartWhisperClientError.modelNotFound;
     }
     final modelName = appSettings.whisperModel;
     final modelData = whisperModels[modelName];
-    debugPrint(
-      "[DartWhisper] modelName: $modelName modelFile: ${modelFile.absolute.path} errorType: $errorType",
-    );
+    debugPrint("[DartWhisper] modelName: $modelName modelFile: ${modelFile.absolute.path} errorType: $errorType");
     final config = await getConfigByName(modelName);
     final tokenizer = await getTokenizerByName(modelName);
     debugPrint("[DartWhisper] creating WhisperClient ...");
@@ -61,9 +54,7 @@ class DartWhisper extends _$DartWhisper {
   }
 
   Future<Uint8List> getTokenizerByName(String name) async {
-    return (await rootBundle.load(
-      "assets/whisper/$name-tokenizer.json",
-    )).buffer.asUint8List();
+    return (await rootBundle.load("assets/whisper/$name-tokenizer.json")).buffer.asUint8List();
   }
 }
 
@@ -115,14 +106,8 @@ class DartWhisperCaption extends _$DartWhisperCaption {
                 state = AsyncData(
                   DartWhisperCaptionResult(
                     text: newData,
-                    reasoningDuration: Duration(
-                      milliseconds:
-                          data.lastOrNull?.reasoningDuration?.toInt() ?? 0,
-                    ),
-                    audioDuration: Duration(
-                      milliseconds:
-                          data.lastOrNull?.audioDuration?.toInt() ?? 0,
-                    ),
+                    reasoningDuration: Duration(milliseconds: data.lastOrNull?.reasoningDuration?.toInt() ?? 0),
+                    audioDuration: Duration(milliseconds: data.lastOrNull?.audioDuration?.toInt() ?? 0),
                     reasoningLang: data.lastOrNull?.reasoningLang,
                     errorType: dartWhisper.errorType,
                   ),

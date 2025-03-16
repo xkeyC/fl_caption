@@ -55,4 +55,12 @@ const Map<String, WhisperModelData> whisperModels = {
     isQuantized: true,
     downloadUrl: 'https://huggingface.co/OllmOne/whisper-large-v3-GGUF/resolve/main/model-q4k.gguf',
   ),
+  "large-v3-turbo": WhisperModelData(
+    name: 'large-v3-turbo',
+    size: '1.62Gb',
+    sizeInt: 1620 * 1024,
+    isMultilingual: true,
+    isQuantized: false,
+    downloadUrl: 'https://huggingface.co/openai/whisper-large-v3-turbo/resolve/main/model.safetensors',
+  ),
 };

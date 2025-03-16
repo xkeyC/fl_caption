@@ -1,8 +1,9 @@
 # FL Caption
+离线实时字幕软件，使用 Flutter 和 Rust 编写，由 LLM 和 基于 candle 推理框架的 Whisper 驱动。
 
 演示视频：https://www.bilibili.com/video/BV1VyQtYMEWA
 
-离线实时字幕软件，使用 Flutter 和 Rust 编写，由 LLM 和 基于 candle 推理框架的 Whisper 驱动。
+QQ群：1037016702
 
 ![image.png](https://s2.loli.net/2025/03/15/5PbgI1WYapKt4jR.png)
 

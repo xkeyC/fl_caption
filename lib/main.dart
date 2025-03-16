@@ -13,6 +13,7 @@ import 'package:flutter_acrylic/flutter_acrylic.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hive_ce_flutter/adapters.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:rhttp/rhttp.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -34,7 +35,7 @@ Future<void> main(List<String> args) async {
   await windowManager.setMaximizable(false);
   await Rhttp.init();
   await RustLib.init();
-  await Hive.initFlutter();
+  Hive.init("${(await getApplicationSupportDirectory()).absolute.path}/db");
   runApp(ProviderScope(child: App()));
 
   doWhenWindowReady(() async {
@@ -163,7 +164,7 @@ class App extends HookConsumerWidget {
       final window = await DesktopMultiWindow.createWindow(jsonEncode({'window_type': 'settings'}));
       window.setTitle("Settings");
       window
-        ..setFrame(const Offset(0, 0) & const Size(1280, 720))
+        ..setFrame(const Offset(0, 0) & const Size(1280, 1080))
         ..center();
       await window.show();
       DesktopMultiWindow.invokeMethod(window.windowId, 'main_window_id_broadcast');

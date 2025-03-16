@@ -11,11 +11,13 @@
 
 1. 通过 Release 下载压缩包并解压：https://github.com/xkeyC/fl_caption/releases
 
-2. 首次使用请点击设置图标，选择合适的语音模型，并点击下载按钮
+2. 如果使用 CUDA 加速，可能需要额外安装 CUDA Toolkit： https://developer.nvidia.cn/cuda-downloads?target_os=Windows&target_arch=x86_64
 
-3. 下载成功后请选择语音语言与字幕语言，并设置 llm api 信息，完成后点击保存
+3. 首次使用请点击设置图标，选择合适的语音模型，并点击下载按钮
 
-4. 字幕应当会正常开始运行。
+4. 下载成功后请选择语音语言与字幕语言，并设置 llm api 信息，完成后点击保存
+
+5. 字幕应当会正常开始运行。
 
 ## 常见问题
 

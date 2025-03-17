@@ -153,7 +153,7 @@ class SettingsApp extends HookConsumerWidget {
                     value: appSettingsData.value?.captionLanguage,
                     items: [
                       const ComboBoxItem<String?>(value: null, child: Text('无字幕')),
-                      ...whisperLanguages.entries.map(
+                      ...captionLanguages.entries.map(
                         (e) => ComboBoxItem<String?>(
                           value: e.key,
                           child: Text("${e.value.displayLocaleName} (${e.value.displayName})"),

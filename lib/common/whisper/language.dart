@@ -139,3 +139,29 @@ const Map<String, WhisperLanguage> whisperLanguages = {
   "jw": WhisperLanguage(code: "jw", name: "javanese", displayName: "Javanese", displayLocaleName: "Basa Jawa"),
   "su": WhisperLanguage(code: "su", name: "sundanese", displayName: "Sundanese", displayLocaleName: "Basa Sunda"),
 };
+
+final Map<String, WhisperLanguage> captionLanguages = _getCaptionLanguages();
+
+Map<String, WhisperLanguage> _getCaptionLanguages() {
+  // fix zh_CN , zh_TW ... for whisperLanguages
+  final Map<String, WhisperLanguage> languages = {};
+  for (final lang in whisperLanguages.entries) {
+    if (lang.key == "zh") {
+      languages["zh_CN"] = WhisperLanguage(
+        code: "zh_CN",
+        name: "chinese",
+        displayName: "Simplified Chinese",
+        displayLocaleName: "简体中文",
+      );
+      languages["zh_TW"] = WhisperLanguage(
+        code: "zh_TW",
+        name: "chinese",
+        displayName: "Traditional Chinese",
+        displayLocaleName: "繁體中文",
+      );
+    } else {
+      languages[lang.key] = lang.value;
+    }
+  }
+  return languages;
+}

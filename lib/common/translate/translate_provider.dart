@@ -32,7 +32,7 @@ class TranslateProvider extends _$TranslateProvider {
       state = "<Not config captionLanguage>";
       return;
     }
-    final captionLanguage = whisperLanguages[appSettings.captionLanguage!]!;
+    final captionLanguage = captionLanguages[appSettings.captionLanguage!]!;
     final pText = p ?? "";
     final text = n ?? "";
     if (pText == text) return;

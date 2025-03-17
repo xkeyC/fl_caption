@@ -359,6 +359,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  int dco_decode_i_32(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as int;
+  }
+
+  @protected
   Uint32List dco_decode_list_prim_u_32_strict(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as Uint32List;
@@ -404,8 +410,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   Segment dco_decode_segment(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 6)
-      throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
+    if (arr.length != 7)
+      throw Exception('unexpected arr length: expect 7 but see ${arr.length}');
     return Segment(
       start: dco_decode_f_64(arr[0]),
       duration: dco_decode_f_64(arr[1]),
@@ -413,6 +419,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       reasoningDuration: dco_decode_opt_U128(arr[3]),
       reasoningLang: dco_decode_opt_String(arr[4]),
       audioDuration: dco_decode_opt_U128(arr[5]),
+      status: dco_decode_whisper_status(arr[6]),
     );
   }
 
@@ -447,6 +454,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       isMultilingual: dco_decode_bool(arr[3]),
       isQuantized: dco_decode_bool(arr[4]),
     );
+  }
+
+  @protected
+  WhisperStatus dco_decode_whisper_status(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return WhisperStatus.values[raw as int];
   }
 
   @protected
@@ -524,6 +537,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  int sse_decode_i_32(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getInt32();
+  }
+
+  @protected
   Uint32List sse_decode_list_prim_u_32_strict(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var len_ = sse_decode_i_32(deserializer);
@@ -598,6 +617,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_reasoningDuration = sse_decode_opt_U128(deserializer);
     var var_reasoningLang = sse_decode_opt_String(deserializer);
     var var_audioDuration = sse_decode_opt_U128(deserializer);
+    var var_status = sse_decode_whisper_status(deserializer);
     return Segment(
       start: var_start,
       duration: var_duration,
@@ -605,6 +625,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       reasoningDuration: var_reasoningDuration,
       reasoningLang: var_reasoningLang,
       audioDuration: var_audioDuration,
+      status: var_status,
     );
   }
 
@@ -643,9 +664,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  int sse_decode_i_32(SseDeserializer deserializer) {
+  WhisperStatus sse_decode_whisper_status(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    return deserializer.buffer.getInt32();
+    var inner = sse_decode_i_32(deserializer);
+    return WhisperStatus.values[inner];
   }
 
   @protected
@@ -656,6 +678,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   double cst_encode_f_64(double raw) {
+    // Codec=Cst (C-struct based), see doc to use other codecs
+    return raw;
+  }
+
+  @protected
+  int cst_encode_i_32(int raw) {
     // Codec=Cst (C-struct based), see doc to use other codecs
     return raw;
   }
@@ -676,6 +704,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   void cst_encode_unit(void raw) {
     // Codec=Cst (C-struct based), see doc to use other codecs
     return raw;
+  }
+
+  @protected
+  int cst_encode_whisper_status(WhisperStatus raw) {
+    // Codec=Cst (C-struct based), see doc to use other codecs
+    return cst_encode_i_32(raw.index);
   }
 
   @protected
@@ -758,6 +792,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_i_32(int self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putInt32(self);
+  }
+
+  @protected
   void sse_encode_list_prim_u_32_strict(
     Uint32List self,
     SseSerializer serializer,
@@ -837,6 +877,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_opt_U128(self.reasoningDuration, serializer);
     sse_encode_opt_String(self.reasoningLang, serializer);
     sse_encode_opt_U128(self.audioDuration, serializer);
+    sse_encode_whisper_status(self.status, serializer);
   }
 
   @protected
@@ -867,8 +908,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  void sse_encode_i_32(int self, SseSerializer serializer) {
+  void sse_encode_whisper_status(WhisperStatus self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    serializer.buffer.putInt32(self);
+    sse_encode_i_32(self.index, serializer);
   }
 }

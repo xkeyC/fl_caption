@@ -61,6 +61,7 @@ pub struct Segment {
     pub reasoning_duration: Option<u128>,
     pub reasoning_lang: Option<String>,
     pub audio_duration: Option<u128>,
+    pub status: WhisperStatus,
 }
 
 #[allow(dead_code)]
@@ -72,6 +73,15 @@ pub struct DecodingResult {
     pub no_speech_prob: f64,
     pub temperature: f64,
     pub compression_ratio: f64,
+}
+
+#[derive(Debug, Clone)]
+pub enum WhisperStatus {
+    Loading,
+    Ready,
+    Error,
+    Working,
+    Exit,
 }
 
 pub struct Decoder {
@@ -147,19 +157,25 @@ impl Decoder {
         })
     }
 
-    fn decode(&mut self, mel: &Tensor, t: f64, timeout: Option<Duration>, max_tokens: Option<usize>) -> anyhow::Result<DecodingResult> {
+    fn decode(
+        &mut self,
+        mel: &Tensor,
+        t: f64,
+        timeout: Option<Duration>,
+        max_tokens: Option<usize>,
+    ) -> anyhow::Result<DecodingResult> {
         let start_time = Instant::now();
         let model = &mut self.model;
         let audio_features = model.encoder_forward(mel, true)?;
         if self.verbose {
             println!("audio features: {:?}", audio_features.dims());
         }
-        
+
         let sample_len = match max_tokens {
             Some(max) => max.min(model.config().max_target_positions / 2),
             None => model.config().max_target_positions / 2,
         };
-        
+
         let mut sum_logprob = 0f64;
         let mut no_speech_prob = f64::NAN;
         let mut tokens = vec![self.sot_token];
@@ -173,25 +189,31 @@ impl Decoder {
         if !self.timestamps {
             tokens.push(self.no_timestamps_token);
         }
-        
+
         let default_max_decode_tokens = 256; // 设置一个默认的token数量上限
         let max_tokens = max_tokens.unwrap_or(default_max_decode_tokens);
-        
+
         for i in 0..sample_len {
             // 检查是否超时
             if let Some(timeout_duration) = timeout {
                 if start_time.elapsed() >= timeout_duration {
-                    println!("Decode timed out after {:?}, returning partial result", start_time.elapsed());
+                    println!(
+                        "Decode timed out after {:?}, returning partial result",
+                        start_time.elapsed()
+                    );
                     break;
                 }
             }
-            
+
             // 检查是否达到token数量上限
             if tokens.len() >= max_tokens {
-                println!("Reached maximum token limit ({} tokens), stopping decoding", max_tokens);
+                println!(
+                    "Reached maximum token limit ({} tokens), stopping decoding",
+                    max_tokens
+                );
                 break;
             }
-            
+
             let tokens_t = Tensor::new(tokens.as_slice(), mel.device())?;
 
             // The model expects a batch dim but this inference loop does not handle
@@ -213,7 +235,7 @@ impl Decoder {
                 .decoder_final_linear(&ys.i((..1, seq_len - 1..))?)?
                 .i(0)?
                 .i(0)?;
-            
+
             // TODO: Besides suppress tokens, we should apply the heuristics from
             // ApplyTimestampRules, i.e.:
             // - Timestamps come in pairs, except before EOT.
@@ -245,7 +267,7 @@ impl Decoder {
             }
             sum_logprob += prob.ln();
         }
-        
+
         let text = self
             .tokenizer
             .decode(&tokens, true)
@@ -263,22 +285,25 @@ impl Decoder {
     }
 
     fn decode_with_fallback(
-        &mut self, 
-        segment: &Tensor, 
+        &mut self,
+        segment: &Tensor,
         timeout: Option<Duration>,
-        max_tokens: Option<usize>
+        max_tokens: Option<usize>,
     ) -> anyhow::Result<DecodingResult> {
         let start_time = Instant::now();
-        
+
         for (i, &t) in m::TEMPERATURES.iter().enumerate() {
             // 检查是否超时
             if let Some(timeout_duration) = timeout {
                 if start_time.elapsed() >= timeout_duration {
-                    println!("decode_with_fallback timed out after {:?}, returning error", start_time.elapsed());
+                    println!(
+                        "decode_with_fallback timed out after {:?}, returning error",
+                        start_time.elapsed()
+                    );
                     return Err(anyhow::anyhow!("Decoding timed out"));
                 }
             }
-            
+
             let dr: anyhow::Result<DecodingResult> = self.decode(segment, t, timeout, max_tokens);
             if i == m::TEMPERATURES.len() - 1 {
                 return dr;
@@ -305,7 +330,7 @@ impl Decoder {
         mel: &Tensor,
         times: Option<(f64, f64)>,
         timeout: Option<Duration>,
-        max_tokens_per_segment: Option<usize>
+        max_tokens_per_segment: Option<usize>,
     ) -> anyhow::Result<Vec<Segment>> {
         let (_, _, content_frames) = mel.dims3()?;
         let mut seek = 0;
@@ -316,7 +341,10 @@ impl Decoder {
             // 检查是否超时
             if let Some(timeout_duration) = timeout {
                 if start_time.elapsed() >= timeout_duration {
-                    println!("Decoder run timed out after {:?}, returning partial results", start_time.elapsed());
+                    println!(
+                        "Decoder run timed out after {:?}, returning partial results",
+                        start_time.elapsed()
+                    );
                     break;
                 }
             }
@@ -326,7 +354,7 @@ impl Decoder {
             let segment_size = usize::min(content_frames - seek, m::N_FRAMES);
             let mel_segment = mel.narrow(2, seek, segment_size)?;
             let segment_duration = (segment_size * m::HOP_LENGTH) as f64 / m::SAMPLE_RATE as f64;
-            
+
             // 计算本段的超时限制
             let segment_timeout = timeout.map(|t| {
                 let elapsed = start_time.elapsed();
@@ -336,9 +364,13 @@ impl Decoder {
                     t - elapsed // 剩余时间
                 }
             });
-            
+
             // 使用修改后的decode_with_fallback，传入超时参数和token数量限制
-            let dr = match self.decode_with_fallback(&mel_segment, segment_timeout, max_tokens_per_segment) {
+            let dr = match self.decode_with_fallback(
+                &mel_segment,
+                segment_timeout,
+                max_tokens_per_segment,
+            ) {
                 Ok(dr) => dr,
                 Err(e) => {
                     if timeout.is_some() && e.to_string().contains("timed out") {
@@ -348,7 +380,7 @@ impl Decoder {
                     return Err(e);
                 }
             };
-            
+
             seek += segment_size;
             if dr.no_speech_prob > m::NO_SPEECH_THRESHOLD && dr.avg_logprob < m::LOGPROB_THRESHOLD {
                 println!("no speech detected, skipping {seek} {dr:?}");
@@ -361,6 +393,7 @@ impl Decoder {
                 reasoning_duration: None,
                 reasoning_lang: None,
                 audio_duration: None,
+                status: WhisperStatus::Working,
             };
             if self.timestamps {
                 println!(

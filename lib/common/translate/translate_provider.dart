@@ -25,7 +25,7 @@ class TranslateProvider extends _$TranslateProvider {
   void _updateTranslate(String? p, String? n, String? lang) async {
     final appSettings = await ref.watch(appSettingsProvider.future);
     if (appSettings.llmProviderUrl.isEmpty || appSettings.llmProviderModel.isEmpty) {
-      state = "<Not config llm>";
+      state = "";
       return;
     }
     if (appSettings.captionLanguage == null) {

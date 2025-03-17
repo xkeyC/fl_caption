@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:fl_caption/common/rust/whisper_caption/whisper.dart' show WhisperStatus;
 import 'package:fl_caption/common/settings_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -64,6 +65,8 @@ class DartWhisperCaptionResult {
   final Duration? audioDuration;
   final String? reasoningLang;
   final DartWhisperClientError? errorType;
+  final WhisperStatus whisperStatus;
+  final String? errorMessage;
 
   const DartWhisperCaptionResult({
     required this.text,
@@ -71,6 +74,8 @@ class DartWhisperCaptionResult {
     this.audioDuration,
     this.reasoningLang,
     this.errorType,
+    this.whisperStatus = WhisperStatus.loading,
+    this.errorMessage,
   });
 }
 
@@ -88,21 +93,20 @@ class DartWhisperCaption extends _$DartWhisperCaption {
     _cancelToken = await rs.createCancellationToken();
     debugPrint("[DartWhisperCaption] launchCaption");
     final appSettings = await ref.read(appSettingsProvider.future);
-    final sub = rs
-        .launchCaption(
-          whisperClient: dartWhisper.client,
-          cancelTokenId: _cancelToken ?? "",
-          audioDeviceIsInput: false,
-          audioLanguage: appSettings.audioLanguage,
-          tryWithCuda: appSettings.tryWithCuda,
-        )
-        .listen(
-          (data) {
-            if (data.isNotEmpty) {
-              // debugPrint("[DartWhisperCaption] Data: $data");
-              final newData = data.map((e) => e.dr.text).toList().join(" ");
-              if (newData.isNotEmpty) {
-                // debugPrint("[DartWhisperCaption] New Data: $newData");
+    try {
+      final sub = rs
+          .launchCaption(
+            whisperClient: dartWhisper.client,
+            cancelTokenId: _cancelToken ?? "",
+            audioDeviceIsInput: false,
+            audioLanguage: appSettings.audioLanguage,
+            tryWithCuda: appSettings.tryWithCuda,
+          )
+          .listen(
+            (data) {
+              if (data.isNotEmpty) {
+                // debugPrint("[DartWhisperCaption] Data: $data");
+                final newData = data.map((e) => e.dr.text).toList().join(" ");
                 state = AsyncData(
                   DartWhisperCaptionResult(
                     text: newData,
@@ -110,23 +114,36 @@ class DartWhisperCaption extends _$DartWhisperCaption {
                     audioDuration: Duration(milliseconds: data.lastOrNull?.audioDuration?.toInt() ?? 0),
                     reasoningLang: data.lastOrNull?.reasoningLang,
                     errorType: dartWhisper.errorType,
+                    whisperStatus: data.lastOrNull?.status ?? WhisperStatus.loading,
                   ),
                 );
               }
-            }
-          },
-          onDone: () {
-            debugPrint("[DartWhisperCaption] Done");
-          },
-          onError: (e) {
-            debugPrint("[DartWhisperCaption] Error: $e");
-          },
-        );
-    ref.onDispose(() {
-      debugPrint("[DartWhisperCaption] Dispose");
-      sub.cancel();
-      cancel(_cancelToken);
-    });
+            },
+            onDone: () {
+              debugPrint("[DartWhisperCaption] Done");
+            },
+            onError: (e) {
+              debugPrint("[DartWhisperCaption] Error: $e");
+              state = AsyncData(
+                DartWhisperCaptionResult(
+                  text: "",
+                  errorType: dartWhisper.errorType,
+                  errorMessage: e.toString(),
+                  whisperStatus: WhisperStatus.error,
+                ),
+              );
+            },
+          );
+      ref.onDispose(() {
+        debugPrint("[DartWhisperCaption] Dispose");
+        sub.cancel();
+        cancel(_cancelToken);
+      });
+    } catch (e) {
+      debugPrint("[DartWhisperCaption] Error: $e");
+      return DartWhisperCaptionResult(text: "", errorType: dartWhisper.errorType, errorMessage: e.toString());
+    }
+
     return DartWhisperCaptionResult(text: "", errorType: dartWhisper.errorType);
   }
 

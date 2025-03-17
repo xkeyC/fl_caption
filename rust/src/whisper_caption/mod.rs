@@ -7,8 +7,9 @@ use crate::whisper_caption::whisper::{Model, Segment};
 use candle_nn::VarBuilder;
 use candle_transformers::models::whisper::{self as m, audio, Config};
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
+use native_dialog::{MessageDialog, MessageType};
 use std::sync::mpsc as std_mpsc;
-use std::thread;
+use std::{panic, thread};
 use tokenizers::Tokenizer;
 use tokio::sync::mpsc;
 use tokio::time::Instant;
@@ -34,11 +35,12 @@ pub async fn launch_caption<F>(
 where
     F: FnMut(Vec<Segment>) + Send + 'static,
 {
+    result_callback(_make_status_response(whisper::WhisperStatus::Loading));
     let device = if try_with_cuda {
         if cfg!(target_os = "macos") {
             candle_core::Device::new_metal(0)?
         } else {
-            candle_core::Device::cuda_if_available(0)?
+            _try_get_cuda()
         }
     } else {
         candle_core::Device::Cpu
@@ -124,13 +126,6 @@ where
     let channel_count = audio_config.channels() as usize;
     let in_sample_rate = audio_config.sample_rate().0 as usize;
     let resample_ratio = 16000. / in_sample_rate as f64;
-    let mut resampler = rubato::FastFixedIn::new(
-        resample_ratio,
-        10.,
-        rubato::PolynomialDegree::Septic,
-        1024,
-        1,
-    )?;
 
     // 使用标准库通道来处理音频输入流和处理线程间的通信
     let (tx, rx) = std_mpsc::channel::<Vec<f32>>();
@@ -209,7 +204,7 @@ where
 
         // 使用取消令牌等待取消信号
         while !audio_cancel_token_clone.is_cancelled() {
-            thread::sleep(std::time::Duration::from_millis(100));
+            thread::sleep(Duration::from_millis(100));
         }
 
         // 确保流被正确停止
@@ -222,15 +217,54 @@ where
 
     // 创建处理音频数据的 tokio 任务
     let processor_task = tokio::spawn(async move {
+        // 使用 rubato 进行重采样
+        use rubato::Resampler;
+        let mut resampler: rubato::FastFixedIn<f32> = rubato::FastFixedIn::<f32>::new(
+            resample_ratio,
+            10.,
+            rubato::PolynomialDegree::Septic,
+            1024,
+            1,
+        )
+        .unwrap();
+
         while let Ok(pcm) = rx.recv() {
             if processor_cancel_token.is_cancelled() {
                 break;
             }
-            let _ = result_tx.send(pcm).await;
+
+            // 立即对音频数据进行重采样
+            let mut resampled_pcm = vec![];
+            let full_chunks = pcm.len() / 1024;
+
+            // 处理完整的1024样本块
+            for chunk in 0..full_chunks {
+                let pcm_chunk = &pcm[chunk * 1024..(chunk + 1) * 1024];
+                if let Ok(res) = resampler.process(&[&pcm_chunk], None) {
+                    resampled_pcm.extend_from_slice(&res[0]);
+                }
+            }
+
+            // 如果有剩余不足1024的样本，也进行处理
+            let remaining = pcm.len() % 1024;
+            if remaining > 0 {
+                let start = full_chunks * 1024;
+                let mut last_chunk = vec![0.0f32; 1024];
+                last_chunk[..remaining].copy_from_slice(&pcm[start..]);
+
+                if let Ok(res) = resampler.process(&[&last_chunk], None) {
+                    // 只添加有效的重采样数据
+                    let valid_len = (remaining as f64 * resample_ratio).ceil() as usize;
+                    resampled_pcm.extend_from_slice(&res[0][..valid_len.min(res[0].len())]);
+                }
+            }
+
+            let _ = result_tx.send(resampled_pcm).await;
         }
     });
 
-    println!("transcribing audio...");
+    result_callback(_make_status_response(whisper::WhisperStatus::Ready));
+    println!("Whisper Ready...");
 
     // 处理任务在当前函数中运行
     let mut buffered_pcm = vec![];
@@ -262,7 +296,7 @@ where
 
         // 首次启动时，等待3秒数据
         if !first_inference_done {
-            if buffered_pcm.len() < 3 * in_sample_rate {
+            if buffered_pcm.len() < 3 * 16000 {
                 continue;
             }
             first_inference_done = true;
@@ -277,8 +311,8 @@ where
         // 记录推理开始时间
         let inference_start = Instant::now();
 
-        // 计算最大样本数
-        let max_samples = max_audio_duration * in_sample_rate;
+        // 计算最大样本数（现在要使用16000采样率）
+        let max_samples = max_audio_duration * 16000;
 
         // 计算总长度
         let total_len = history_pcm.len() + buffered_pcm.len();
@@ -308,24 +342,13 @@ where
         combined_pcm.extend_from_slice(&adjusted_history_pcm);
         combined_pcm.extend_from_slice(&buffered_pcm);
 
-        // 更新历史数据为当前的组合数据（保持原始采样率）
+        // 更新历史数据为当前的组合数据
         history_pcm = combined_pcm.clone();
 
         // 清理缓冲区
         buffered_pcm.clear();
 
-        let mut resampled_pcm = vec![];
-        let full_chunks = combined_pcm.len() / 1024;
-
-        // 处理音频数据进行推理
-        use rubato::Resampler;
-        for chunk in 0..full_chunks {
-            let pcm_chunk = &combined_pcm[chunk * 1024..(chunk + 1) * 1024];
-            let pcm = resampler.process(&[&pcm_chunk], None)?;
-            resampled_pcm.extend_from_slice(&pcm[0]);
-        }
-
-        let pcm = resampled_pcm;
+        let pcm = combined_pcm;
 
         let mel = audio::pcm_to_mel(&config, &pcm, &mel_filters);
         let mel_len = mel.len();
@@ -395,6 +418,57 @@ where
 
     let _ = audio_thread.join();
 
-    println!("Transcription completed");
+    result_callback(_make_status_response(whisper::WhisperStatus::Exit));
+
+    println!("Whisper Exit");
     Ok(())
+}
+
+fn _try_get_cuda() -> (candle_core::Device) {
+    // get a cuda device
+    let result = panic::catch_unwind(|| candle_core::Device::cuda_if_available(0).unwrap());
+    match result {
+        // 成功获取设备
+        Ok(device) => device,
+
+        // 处理 panic
+        Err(panic_err) => {
+            // 尝试从 panic 值中提取有用信息
+            let panic_info = if let Some(s) = panic_err.downcast_ref::<String>() {
+                s.clone()
+            } else if let Some(s) = panic_err.downcast_ref::<&str>() {
+                s.to_string()
+            } else {
+                "Unknow CUDA device initialization error".to_string()
+            };
+            // show dialog
+            MessageDialog::new()
+                .set_type(MessageType::Error)
+                .set_title("CUDA device initialization error , fall back to CPU")
+                .set_text(&panic_info)
+                .show_alert()
+                .unwrap_or(());
+            // 返回 CPU 设备
+            candle_core::Device::Cpu
+        }
+    }
+}
+
+fn _make_status_response(status: whisper::WhisperStatus) -> Vec<Segment> {
+    vec![Segment {
+        start: 0.0,
+        duration: 0.0,
+        dr: whisper::DecodingResult {
+            tokens: vec![],
+            text: "".to_string(),
+            avg_logprob: 0.0,
+            no_speech_prob: 0.0,
+            temperature: 0.0,
+            compression_ratio: 0.0,
+        },
+        reasoning_duration: None,
+        reasoning_lang: None,
+        audio_duration: None,
+        status,
+    }]
 }

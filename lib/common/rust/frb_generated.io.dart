@@ -49,6 +49,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   double dco_decode_f_64(dynamic raw);
 
   @protected
+  int dco_decode_i_32(dynamic raw);
+
+  @protected
   Uint32List dco_decode_list_prim_u_32_strict(dynamic raw);
 
   @protected
@@ -85,6 +88,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   WhisperClient dco_decode_whisper_client(dynamic raw);
 
   @protected
+  WhisperStatus dco_decode_whisper_status(dynamic raw);
+
+  @protected
   AnyhowException sse_decode_AnyhowException(SseDeserializer deserializer);
 
   @protected
@@ -114,6 +120,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   double sse_decode_f_64(SseDeserializer deserializer);
+
+  @protected
+  int sse_decode_i_32(SseDeserializer deserializer);
 
   @protected
   Uint32List sse_decode_list_prim_u_32_strict(SseDeserializer deserializer);
@@ -152,7 +161,7 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   WhisperClient sse_decode_whisper_client(SseDeserializer deserializer);
 
   @protected
-  int sse_decode_i_32(SseDeserializer deserializer);
+  WhisperStatus sse_decode_whisper_status(SseDeserializer deserializer);
 
   @protected
   ffi.Pointer<wire_cst_list_prim_u_8_strict> cst_encode_AnyhowException(
@@ -295,6 +304,7 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     wireObj.reasoning_duration = cst_encode_opt_U128(apiObj.reasoningDuration);
     wireObj.reasoning_lang = cst_encode_opt_String(apiObj.reasoningLang);
     wireObj.audio_duration = cst_encode_opt_U128(apiObj.audioDuration);
+    wireObj.status = cst_encode_whisper_status(apiObj.status);
   }
 
   @protected
@@ -318,6 +328,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   double cst_encode_f_64(double raw);
 
   @protected
+  int cst_encode_i_32(int raw);
+
+  @protected
   int cst_encode_u_32(int raw);
 
   @protected
@@ -325,6 +338,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void cst_encode_unit(void raw);
+
+  @protected
+  int cst_encode_whisper_status(WhisperStatus raw);
 
   @protected
   void sse_encode_AnyhowException(
@@ -364,6 +380,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_f_64(double self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_i_32(int self, SseSerializer serializer);
 
   @protected
   void sse_encode_list_prim_u_32_strict(
@@ -408,7 +427,7 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_whisper_client(WhisperClient self, SseSerializer serializer);
 
   @protected
-  void sse_encode_i_32(int self, SseSerializer serializer);
+  void sse_encode_whisper_status(WhisperStatus self, SseSerializer serializer);
 }
 
 // Section: wire_class
@@ -756,6 +775,9 @@ final class wire_cst_segment extends ffi.Struct {
   external ffi.Pointer<wire_cst_list_prim_u_8_strict> reasoning_lang;
 
   external ffi.Pointer<wire_cst_list_prim_u_8_strict> audio_duration;
+
+  @ffi.Int32()
+  external int status;
 }
 
 final class wire_cst_list_segment extends ffi.Struct {

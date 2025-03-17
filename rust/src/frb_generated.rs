@@ -194,6 +194,12 @@ impl CstDecode<f64> for f64 {
         self
     }
 }
+impl CstDecode<i32> for i32 {
+    // Codec=Cst (C-struct based), see doc to use other codecs
+    fn cst_decode(self) -> i32 {
+        self
+    }
+}
 impl CstDecode<u32> for u32 {
     // Codec=Cst (C-struct based), see doc to use other codecs
     fn cst_decode(self) -> u32 {
@@ -204,6 +210,19 @@ impl CstDecode<u8> for u8 {
     // Codec=Cst (C-struct based), see doc to use other codecs
     fn cst_decode(self) -> u8 {
         self
+    }
+}
+impl CstDecode<crate::whisper_caption::whisper::WhisperStatus> for i32 {
+    // Codec=Cst (C-struct based), see doc to use other codecs
+    fn cst_decode(self) -> crate::whisper_caption::whisper::WhisperStatus {
+        match self {
+            0 => crate::whisper_caption::whisper::WhisperStatus::Loading,
+            1 => crate::whisper_caption::whisper::WhisperStatus::Ready,
+            2 => crate::whisper_caption::whisper::WhisperStatus::Error,
+            3 => crate::whisper_caption::whisper::WhisperStatus::Working,
+            4 => crate::whisper_caption::whisper::WhisperStatus::Exit,
+            _ => unreachable!("Invalid variant for WhisperStatus: {}", self),
+        }
     }
 }
 impl SseDecode for flutter_rust_bridge::for_generated::anyhow::Error {
@@ -274,6 +293,13 @@ impl SseDecode for f64 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         deserializer.cursor.read_f64::<NativeEndian>().unwrap()
+    }
+}
+
+impl SseDecode for i32 {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        deserializer.cursor.read_i32::<NativeEndian>().unwrap()
     }
 }
 
@@ -358,6 +384,8 @@ impl SseDecode for crate::whisper_caption::whisper::Segment {
         let mut var_reasoningDuration = <Option<u128>>::sse_decode(deserializer);
         let mut var_reasoningLang = <Option<String>>::sse_decode(deserializer);
         let mut var_audioDuration = <Option<u128>>::sse_decode(deserializer);
+        let mut var_status =
+            <crate::whisper_caption::whisper::WhisperStatus>::sse_decode(deserializer);
         return crate::whisper_caption::whisper::Segment {
             start: var_start,
             duration: var_duration,
@@ -365,6 +393,7 @@ impl SseDecode for crate::whisper_caption::whisper::Segment {
             reasoning_duration: var_reasoningDuration,
             reasoning_lang: var_reasoningLang,
             audio_duration: var_audioDuration,
+            status: var_status,
         };
     }
 }
@@ -406,10 +435,18 @@ impl SseDecode for crate::api::whisper::WhisperClient {
     }
 }
 
-impl SseDecode for i32 {
+impl SseDecode for crate::whisper_caption::whisper::WhisperStatus {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        deserializer.cursor.read_i32::<NativeEndian>().unwrap()
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::whisper_caption::whisper::WhisperStatus::Loading,
+            1 => crate::whisper_caption::whisper::WhisperStatus::Ready,
+            2 => crate::whisper_caption::whisper::WhisperStatus::Error,
+            3 => crate::whisper_caption::whisper::WhisperStatus::Working,
+            4 => crate::whisper_caption::whisper::WhisperStatus::Exit,
+            _ => unreachable!("Invalid variant for WhisperStatus: {}", inner),
+        };
     }
 }
 
@@ -475,6 +512,7 @@ impl flutter_rust_bridge::IntoDart for crate::whisper_caption::whisper::Segment 
             self.reasoning_duration.into_into_dart().into_dart(),
             self.reasoning_lang.into_into_dart().into_dart(),
             self.audio_duration.into_into_dart().into_dart(),
+            self.status.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -511,6 +549,30 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::whisper::WhisperClient>
     for crate::api::whisper::WhisperClient
 {
     fn into_into_dart(self) -> crate::api::whisper::WhisperClient {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::whisper_caption::whisper::WhisperStatus {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            Self::Loading => 0.into_dart(),
+            Self::Ready => 1.into_dart(),
+            Self::Error => 2.into_dart(),
+            Self::Working => 3.into_dart(),
+            Self::Exit => 4.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::whisper_caption::whisper::WhisperStatus
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::whisper_caption::whisper::WhisperStatus>
+    for crate::whisper_caption::whisper::WhisperStatus
+{
+    fn into_into_dart(self) -> crate::whisper_caption::whisper::WhisperStatus {
         self
     }
 }
@@ -571,6 +633,13 @@ impl SseEncode for f64 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         serializer.cursor.write_f64::<NativeEndian>(self).unwrap();
+    }
+}
+
+impl SseEncode for i32 {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        serializer.cursor.write_i32::<NativeEndian>(self).unwrap();
     }
 }
 
@@ -643,6 +712,7 @@ impl SseEncode for crate::whisper_caption::whisper::Segment {
         <Option<u128>>::sse_encode(self.reasoning_duration, serializer);
         <Option<String>>::sse_encode(self.reasoning_lang, serializer);
         <Option<u128>>::sse_encode(self.audio_duration, serializer);
+        <crate::whisper_caption::whisper::WhisperStatus>::sse_encode(self.status, serializer);
     }
 }
 
@@ -676,10 +746,22 @@ impl SseEncode for crate::api::whisper::WhisperClient {
     }
 }
 
-impl SseEncode for i32 {
+impl SseEncode for crate::whisper_caption::whisper::WhisperStatus {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        serializer.cursor.write_i32::<NativeEndian>(self).unwrap();
+        <i32>::sse_encode(
+            match self {
+                crate::whisper_caption::whisper::WhisperStatus::Loading => 0,
+                crate::whisper_caption::whisper::WhisperStatus::Ready => 1,
+                crate::whisper_caption::whisper::WhisperStatus::Error => 2,
+                crate::whisper_caption::whisper::WhisperStatus::Working => 3,
+                crate::whisper_caption::whisper::WhisperStatus::Exit => 4,
+                _ => {
+                    unimplemented!("");
+                }
+            },
+            serializer,
+        );
     }
 }
 
@@ -816,6 +898,7 @@ mod io {
                 reasoning_duration: self.reasoning_duration.cst_decode(),
                 reasoning_lang: self.reasoning_lang.cst_decode(),
                 audio_duration: self.audio_duration.cst_decode(),
+                status: self.status.cst_decode(),
             }
         }
     }
@@ -857,6 +940,7 @@ mod io {
                 reasoning_duration: core::ptr::null_mut(),
                 reasoning_lang: core::ptr::null_mut(),
                 audio_duration: core::ptr::null_mut(),
+                status: Default::default(),
             }
         }
     }
@@ -1046,6 +1130,7 @@ mod io {
         reasoning_duration: *mut wire_cst_list_prim_u_8_strict,
         reasoning_lang: *mut wire_cst_list_prim_u_8_strict,
         audio_duration: *mut wire_cst_list_prim_u_8_strict,
+        status: i32,
     }
     #[repr(C)]
     #[derive(Clone, Copy)]

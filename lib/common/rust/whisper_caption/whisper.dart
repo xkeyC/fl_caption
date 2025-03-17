@@ -52,6 +52,7 @@ class Segment {
   final BigInt? reasoningDuration;
   final String? reasoningLang;
   final BigInt? audioDuration;
+  final WhisperStatus status;
 
   const Segment({
     required this.start,
@@ -60,6 +61,7 @@ class Segment {
     this.reasoningDuration,
     this.reasoningLang,
     this.audioDuration,
+    required this.status,
   });
 
   @override
@@ -69,7 +71,8 @@ class Segment {
       dr.hashCode ^
       reasoningDuration.hashCode ^
       reasoningLang.hashCode ^
-      audioDuration.hashCode;
+      audioDuration.hashCode ^
+      status.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -81,5 +84,8 @@ class Segment {
           dr == other.dr &&
           reasoningDuration == other.reasoningDuration &&
           reasoningLang == other.reasoningLang &&
-          audioDuration == other.audioDuration;
+          audioDuration == other.audioDuration &&
+          status == other.status;
 }
+
+enum WhisperStatus { loading, ready, error, working, exit }

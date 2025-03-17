@@ -18,6 +18,7 @@ import 'package:rhttp/rhttp.dart';
 import 'package:window_manager/window_manager.dart';
 
 import 'common/rust/frb_generated.dart';
+import 'common/rust/whisper_caption/whisper.dart' show WhisperStatus;
 import 'common/settings_provider.dart';
 import 'common/utils/window_util.dart';
 import 'common/whisper/provider.dart';
@@ -77,58 +78,104 @@ class App extends HookConsumerWidget {
     return DragToMoveArea(
       child: FluentApp(
         debugShowCheckedModeBanner: false,
-        title: 'Fluent UI',
+        title: 'Fl Caption',
         theme: FluentThemeData(brightness: Brightness.dark, fontFamily: "SourceHanSansCN-Regular"),
         home: Container(
           color: Colors.black.withValues(alpha: .7),
-          child: Stack(
+          child: Column(
+            mainAxisSize: MainAxisSize.max,
             children: [
-              Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (caption.hasValue) ...[
-                      Text(
-                        caption.value!.text.isEmpty ? "<wait for Whisper ...>" : caption.value!.text,
-                        style: TextStyle(fontSize: 16, color: Colors.white),
-                        maxLines: 1,
-                      ),
-                      SizedBox(height: 12),
-                      Consumer(
-                        builder: (BuildContext context, WidgetRef ref, Widget? child) {
-                          final text = ref.watch(translateProviderProvider);
-                          return Text(text, style: TextStyle(fontSize: 22), maxLines: 3);
-                        },
-                      ),
-                    ],
-                    if (caption.hasError)
-                      HomeErrorWidget(errorType: caption.value?.errorType, errorInfo: caption.error),
-                  ],
+              Expanded(
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
+                    child: Stack(
+                      children: [
+                        Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (caption.value != null) ...[
+                                if (caption.value!.errorType != null ||
+                                    caption.value!.errorMessage != null ||
+                                    caption.hasError) ...[
+                                  HomeErrorWidget(
+                                    errorType: caption.value?.errorType,
+                                    errorInfo: caption.value!.errorMessage ?? caption.error,
+                                  ),
+                                ] else ...[
+                                  if (caption.value!.whisperStatus == WhisperStatus.loading) ...[
+                                    ProgressRing(),
+                                  ] else ...[
+                                    Text(
+                                      caption.value!.text.isEmpty ? "<wait audio input ...>" : caption.value!.text,
+                                      style: TextStyle(fontSize: 16, color: Colors.white),
+                                      maxLines: 1,
+                                    ),
+                                    SizedBox(height: 12),
+                                    Consumer(
+                                      builder: (BuildContext context, WidgetRef ref, Widget? child) {
+                                        final text = ref.watch(translateProviderProvider);
+                                        if (text.trim().isEmpty) return SizedBox();
+                                        return Text(text, style: TextStyle(fontSize: 22), maxLines: 3);
+                                      },
+                                    ),
+                                  ],
+                                ],
+                              ],
+                            ],
+                          ),
+                        ),
+                        Positioned(
+                          right: 12,
+                          top: 12,
+                          child: Row(
+                            children: [IconButton(icon: Icon(FluentIcons.settings), onPressed: _openSettings)],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
-              Positioned(
-                left: 12,
-                right: 12,
-                bottom: 12,
+              SizedBox(height: 3),
+              Padding(
+                padding: const EdgeInsets.only(left: 15, right: 15, bottom: 3),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Row(
                       children: [
                         if (caption.hasValue) ...[
+                          if (caption.value?.whisperStatus != null)
+                            Text(
+                              "whisperStatus: ${caption.value?.whisperStatus.name}",
+                              style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: .6)),
+                            ),
+                          SizedBox(width: 6),
                           Text(
                             "audioLang: ${caption.value?.reasoningLang ?? "unknown"}",
                             style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: .6)),
                           ),
                           SizedBox(width: 6),
-                          Text(
-                            "reasoningSpeed: ${caption.value?.reasoningDuration?.inMilliseconds ?? "?"}ms",
+                          Text.rich(
+                            TextSpan(
+                              children: [
+                                TextSpan(text: "reasoning "),
+                                TextSpan(
+                                  text: "${caption.value?.reasoningDuration?.inMilliseconds ?? "?"}ms",
+                                  style: TextStyle(
+                                    color: _getReasoningColor(caption.value?.reasoningDuration?.inMilliseconds),
+                                  ),
+                                ),
+                              ],
+                            ),
                             style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: .6)),
                           ),
                           SizedBox(width: 6),
                           // auto duration
                           Text(
-                            "audioDuration: ${((caption.value?.audioDuration?.inMilliseconds ?? 0) / 1000).toStringAsFixed(2)}s",
+                            "audio: ${((caption.value?.audioDuration?.inMilliseconds ?? 0) / 1000).toStringAsFixed(2)}s",
                             style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: .6)),
                           ),
                         ],
@@ -144,11 +191,6 @@ class App extends HookConsumerWidget {
                     ),
                   ],
                 ),
-              ),
-              Positioned(
-                right: 12,
-                top: 12,
-                child: Row(children: [IconButton(icon: Icon(FluentIcons.settings), onPressed: _openSettings)]),
               ),
             ],
           ),
@@ -198,5 +240,11 @@ class App extends HookConsumerWidget {
     // dispose winManager
     await windowManager.destroy();
     exit(0);
+  }
+
+  Color _getReasoningColor(int? inMilliseconds) {
+    if (inMilliseconds == null || inMilliseconds < 800) return Colors.white.withValues(alpha: .6);
+    if (inMilliseconds < 1500) return Colors.yellow.withValues(alpha: .6);
+    return Colors.red.withValues(alpha: .6);
   }
 }

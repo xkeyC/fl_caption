@@ -22,6 +22,6 @@ QQ群：1037016702
 
 1. 模型下载无进度或下载失败：请尝试参照 https://github.com/xkeyC/fl_caption/issues/1 设置 `HF_ENDPOINT` 环境变量，或打开 https://github.com/xkeyC/fl_caption/blob/main/lib/common/whisper/models.dart 的链接手动下载文件，文件名即为 name 的值，如 `base` `large-v3_q4k` 等。
 
-2. 启动后卡在 Wait for Whisper：如果开启了 CUDA 加速，请检安装 CUDA Toolkit （下载链接：https://developer.nvidia.cn/cuda-downloads?target_os=Windows&target_arch=x86_64） 。 若不是 CUDA 的问题，请开一个 issue 并说明硬件规格。
+2. 启动后卡在 Wait for Whisper：如果开启了 CUDA 加速，请检安装 CUDA Toolkit （下载链接：https://developer.nvidia.com/cuda-downloads?target_os=Windows） 。 若不是 CUDA 的问题，请开一个 issue 并说明硬件规格。
     > 提示：安装时仅选择 Development 和 Runtime -> Libraries 可优化安装速度与文件体积。
     ![image.png](https://s2.loli.net/2025/03/16/dZiXMquhF1YDj2U.png)

@@ -424,7 +424,7 @@ where
     Ok(())
 }
 
-fn _try_get_cuda() -> (candle_core::Device) {
+fn _try_get_cuda() -> candle_core::Device {
     // get a cuda device
     let result = panic::catch_unwind(|| candle_core::Device::cuda_if_available(0).unwrap());
     match result {

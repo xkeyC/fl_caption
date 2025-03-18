@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use std::sync::Mutex;
 use std::time::Duration;
 use uuid::Uuid;
+use whisper_rs::{WhisperContext, WhisperState};
 
 pub type CancellationToken = tokio_util::sync::CancellationToken;
 
@@ -30,27 +31,17 @@ pub fn cancel_cancellation_token(token_id: String) {
 }
 
 pub struct WhisperClient {
-    pub whisper_model: String,
-    pub whisper_config: String,
-    pub whisper_tokenizer: Vec<u8>,
-    pub is_multilingual: bool,
-    pub is_quantized: bool,
+    pub whisper_model: WhisperContext,
+    pub whisper_state: WhisperState,
 }
 
 impl WhisperClient {
-    pub fn new(
-        whisper_model: String,
-        whisper_config: String,
-        whisper_tokenizer: Vec<u8>,
-        is_multilingual: bool,
-        is_quantized: bool,
-    ) -> Self {
+    pub fn new(whisper_model_path: String) -> Self {
+        let whisper_model = WhisperContext::new(&whisper_model_path).unwrap();
+        let whisper_state = whisper_model.create_state().unwrap();
         Self {
             whisper_model,
-            whisper_config,
-            whisper_tokenizer,
-            is_multilingual,
-            is_quantized,
+            whisper_state,
         }
     }
 }
@@ -79,13 +70,10 @@ pub async fn launch_caption(
 
     whisper_caption::launch_caption(
         whisper_client.whisper_model,
-        &whisper_client.whisper_config,
-        whisper_client.is_quantized,
-        whisper_client.whisper_tokenizer,
+        whisper_client.whisper_state,
         audio_device,
         audio_device_is_input,
         audio_language,
-        Some(whisper_client.is_multilingual),
         cancel_token,
         with_timestamps,
         verbose,

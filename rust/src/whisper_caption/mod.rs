@@ -1,29 +1,19 @@
-pub mod multilingual;
-pub mod whisper;
-
 use std::time::Duration;
-
-use crate::whisper_caption::whisper::{Model, Segment};
-use candle_nn::VarBuilder;
-use candle_transformers::models::whisper::{self as m, audio, Config};
+use whisper_rs::{WhisperContext, FullParams, SamplingStrategy};
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use native_dialog::{MessageDialog, MessageType};
 use std::sync::mpsc as std_mpsc;
 use std::{panic, thread};
-use tokenizers::Tokenizer;
 use tokio::sync::mpsc;
 use tokio::time::Instant;
 use tokio_util::sync::CancellationToken;
 
 pub async fn launch_caption<F>(
-    model_path: String,
-    config_data: &str,
-    is_quantized: bool,
-    tokenizer_data: Vec<u8>,
+    whisper_model: WhisperContext,
+    whisper_state: whisper_rs::WhisperState,
     audio_device: Option<String>,
     audio_device_is_input: Option<bool>,
     audio_language: Option<String>,
-    is_multilingual: Option<bool>,
     cancel_token: CancellationToken,
     with_timestamps: Option<bool>,
     verbose: Option<bool>,
@@ -33,61 +23,13 @@ pub async fn launch_caption<F>(
     mut result_callback: F,
 ) -> anyhow::Result<()>
 where
-    F: FnMut(Vec<Segment>) + Send + 'static,
+    F: FnMut(Vec<whisper_rs::Segment>) + Send + 'static,
 {
-    result_callback(_make_status_response(whisper::WhisperStatus::Loading));
-    let device = if try_with_cuda {
-        if cfg!(target_os = "macos") {
-            candle_core::Device::new_metal(0)?
-        } else {
-            _try_get_cuda()
-        }
-    } else {
-        candle_core::Device::Cpu
-    };
+    result_callback(_make_status_response(whisper_rs::WhisperStatus::Loading));
 
-    let arg_is_multilingual = is_multilingual.unwrap_or(false);
     let arg_language = audio_language;
     let arg_device = audio_device;
     let is_input = audio_device_is_input.unwrap_or(true);
-
-    let config: Config = serde_json::from_str(config_data)?;
-    let tokenizer = Tokenizer::from_bytes(tokenizer_data).unwrap();
-
-    // check model path
-    if !std::path::Path::new(&model_path).exists() {
-        anyhow::bail!("model path does not exist: {model_path}");
-    }
-
-    let model = if is_quantized {
-        let vb = candle_transformers::quantized_var_builder::VarBuilder::from_gguf(
-            &model_path,
-            &device,
-        )?;
-        Model::Quantized(m::quantized_model::Whisper::load(&vb, config.clone())?)
-    } else {
-        let vb = unsafe { VarBuilder::from_mmaped_safetensors(&[model_path], m::DTYPE, &device)? };
-        Model::Normal(m::model::Whisper::load(&vb, config.clone())?)
-    };
-    let seed = 299792458;
-    let mut decoder = whisper::Decoder::new(
-        model,
-        tokenizer.clone(),
-        seed,
-        &device,
-        /* language_token */ None,
-        Some(whisper::Task::Transcribe),
-        with_timestamps.unwrap_or(false),
-        verbose.unwrap_or(false),
-    )?;
-
-    let mel_bytes = match config.num_mel_bins {
-        80 => include_bytes!("../../whisper/melfilters.bytes").as_slice(),
-        128 => include_bytes!("../../whisper/melfilters128.bytes").as_slice(),
-        nmel => anyhow::bail!("unexpected num_mel_bins {nmel}"),
-    };
-    let mut mel_filters = vec![0f32; mel_bytes.len() / 4];
-    <byteorder::LittleEndian as byteorder::ByteOrder>::read_f32_into(mel_bytes, &mut mel_filters);
 
     // Set up the audio device and stream
     let host = cpal::default_host();
@@ -263,7 +205,7 @@ where
         }
     });
 
-    result_callback(_make_status_response(whisper::WhisperStatus::Ready));
+    result_callback(_make_status_response(whisper_rs::WhisperStatus::Ready));
     println!("Whisper Ready...");
 
     // 处理任务在当前函数中运行
@@ -350,60 +292,39 @@ where
 
         let pcm = combined_pcm;
 
-        let mel = audio::pcm_to_mel(&config, &pcm, &mel_filters);
-        let mel_len = mel.len();
-        let mel = candle_core::Tensor::from_vec(
-            mel,
-            (1, config.num_mel_bins, mel_len / config.num_mel_bins),
-            &device,
-        )?;
+        let mut params = FullParams::new(SamplingStrategy::Greedy { best_of: 1 });
+        params.set_print_special(with_timestamps.unwrap_or(false));
+        params.set_language(arg_language.as_deref().unwrap_or("en"));
+        params.set_translate(false);
+        params.set_no_speech_threshold(0.6);
+        params.set_logprob_threshold(-1.0);
+        params.set_temperature([0.0]);
 
-        if !language_token_set {
-            let language_token = match (arg_is_multilingual, arg_language.clone()) {
-                (true, None) => Some(multilingual::detect_language(
-                    decoder.model(),
-                    &tokenizer,
-                    &mel,
-                )?),
-                (false, None) => None,
-                (true, Some(language)) => {
-                    match whisper::token_id(&tokenizer, &format!("<|{language}|>")) {
-                        Ok(token_id) => Some(token_id),
-                        Err(_) => anyhow::bail!("language {language} is not supported"),
-                    }
-                }
-                (false, Some(_)) => {
-                    anyhow::bail!("a language cannot be set for non-multilingual models")
-                }
-            };
-            decoder.set_language_token(language_token);
-            language_token_set = true;
-            language_token_name = match language_token {
-                Some(token) => whisper::get_token_name_by_id(&tokenizer, token),
-                None => None,
-            };
-            println!(
-                "language_token: {:?} language_name: {:?}",
-                language_token, language_token_name
-            );
-        }
+        let mut state = whisper_state.clone();
+        let segments = state.full(params, &pcm)?;
 
-        // 运行解码器并获取结果
-        let mut segments = decoder.run(&mel, None, inference_timeout, max_tokens_per_segment)?;
-        // 计算推理用时并输出
         let inference_duration = inference_start.elapsed();
-
         let audio_duration = (pcm.len() as f32 / 16000.0 * 1000.0) as u128;
 
-        for segment in &mut segments {
-            segment.reasoning_duration = Some(inference_duration.as_millis());
-            segment.reasoning_lang = language_token_name.clone();
-            segment.audio_duration = Some(audio_duration);
-        }
+        let mut segments_with_metadata: Vec<whisper_rs::Segment> = segments
+            .into_iter()
+            .map(|segment| whisper_rs::Segment {
+                start: segment.start,
+                end: segment.end,
+                text: segment.text,
+                tokens: segment.tokens,
+                avg_logprob: segment.avg_logprob,
+                no_speech_prob: segment.no_speech_prob,
+                temperature: segment.temperature,
+                compression_ratio: segment.compression_ratio,
+                status: whisper_rs::WhisperStatus::Working,
+                reasoning_duration: Some(inference_duration.as_millis()),
+                reasoning_lang: language_token_name.clone(),
+                audio_duration: Some(audio_duration),
+            })
+            .collect();
 
-        // 发送结果并更新推理时间
-        result_callback(segments);
-        decoder.reset_kv_cache();
+        result_callback(segments_with_metadata);
         last_inference_time = now;
     }
 
@@ -418,57 +339,25 @@ where
 
     let _ = audio_thread.join();
 
-    result_callback(_make_status_response(whisper::WhisperStatus::Exit));
+    result_callback(_make_status_response(whisper_rs::WhisperStatus::Exit));
 
     println!("Whisper Exit");
     Ok(())
 }
 
-fn _try_get_cuda() -> candle_core::Device {
-    // get a cuda device
-    let result = panic::catch_unwind(|| candle_core::Device::cuda_if_available(0).unwrap());
-    match result {
-        // 成功获取设备
-        Ok(device) => device,
-
-        // 处理 panic
-        Err(panic_err) => {
-            // 尝试从 panic 值中提取有用信息
-            let panic_info = if let Some(s) = panic_err.downcast_ref::<String>() {
-                s.clone()
-            } else if let Some(s) = panic_err.downcast_ref::<&str>() {
-                s.to_string()
-            } else {
-                "Unknow CUDA device initialization error".to_string()
-            };
-            // show dialog
-            MessageDialog::new()
-                .set_type(MessageType::Error)
-                .set_title("CUDA device initialization error , fall back to CPU")
-                .set_text(&panic_info)
-                .show_alert()
-                .unwrap_or(());
-            // 返回 CPU 设备
-            candle_core::Device::Cpu
-        }
-    }
-}
-
-fn _make_status_response(status: whisper::WhisperStatus) -> Vec<Segment> {
-    vec![Segment {
+fn _make_status_response(status: whisper_rs::WhisperStatus) -> Vec<whisper_rs::Segment> {
+    vec![whisper_rs::Segment {
         start: 0.0,
-        duration: 0.0,
-        dr: whisper::DecodingResult {
-            tokens: vec![],
-            text: "".to_string(),
-            avg_logprob: 0.0,
-            no_speech_prob: 0.0,
-            temperature: 0.0,
-            compression_ratio: 0.0,
-        },
+        end: 0.0,
+        text: "".to_string(),
+        tokens: vec![],
+        avg_logprob: 0.0,
+        no_speech_prob: 0.0,
+        temperature: 0.0,
+        compression_ratio: 0.0,
+        status,
         reasoning_duration: None,
         reasoning_lang: None,
         audio_duration: None,
-        status,
     }]
 }

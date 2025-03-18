@@ -66,18 +66,17 @@ pub async fn launch_caption(
     verbose: Option<bool>,
     try_with_cuda: Option<bool>,
 ) -> anyhow::Result<()> {
+    let stream_sink_clone = stream_sink.clone();
     let cancel_token = if let Ok(store) = TOKEN_STORE.lock() {
         store
             .get(&cancel_token_id)
             .cloned()
             .unwrap_or_else(CancellationToken::new)
     } else {
-        return Err(anyhow::Error::msg(
-            "Failed to get cancellation token",
-        ));
+        return Err(anyhow::Error::msg("Failed to get cancellation token"));
     };
 
-    whisper_caption::launch_caption(
+    let r = whisper_caption::launch_caption(
         whisper_client.whisper_model,
         &whisper_client.whisper_config,
         whisper_client.is_quantized,
@@ -96,5 +95,11 @@ pub async fn launch_caption(
             let _ = stream_sink.add(segments);
         },
     )
-    .await
+    .await;
+    if let Err(e) = r {
+        stream_sink_clone
+            .add_error(format!("Error in whisper captioning: {e}"))
+            .unwrap_or(());
+    }
+    Ok(())
 }

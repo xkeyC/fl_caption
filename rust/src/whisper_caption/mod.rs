@@ -427,31 +427,26 @@ where
 fn _try_get_cuda() -> candle_core::Device {
     // get a cuda device
     let result = panic::catch_unwind(|| candle_core::Device::cuda_if_available(0).unwrap());
-    match result {
-        // 成功获取设备
-        Ok(device) => device,
-
-        // 处理 panic
-        Err(panic_err) => {
-            // 尝试从 panic 值中提取有用信息
-            let panic_info = if let Some(s) = panic_err.downcast_ref::<String>() {
-                s.clone()
-            } else if let Some(s) = panic_err.downcast_ref::<&str>() {
-                s.to_string()
-            } else {
-                "Unknow CUDA device initialization error".to_string()
-            };
-            // show dialog
-            MessageDialog::new()
-                .set_type(MessageType::Error)
-                .set_title("CUDA device initialization error , fall back to CPU")
-                .set_text(&panic_info)
-                .show_alert()
-                .unwrap_or(());
-            // 返回 CPU 设备
-            candle_core::Device::Cpu
-        }
-    }
+    result.unwrap_or_else(|panic_err| {
+        // 尝试从 panic 值中提取有用信息
+        let panic_info = if let Some(s) = panic_err.downcast_ref::<String>() {
+            s.clone()
+        } else if let Some(s) = panic_err.downcast_ref::<&str>() {
+            s.to_string()
+        } else {
+            "Unknow CUDA device initialization error".to_string()
+        };
+        // show dialog
+        MessageDialog::new()
+            .set_type(MessageType::Error)
+            .set_title("CUDA device initialization error , fall back to CPU")
+            .set_text(&panic_info)
+            .show_alert()
+            .unwrap_or(());
+        eprintln!("CUDA device initialization error {}", panic_info);
+        // 返回 CPU 设备
+        candle_core::Device::Cpu
+    })
 }
 
 fn _make_status_response(status: whisper::WhisperStatus) -> Vec<Segment> {

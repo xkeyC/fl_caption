@@ -55,7 +55,7 @@ jobs:
         run: |
           cargo install cargo-expand 
           cargo install 'flutter_rust_bridge_codegen@^2.9.0'
-      - name: Set up MSVC DEV
+      - name: Build something requiring CL.EXE
         uses: ilammy/msvc-dev-cmd@v1.13.0
       - name: Flutter Rust bridge generate
         run: flutter_rust_bridge_codegen generate
@@ -63,6 +63,8 @@ jobs:
 #        run: |
 #          flutter pub global activate intl_utils
 #          flutter pub global run intl_utils:generate
+      - name: Build something requiring CL.EXE
+        uses: ilammy/msvc-dev-cmd@v1.13.0
       - name: Flutter build Windows
         run: flutter build windows -v
 

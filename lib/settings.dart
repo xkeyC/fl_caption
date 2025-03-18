@@ -304,7 +304,10 @@ class SettingsApp extends HookConsumerWidget {
         const Text("LLM", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
         const SizedBox(height: 16),
         InfoLabel(label: "API 调用地址"),
-        TextBox(controller: apiUrlController, placeholder: "例如：http://localhost:11434/v1/chat/completions"),
+        TextBox(
+          controller: apiUrlController,
+          placeholder: "输入完整 completions URL ，例如：http://localhost:11434/v1/chat/completions",
+        ),
         const SizedBox(height: 16),
         InfoLabel(label: "API 密钥"),
         TextBox(controller: apiKeyController, placeholder: "请输入 API 密钥 (Ollam 默认为空)", obscureText: true),

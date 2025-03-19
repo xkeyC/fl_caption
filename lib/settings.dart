@@ -21,6 +21,11 @@ class SettingsApp extends HookConsumerWidget {
     final apiUrlController = useTextEditingController();
     final apiKeyController = useTextEditingController();
     final apiModelController = useTextEditingController();
+    final maxAudioDurationController = useTextEditingController();
+    final inferenceIntervalController = useTextEditingController();
+    final defaultMaxDecodeTokensController = useTextEditingController();
+    final whisperTemperatureController = useTextEditingController();
+    final llmTemperatureController = useTextEditingController();
 
     useEffect(() {
       DesktopMultiWindow.setMethodHandler(MultiWindowWindowUtil.windowMethodHandler);
@@ -30,6 +35,11 @@ class SettingsApp extends HookConsumerWidget {
         apiUrlController.text = settings.llmProviderUrl;
         apiKeyController.text = settings.llmProviderKey;
         apiModelController.text = settings.llmProviderModel;
+        maxAudioDurationController.text = settings.maxAudioDuration.toString();
+        inferenceIntervalController.text = settings.inferenceInterval.toString();
+        defaultMaxDecodeTokensController.text = settings.defaultMaxDecodeTokens.toString();
+        whisperTemperatureController.text = settings.whisperTemperature.toString();
+        llmTemperatureController.text = settings.llmTemperature.toString();
         appSettingsData.value = settings;
       }();
       return null;
@@ -51,6 +61,11 @@ class SettingsApp extends HookConsumerWidget {
           apiUrlController: apiUrlController,
           apiKeyController: apiKeyController,
           apiModelController: apiModelController,
+          maxAudioDurationController: maxAudioDurationController,
+          inferenceIntervalController: inferenceIntervalController,
+          defaultMaxDecodeTokensController: defaultMaxDecodeTokensController,
+          whisperTemperatureController: whisperTemperatureController,
+          llmTemperatureController: llmTemperatureController,
           ref: ref,
         ),
       ),
@@ -63,6 +78,11 @@ class SettingsApp extends HookConsumerWidget {
     required TextEditingController apiUrlController,
     required TextEditingController apiKeyController,
     required TextEditingController apiModelController,
+    required TextEditingController maxAudioDurationController,
+    required TextEditingController inferenceIntervalController,
+    required TextEditingController defaultMaxDecodeTokensController,
+    required TextEditingController whisperTemperatureController,
+    required TextEditingController llmTemperatureController,
     required WidgetRef ref,
   }) {
     if (appSettingsData.value == null) {
@@ -92,6 +112,15 @@ class SettingsApp extends HookConsumerWidget {
                     apiModelController: apiModelController,
                     appSettingsData: appSettingsData,
                   ),
+                  const SizedBox(height: 32),
+                  _buildInferenceSettingsSection(
+                    maxAudioDurationController: maxAudioDurationController,
+                    inferenceIntervalController: inferenceIntervalController,
+                    defaultMaxDecodeTokensController: defaultMaxDecodeTokensController,
+                    whisperTemperatureController: whisperTemperatureController,
+                    llmTemperatureController: llmTemperatureController,
+                    appSettingsData: appSettingsData,
+                  ),
                 ],
               ),
             ),
@@ -103,6 +132,11 @@ class SettingsApp extends HookConsumerWidget {
           apiUrlController: apiUrlController,
           apiKeyController: apiKeyController,
           apiModelController: apiModelController,
+          maxAudioDurationController: maxAudioDurationController,
+          inferenceIntervalController: inferenceIntervalController,
+          defaultMaxDecodeTokensController: defaultMaxDecodeTokensController,
+          whisperTemperatureController: whisperTemperatureController,
+          llmTemperatureController: llmTemperatureController,
         ),
       ],
     );
@@ -327,12 +361,48 @@ class SettingsApp extends HookConsumerWidget {
     );
   }
 
+  Widget _buildInferenceSettingsSection({
+    required TextEditingController maxAudioDurationController,
+    required TextEditingController inferenceIntervalController,
+    required TextEditingController defaultMaxDecodeTokensController,
+    required TextEditingController whisperTemperatureController,
+    required TextEditingController llmTemperatureController,
+    required ValueNotifier<AppSettingsData?> appSettingsData,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text("推理参数设置", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 16),
+        InfoLabel(label: "音频长下文长度 (秒)"),
+        TextBox(controller: maxAudioDurationController, placeholder: "默认 12"),
+        const SizedBox(height: 16),
+        InfoLabel(label: "音频推理周期间隔时间 (秒)"),
+        TextBox(controller: inferenceIntervalController, placeholder: "默认 2"),
+        const SizedBox(height: 16),
+        InfoLabel(label: "最大推理 token 长度"),
+        TextBox(controller: defaultMaxDecodeTokensController, placeholder: "默认 256"),
+        const SizedBox(height: 16),
+        InfoLabel(label: "Whisper 温度"),
+        TextBox(controller: whisperTemperatureController, placeholder: "默认 0.0"),
+        const SizedBox(height: 16),
+        InfoLabel(label: "LLM 温度"),
+        TextBox(controller: llmTemperatureController, placeholder: "默认 0.0"),
+      ],
+    );
+  }
+
   Widget _buildSaveButton({
     required ValueNotifier<AppSettingsData?> appSettingsData,
     required TextEditingController modelDirController,
     required TextEditingController apiUrlController,
     required TextEditingController apiKeyController,
     required TextEditingController apiModelController,
+    required TextEditingController maxAudioDurationController,
+    required TextEditingController inferenceIntervalController,
+    required TextEditingController defaultMaxDecodeTokensController,
+    required TextEditingController whisperTemperatureController,
+    required TextEditingController llmTemperatureController,
   }) {
     return Padding(
       padding: const EdgeInsets.all(12),
@@ -348,6 +418,11 @@ class SettingsApp extends HookConsumerWidget {
                 llmProviderKey: apiKeyController.text,
                 llmProviderModel: apiModelController.text,
                 whisperModel: appSettingsData.value!.whisperModel,
+                maxAudioDuration: int.tryParse(maxAudioDurationController.text) ?? 12,
+                inferenceInterval: int.tryParse(inferenceIntervalController.text) ?? 2,
+                defaultMaxDecodeTokens: int.tryParse(defaultMaxDecodeTokensController.text) ?? 256,
+                whisperTemperature: double.tryParse(whisperTemperatureController.text) ?? 0.0,
+                llmTemperature: double.tryParse(llmTemperatureController.text) ?? 0.0,
               );
               await MultiWindowWindowUtil.setAppSettingsData(newSettings!);
               await MultiWindowWindowUtil.closeMineWindow();

@@ -20,6 +20,11 @@ class AppSettingsData with _$AppSettingsData {
     required bool llmContextOptimization,
     String? audioLanguage,
     String? captionLanguage,
+    required int maxAudioDuration,
+    required int inferenceInterval,
+    required int defaultMaxDecodeTokens,
+    required double whisperTemperature,
+    required double llmTemperature,
   }) = _AppSettingsData;
 
   factory AppSettingsData.fromJson(Map<String, dynamic> json) =>
@@ -54,6 +59,11 @@ class AppSettings extends _$AppSettings {
     final String? audioLanguage = box.get("audio_language");
     final String? captionLanguage = box.get("caption_language");
     final bool tryWithCuda = box.get("try_with_cuda", defaultValue: true);
+    final int maxAudioDuration = box.get("max_audio_duration", defaultValue: 12);
+    final int inferenceInterval = box.get("inference_interval", defaultValue: 2);
+    final int defaultMaxDecodeTokens = box.get("default_max_decode_tokens", defaultValue: 256);
+    final double whisperTemperature = box.get("whisper_temperature", defaultValue: 0.0);
+    final double llmTemperature = box.get("llm_temperature", defaultValue: 0.0);
 
     return AppSettingsData(
       modelWorkingDir: modelWorkingDir,
@@ -65,6 +75,11 @@ class AppSettings extends _$AppSettings {
       captionLanguage: captionLanguage,
       tryWithCuda: tryWithCuda,
       llmContextOptimization: llmContextOptimization,
+      maxAudioDuration: maxAudioDuration,
+      inferenceInterval: inferenceInterval,
+      defaultMaxDecodeTokens: defaultMaxDecodeTokens,
+      whisperTemperature: whisperTemperature,
+      llmTemperature: llmTemperature,
     );
   }
 
@@ -89,6 +104,11 @@ class AppSettings extends _$AppSettings {
         "llm_context_optimization",
         state.value!.llmContextOptimization,
       );
+      await box.put("max_audio_duration", state.value!.maxAudioDuration);
+      await box.put("inference_interval", state.value!.inferenceInterval);
+      await box.put("default_max_decode_tokens", state.value!.defaultMaxDecodeTokens);
+      await box.put("whisper_temperature", state.value!.whisperTemperature);
+      await box.put("llm_temperature", state.value!.llmTemperature);
       return true;
     } catch (e) {
       debugPrint("Error saving settings: $e");

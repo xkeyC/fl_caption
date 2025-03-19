@@ -1,367 +1,118 @@
-// coverage:ignore-file
-// GENERATED CODE - DO NOT MODIFY BY HAND
-// ignore_for_file: type=lint
-// ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
+import 'package:flutter/foundation.dart';
+import 'package:hive_ce/hive.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-part of 'settings_provider.dart';
+part 'settings_provider.g.dart';
 
-// **************************************************************************
-// FreezedGenerator
-// **************************************************************************
+part 'settings_provider.freezed.dart';
 
-T _$identity<T>(T value) => value;
+@freezed
+class AppSettingsData with _$AppSettingsData {
+  factory AppSettingsData({
+    required String modelWorkingDir,
+    required String whisperModel,
+    required bool tryWithCuda,
+    required String llmProviderUrl,
+    required String llmProviderKey,
+    required String llmProviderModel,
+    required bool llmContextOptimization,
+    String? audioLanguage,
+    String? captionLanguage,
+    required int maxAudioDuration,
+    required int inferenceInterval,
+    required int defaultMaxDecodeTokens,
+    required double whisperTemperature,
+    required double llmTemperature,
+  }) = _AppSettingsData;
 
-final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
-
-AppSettingsData _$AppSettingsDataFromJson(Map<String, dynamic> json) {
-  return _AppSettingsData.fromJson(json);
+  factory AppSettingsData.fromJson(Map<String, dynamic> json) =>
+      _$AppSettingsDataFromJson(json);
 }
 
-/// @nodoc
-mixin _$AppSettingsData {
-  String get modelWorkingDir => throw _privateConstructorUsedError;
-  String get whisperModel => throw _privateConstructorUsedError;
-  bool get tryWithCuda => throw _privateConstructorUsedError;
-  String get llmProviderUrl => throw _privateConstructorUsedError;
-  String get llmProviderKey => throw _privateConstructorUsedError;
-  String get llmProviderModel => throw _privateConstructorUsedError;
-  bool get llmContextOptimization => throw _privateConstructorUsedError;
-  String? get audioLanguage => throw _privateConstructorUsedError;
-  String? get captionLanguage => throw _privateConstructorUsedError;
-
-  /// Serializes this AppSettingsData to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of AppSettingsData
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  $AppSettingsDataCopyWith<AppSettingsData> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class $AppSettingsDataCopyWith<$Res> {
-  factory $AppSettingsDataCopyWith(
-          AppSettingsData value, $Res Function(AppSettingsData) then) =
-      _$AppSettingsDataCopyWithImpl<$Res, AppSettingsData>;
-  @useResult
-  $Res call(
-      {String modelWorkingDir,
-      String whisperModel,
-      bool tryWithCuda,
-      String llmProviderUrl,
-      String llmProviderKey,
-      String llmProviderModel,
-      bool llmContextOptimization,
-      String? audioLanguage,
-      String? captionLanguage});
-}
-
-/// @nodoc
-class _$AppSettingsDataCopyWithImpl<$Res, $Val extends AppSettingsData>
-    implements $AppSettingsDataCopyWith<$Res> {
-  _$AppSettingsDataCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
-  /// Create a copy of AppSettingsData
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
+@riverpod
+class AppSettings extends _$AppSettings {
   @override
-  $Res call({
-    Object? modelWorkingDir = null,
-    Object? whisperModel = null,
-    Object? tryWithCuda = null,
-    Object? llmProviderUrl = null,
-    Object? llmProviderKey = null,
-    Object? llmProviderModel = null,
-    Object? llmContextOptimization = null,
-    Object? audioLanguage = freezed,
-    Object? captionLanguage = freezed,
-  }) {
-    return _then(_value.copyWith(
-      modelWorkingDir: null == modelWorkingDir
-          ? _value.modelWorkingDir
-          : modelWorkingDir // ignore: cast_nullable_to_non_nullable
-              as String,
-      whisperModel: null == whisperModel
-          ? _value.whisperModel
-          : whisperModel // ignore: cast_nullable_to_non_nullable
-              as String,
-      tryWithCuda: null == tryWithCuda
-          ? _value.tryWithCuda
-          : tryWithCuda // ignore: cast_nullable_to_non_nullable
-              as bool,
-      llmProviderUrl: null == llmProviderUrl
-          ? _value.llmProviderUrl
-          : llmProviderUrl // ignore: cast_nullable_to_non_nullable
-              as String,
-      llmProviderKey: null == llmProviderKey
-          ? _value.llmProviderKey
-          : llmProviderKey // ignore: cast_nullable_to_non_nullable
-              as String,
-      llmProviderModel: null == llmProviderModel
-          ? _value.llmProviderModel
-          : llmProviderModel // ignore: cast_nullable_to_non_nullable
-              as String,
-      llmContextOptimization: null == llmContextOptimization
-          ? _value.llmContextOptimization
-          : llmContextOptimization // ignore: cast_nullable_to_non_nullable
-              as bool,
-      audioLanguage: freezed == audioLanguage
-          ? _value.audioLanguage
-          : audioLanguage // ignore: cast_nullable_to_non_nullable
-              as String?,
-      captionLanguage: freezed == captionLanguage
-          ? _value.captionLanguage
-          : captionLanguage // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ) as $Val);
-  }
-}
+  Future<AppSettingsData> build() async {
+    final box = await Hive.openBox("settings");
+    final String modelWorkingDir = box.get(
+      "model_working_dir",
+      defaultValue:
+          "${(await getApplicationSupportDirectory()).absolute.path.replaceAll("\\", "/")}/whisper",
+    );
+    final String whisperModel = box.get("whisper_model", defaultValue: "base");
+    final String llmProviderUrl = box.get(
+      "llm_provider_url",
+      defaultValue: "http://localhost:11434/v1/chat/completions",
+    );
+    final String llmProviderKey = box.get("llm_provider_key", defaultValue: "");
+    final String llmProviderModel = box.get(
+      "llm_provider_model",
+      defaultValue: "",
+    );
+    final llmContextOptimization = box.get(
+      "llm_context_optimization",
+      defaultValue: true,
+    );
 
-/// @nodoc
-abstract class _$$AppSettingsDataImplCopyWith<$Res>
-    implements $AppSettingsDataCopyWith<$Res> {
-  factory _$$AppSettingsDataImplCopyWith(_$AppSettingsDataImpl value,
-          $Res Function(_$AppSettingsDataImpl) then) =
-      __$$AppSettingsDataImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call(
-      {String modelWorkingDir,
-      String whisperModel,
-      bool tryWithCuda,
-      String llmProviderUrl,
-      String llmProviderKey,
-      String llmProviderModel,
-      bool llmContextOptimization,
-      String? audioLanguage,
-      String? captionLanguage});
-}
+    final String? audioLanguage = box.get("audio_language");
+    final String? captionLanguage = box.get("caption_language");
+    final bool tryWithCuda = box.get("try_with_cuda", defaultValue: true);
+    final int maxAudioDuration = box.get("max_audio_duration", defaultValue: 12);
+    final int inferenceInterval = box.get("inference_interval", defaultValue: 2);
+    final int defaultMaxDecodeTokens = box.get("default_max_decode_tokens", defaultValue: 256);
+    final double whisperTemperature = box.get("whisper_temperature", defaultValue: 0.0);
+    final double llmTemperature = box.get("llm_temperature", defaultValue: 0.0);
 
-/// @nodoc
-class __$$AppSettingsDataImplCopyWithImpl<$Res>
-    extends _$AppSettingsDataCopyWithImpl<$Res, _$AppSettingsDataImpl>
-    implements _$$AppSettingsDataImplCopyWith<$Res> {
-  __$$AppSettingsDataImplCopyWithImpl(
-      _$AppSettingsDataImpl _value, $Res Function(_$AppSettingsDataImpl) _then)
-      : super(_value, _then);
-
-  /// Create a copy of AppSettingsData
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? modelWorkingDir = null,
-    Object? whisperModel = null,
-    Object? tryWithCuda = null,
-    Object? llmProviderUrl = null,
-    Object? llmProviderKey = null,
-    Object? llmProviderModel = null,
-    Object? llmContextOptimization = null,
-    Object? audioLanguage = freezed,
-    Object? captionLanguage = freezed,
-  }) {
-    return _then(_$AppSettingsDataImpl(
-      modelWorkingDir: null == modelWorkingDir
-          ? _value.modelWorkingDir
-          : modelWorkingDir // ignore: cast_nullable_to_non_nullable
-              as String,
-      whisperModel: null == whisperModel
-          ? _value.whisperModel
-          : whisperModel // ignore: cast_nullable_to_non_nullable
-              as String,
-      tryWithCuda: null == tryWithCuda
-          ? _value.tryWithCuda
-          : tryWithCuda // ignore: cast_nullable_to_non_nullable
-              as bool,
-      llmProviderUrl: null == llmProviderUrl
-          ? _value.llmProviderUrl
-          : llmProviderUrl // ignore: cast_nullable_to_non_nullable
-              as String,
-      llmProviderKey: null == llmProviderKey
-          ? _value.llmProviderKey
-          : llmProviderKey // ignore: cast_nullable_to_non_nullable
-              as String,
-      llmProviderModel: null == llmProviderModel
-          ? _value.llmProviderModel
-          : llmProviderModel // ignore: cast_nullable_to_non_nullable
-              as String,
-      llmContextOptimization: null == llmContextOptimization
-          ? _value.llmContextOptimization
-          : llmContextOptimization // ignore: cast_nullable_to_non_nullable
-              as bool,
-      audioLanguage: freezed == audioLanguage
-          ? _value.audioLanguage
-          : audioLanguage // ignore: cast_nullable_to_non_nullable
-              as String?,
-      captionLanguage: freezed == captionLanguage
-          ? _value.captionLanguage
-          : captionLanguage // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ));
-  }
-}
-
-/// @nodoc
-@JsonSerializable()
-class _$AppSettingsDataImpl
-    with DiagnosticableTreeMixin
-    implements _AppSettingsData {
-  _$AppSettingsDataImpl(
-      {required this.modelWorkingDir,
-      required this.whisperModel,
-      required this.tryWithCuda,
-      required this.llmProviderUrl,
-      required this.llmProviderKey,
-      required this.llmProviderModel,
-      required this.llmContextOptimization,
-      this.audioLanguage,
-      this.captionLanguage});
-
-  factory _$AppSettingsDataImpl.fromJson(Map<String, dynamic> json) =>
-      _$$AppSettingsDataImplFromJson(json);
-
-  @override
-  final String modelWorkingDir;
-  @override
-  final String whisperModel;
-  @override
-  final bool tryWithCuda;
-  @override
-  final String llmProviderUrl;
-  @override
-  final String llmProviderKey;
-  @override
-  final String llmProviderModel;
-  @override
-  final bool llmContextOptimization;
-  @override
-  final String? audioLanguage;
-  @override
-  final String? captionLanguage;
-
-  @override
-  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'AppSettingsData(modelWorkingDir: $modelWorkingDir, whisperModel: $whisperModel, tryWithCuda: $tryWithCuda, llmProviderUrl: $llmProviderUrl, llmProviderKey: $llmProviderKey, llmProviderModel: $llmProviderModel, llmContextOptimization: $llmContextOptimization, audioLanguage: $audioLanguage, captionLanguage: $captionLanguage)';
-  }
-
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties
-      ..add(DiagnosticsProperty('type', 'AppSettingsData'))
-      ..add(DiagnosticsProperty('modelWorkingDir', modelWorkingDir))
-      ..add(DiagnosticsProperty('whisperModel', whisperModel))
-      ..add(DiagnosticsProperty('tryWithCuda', tryWithCuda))
-      ..add(DiagnosticsProperty('llmProviderUrl', llmProviderUrl))
-      ..add(DiagnosticsProperty('llmProviderKey', llmProviderKey))
-      ..add(DiagnosticsProperty('llmProviderModel', llmProviderModel))
-      ..add(
-          DiagnosticsProperty('llmContextOptimization', llmContextOptimization))
-      ..add(DiagnosticsProperty('audioLanguage', audioLanguage))
-      ..add(DiagnosticsProperty('captionLanguage', captionLanguage));
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$AppSettingsDataImpl &&
-            (identical(other.modelWorkingDir, modelWorkingDir) ||
-                other.modelWorkingDir == modelWorkingDir) &&
-            (identical(other.whisperModel, whisperModel) ||
-                other.whisperModel == whisperModel) &&
-            (identical(other.tryWithCuda, tryWithCuda) ||
-                other.tryWithCuda == tryWithCuda) &&
-            (identical(other.llmProviderUrl, llmProviderUrl) ||
-                other.llmProviderUrl == llmProviderUrl) &&
-            (identical(other.llmProviderKey, llmProviderKey) ||
-                other.llmProviderKey == llmProviderKey) &&
-            (identical(other.llmProviderModel, llmProviderModel) ||
-                other.llmProviderModel == llmProviderModel) &&
-            (identical(other.llmContextOptimization, llmContextOptimization) ||
-                other.llmContextOptimization == llmContextOptimization) &&
-            (identical(other.audioLanguage, audioLanguage) ||
-                other.audioLanguage == audioLanguage) &&
-            (identical(other.captionLanguage, captionLanguage) ||
-                other.captionLanguage == captionLanguage));
-  }
-
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      modelWorkingDir,
-      whisperModel,
-      tryWithCuda,
-      llmProviderUrl,
-      llmProviderKey,
-      llmProviderModel,
-      llmContextOptimization,
-      audioLanguage,
-      captionLanguage);
-
-  /// Create a copy of AppSettingsData
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$AppSettingsDataImplCopyWith<_$AppSettingsDataImpl> get copyWith =>
-      __$$AppSettingsDataImplCopyWithImpl<_$AppSettingsDataImpl>(
-          this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$AppSettingsDataImplToJson(
-      this,
+    return AppSettingsData(
+      modelWorkingDir: modelWorkingDir,
+      whisperModel: whisperModel,
+      llmProviderUrl: llmProviderUrl,
+      llmProviderKey: llmProviderKey,
+      llmProviderModel: llmProviderModel,
+      audioLanguage: audioLanguage,
+      captionLanguage: captionLanguage,
+      tryWithCuda: tryWithCuda,
+      llmContextOptimization: llmContextOptimization,
+      maxAudioDuration: maxAudioDuration,
+      inferenceInterval: inferenceInterval,
+      defaultMaxDecodeTokens: defaultMaxDecodeTokens,
+      whisperTemperature: whisperTemperature,
+      llmTemperature: llmTemperature,
     );
   }
-}
 
-abstract class _AppSettingsData implements AppSettingsData {
-  factory _AppSettingsData(
-      {required final String modelWorkingDir,
-      required final String whisperModel,
-      required final bool tryWithCuda,
-      required final String llmProviderUrl,
-      required final String llmProviderKey,
-      required final String llmProviderModel,
-      required final bool llmContextOptimization,
-      final String? audioLanguage,
-      final String? captionLanguage}) = _$AppSettingsDataImpl;
+  Future<bool> setSettings(AppSettingsData settings) async {
+    state = AsyncData(settings);
+    return await _saveState();
+  }
 
-  factory _AppSettingsData.fromJson(Map<String, dynamic> json) =
-      _$AppSettingsDataImpl.fromJson;
-
-  @override
-  String get modelWorkingDir;
-  @override
-  String get whisperModel;
-  @override
-  bool get tryWithCuda;
-  @override
-  String get llmProviderUrl;
-  @override
-  String get llmProviderKey;
-  @override
-  String get llmProviderModel;
-  @override
-  bool get llmContextOptimization;
-  @override
-  String? get audioLanguage;
-  @override
-  String? get captionLanguage;
-
-  /// Create a copy of AppSettingsData
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$AppSettingsDataImplCopyWith<_$AppSettingsDataImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+  Future<bool> _saveState() async {
+    debugPrint("Saving settings: ${state.value}");
+    try {
+      final box = await Hive.openBox("settings");
+      await box.put("model_working_dir", state.value!.modelWorkingDir);
+      await box.put("whisper_model", state.value!.whisperModel);
+      await box.put("llm_provider_url", state.value!.llmProviderUrl);
+      await box.put("llm_provider_key", state.value!.llmProviderKey);
+      await box.put("llm_provider_model", state.value!.llmProviderModel);
+      await box.put("audio_language", state.value!.audioLanguage);
+      await box.put("caption_language", state.value!.captionLanguage);
+      await box.put("try_with_cuda", state.value!.tryWithCuda);
+      await box.put(
+        "llm_context_optimization",
+        state.value!.llmContextOptimization,
+      );
+      await box.put("max_audio_duration", state.value!.maxAudioDuration);
+      await box.put("inference_interval", state.value!.inferenceInterval);
+      await box.put("default_max_decode_tokens", state.value!.defaultMaxDecodeTokens);
+      await box.put("whisper_temperature", state.value!.whisperTemperature);
+      await box.put("llm_temperature", state.value!.llmTemperature);
+      return true;
+    } catch (e) {
+      debugPrint("Error saving settings: $e");
+      return false;
+    }
+  }
 }

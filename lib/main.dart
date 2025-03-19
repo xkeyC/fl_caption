@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:fl_caption/common/translate/translate_provider.dart';
-import 'package:fl_caption/settings.dart';
+import 'package:fl_caption/pages/settings/settings_page.dart';
 import 'package:fl_caption/widgets/error.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/material.dart' show Icons;
@@ -19,7 +19,7 @@ import 'package:window_manager/window_manager.dart';
 
 import 'common/rust/frb_generated.dart';
 import 'common/rust/whisper_caption/whisper.dart' show WhisperStatus;
-import 'common/settings_provider.dart';
+import 'pages/settings/settings_provider.dart';
 import 'common/utils/window_util.dart';
 import 'common/whisper/provider.dart';
 
@@ -206,7 +206,7 @@ class App extends HookConsumerWidget {
       final window = await DesktopMultiWindow.createWindow(jsonEncode({'window_type': 'settings'}));
       window.setTitle("Settings");
       window
-        ..setFrame(const Offset(0, 0) & const Size(1280, 1080))
+        ..setFrame(const Offset(0, 0) & const Size(1650, 1080))
         ..center();
       await window.show();
       DesktopMultiWindow.invokeMethod(window.windowId, 'main_window_id_broadcast');

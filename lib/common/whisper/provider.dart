@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:fl_caption/common/rust/whisper_caption/whisper.dart' show WhisperStatus;
-import 'package:fl_caption/common/settings_provider.dart';
+import 'package:fl_caption/pages/settings/settings_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';

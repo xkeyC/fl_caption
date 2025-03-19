@@ -18,6 +18,7 @@ dependencies:
   flutter_rust_bridge: ^2.7.1
   fluent_ui: ^4.11.2
   freezed_annotation: ^2.4.1
+  visibility_detector: ^0.4.0+2
   rust_lib_fl_caption:
     path: rust_builder
 
@@ -39,7 +40,17 @@ dependencies:
   dio_compatibility_layer: ^0.1.0
   rhttp: ^0.11.0
 
+  # Async lock
   synchronized: ^3.3.1
+
+  # UI components
+  super_sliver_list: ^0.4.1
+
+  # Icons
+  font_awesome_flutter: ^10.8.0
+
+  # Platform Tools
+  file_picker: ^9.2.1
 
 dev_dependencies:
   flutter_test:

@@ -31,7 +31,7 @@ Map<String, dynamic> _$$ModelDownloadStateDataImplToJson(
 // **************************************************************************
 
 String _$modelDownloadStateHash() =>
-    r'fd18667f255cac66d4460113286b571ed9167138';
+    r'60b6cc9f9929d438669ac0b6aac4ec8977cf6d51';
 
 /// Copied from Dart SDK
 class _SystemHash {

@@ -3,7 +3,7 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:fl_caption/common/io/http.dart';
-import 'package:fl_caption/common/settings_provider.dart';
+import 'package:fl_caption/pages/settings/settings_provider.dart';
 import 'package:fl_caption/common/whisper/language.dart';
 import 'package:fl_caption/common/whisper/provider.dart';
 import 'package:flutter/foundation.dart';

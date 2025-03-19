@@ -49,7 +49,7 @@ class SettingsInferencePage extends HookWidget {
 
         _buildSettingRow(
           label: '推理周期间隔 (秒)：',
-          tooltip: '间隔越小延迟越低，但不要超过显卡推理时间 (默认: 2秒)',
+          tooltip: '间隔越小延迟越低，但不要小于显卡推理时间，否则可能会导致炸内存 (默认: 2秒)',
           controller: inferenceIntervalController,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
         ),

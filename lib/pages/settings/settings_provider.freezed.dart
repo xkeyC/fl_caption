@@ -29,6 +29,12 @@ mixin _$AppSettingsData {
   bool get llmContextOptimization => throw _privateConstructorUsedError;
   String? get audioLanguage => throw _privateConstructorUsedError;
   String? get captionLanguage => throw _privateConstructorUsedError;
+  int get whisperMaxAudioDuration => throw _privateConstructorUsedError;
+  int get inferenceInterval => throw _privateConstructorUsedError;
+  int get whisperDefaultMaxDecodeTokens => throw _privateConstructorUsedError;
+  double get whisperTemperature => throw _privateConstructorUsedError;
+  double get llmTemperature => throw _privateConstructorUsedError;
+  int get llmMaxTokens => throw _privateConstructorUsedError;
 
   /// Serializes this AppSettingsData to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -55,7 +61,13 @@ abstract class $AppSettingsDataCopyWith<$Res> {
       String llmProviderModel,
       bool llmContextOptimization,
       String? audioLanguage,
-      String? captionLanguage});
+      String? captionLanguage,
+      int whisperMaxAudioDuration,
+      int inferenceInterval,
+      int whisperDefaultMaxDecodeTokens,
+      double whisperTemperature,
+      double llmTemperature,
+      int llmMaxTokens});
 }
 
 /// @nodoc
@@ -82,6 +94,12 @@ class _$AppSettingsDataCopyWithImpl<$Res, $Val extends AppSettingsData>
     Object? llmContextOptimization = null,
     Object? audioLanguage = freezed,
     Object? captionLanguage = freezed,
+    Object? whisperMaxAudioDuration = null,
+    Object? inferenceInterval = null,
+    Object? whisperDefaultMaxDecodeTokens = null,
+    Object? whisperTemperature = null,
+    Object? llmTemperature = null,
+    Object? llmMaxTokens = null,
   }) {
     return _then(_value.copyWith(
       modelWorkingDir: null == modelWorkingDir
@@ -120,6 +138,30 @@ class _$AppSettingsDataCopyWithImpl<$Res, $Val extends AppSettingsData>
           ? _value.captionLanguage
           : captionLanguage // ignore: cast_nullable_to_non_nullable
               as String?,
+      whisperMaxAudioDuration: null == whisperMaxAudioDuration
+          ? _value.whisperMaxAudioDuration
+          : whisperMaxAudioDuration // ignore: cast_nullable_to_non_nullable
+              as int,
+      inferenceInterval: null == inferenceInterval
+          ? _value.inferenceInterval
+          : inferenceInterval // ignore: cast_nullable_to_non_nullable
+              as int,
+      whisperDefaultMaxDecodeTokens: null == whisperDefaultMaxDecodeTokens
+          ? _value.whisperDefaultMaxDecodeTokens
+          : whisperDefaultMaxDecodeTokens // ignore: cast_nullable_to_non_nullable
+              as int,
+      whisperTemperature: null == whisperTemperature
+          ? _value.whisperTemperature
+          : whisperTemperature // ignore: cast_nullable_to_non_nullable
+              as double,
+      llmTemperature: null == llmTemperature
+          ? _value.llmTemperature
+          : llmTemperature // ignore: cast_nullable_to_non_nullable
+              as double,
+      llmMaxTokens: null == llmMaxTokens
+          ? _value.llmMaxTokens
+          : llmMaxTokens // ignore: cast_nullable_to_non_nullable
+              as int,
     ) as $Val);
   }
 }
@@ -141,7 +183,13 @@ abstract class _$$AppSettingsDataImplCopyWith<$Res>
       String llmProviderModel,
       bool llmContextOptimization,
       String? audioLanguage,
-      String? captionLanguage});
+      String? captionLanguage,
+      int whisperMaxAudioDuration,
+      int inferenceInterval,
+      int whisperDefaultMaxDecodeTokens,
+      double whisperTemperature,
+      double llmTemperature,
+      int llmMaxTokens});
 }
 
 /// @nodoc
@@ -166,6 +214,12 @@ class __$$AppSettingsDataImplCopyWithImpl<$Res>
     Object? llmContextOptimization = null,
     Object? audioLanguage = freezed,
     Object? captionLanguage = freezed,
+    Object? whisperMaxAudioDuration = null,
+    Object? inferenceInterval = null,
+    Object? whisperDefaultMaxDecodeTokens = null,
+    Object? whisperTemperature = null,
+    Object? llmTemperature = null,
+    Object? llmMaxTokens = null,
   }) {
     return _then(_$AppSettingsDataImpl(
       modelWorkingDir: null == modelWorkingDir
@@ -204,6 +258,30 @@ class __$$AppSettingsDataImplCopyWithImpl<$Res>
           ? _value.captionLanguage
           : captionLanguage // ignore: cast_nullable_to_non_nullable
               as String?,
+      whisperMaxAudioDuration: null == whisperMaxAudioDuration
+          ? _value.whisperMaxAudioDuration
+          : whisperMaxAudioDuration // ignore: cast_nullable_to_non_nullable
+              as int,
+      inferenceInterval: null == inferenceInterval
+          ? _value.inferenceInterval
+          : inferenceInterval // ignore: cast_nullable_to_non_nullable
+              as int,
+      whisperDefaultMaxDecodeTokens: null == whisperDefaultMaxDecodeTokens
+          ? _value.whisperDefaultMaxDecodeTokens
+          : whisperDefaultMaxDecodeTokens // ignore: cast_nullable_to_non_nullable
+              as int,
+      whisperTemperature: null == whisperTemperature
+          ? _value.whisperTemperature
+          : whisperTemperature // ignore: cast_nullable_to_non_nullable
+              as double,
+      llmTemperature: null == llmTemperature
+          ? _value.llmTemperature
+          : llmTemperature // ignore: cast_nullable_to_non_nullable
+              as double,
+      llmMaxTokens: null == llmMaxTokens
+          ? _value.llmMaxTokens
+          : llmMaxTokens // ignore: cast_nullable_to_non_nullable
+              as int,
     ));
   }
 }
@@ -222,7 +300,13 @@ class _$AppSettingsDataImpl
       required this.llmProviderModel,
       required this.llmContextOptimization,
       this.audioLanguage,
-      this.captionLanguage});
+      this.captionLanguage,
+      this.whisperMaxAudioDuration = 12,
+      this.inferenceInterval = 2,
+      this.whisperDefaultMaxDecodeTokens = 256,
+      this.whisperTemperature = 0.0,
+      this.llmTemperature = 0.1,
+      this.llmMaxTokens = 256});
 
   factory _$AppSettingsDataImpl.fromJson(Map<String, dynamic> json) =>
       _$$AppSettingsDataImplFromJson(json);
@@ -245,10 +329,28 @@ class _$AppSettingsDataImpl
   final String? audioLanguage;
   @override
   final String? captionLanguage;
+  @override
+  @JsonKey()
+  final int whisperMaxAudioDuration;
+  @override
+  @JsonKey()
+  final int inferenceInterval;
+  @override
+  @JsonKey()
+  final int whisperDefaultMaxDecodeTokens;
+  @override
+  @JsonKey()
+  final double whisperTemperature;
+  @override
+  @JsonKey()
+  final double llmTemperature;
+  @override
+  @JsonKey()
+  final int llmMaxTokens;
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'AppSettingsData(modelWorkingDir: $modelWorkingDir, whisperModel: $whisperModel, tryWithCuda: $tryWithCuda, llmProviderUrl: $llmProviderUrl, llmProviderKey: $llmProviderKey, llmProviderModel: $llmProviderModel, llmContextOptimization: $llmContextOptimization, audioLanguage: $audioLanguage, captionLanguage: $captionLanguage)';
+    return 'AppSettingsData(modelWorkingDir: $modelWorkingDir, whisperModel: $whisperModel, tryWithCuda: $tryWithCuda, llmProviderUrl: $llmProviderUrl, llmProviderKey: $llmProviderKey, llmProviderModel: $llmProviderModel, llmContextOptimization: $llmContextOptimization, audioLanguage: $audioLanguage, captionLanguage: $captionLanguage, whisperMaxAudioDuration: $whisperMaxAudioDuration, inferenceInterval: $inferenceInterval, whisperDefaultMaxDecodeTokens: $whisperDefaultMaxDecodeTokens, whisperTemperature: $whisperTemperature, llmTemperature: $llmTemperature, llmMaxTokens: $llmMaxTokens)';
   }
 
   @override
@@ -265,7 +367,15 @@ class _$AppSettingsDataImpl
       ..add(
           DiagnosticsProperty('llmContextOptimization', llmContextOptimization))
       ..add(DiagnosticsProperty('audioLanguage', audioLanguage))
-      ..add(DiagnosticsProperty('captionLanguage', captionLanguage));
+      ..add(DiagnosticsProperty('captionLanguage', captionLanguage))
+      ..add(DiagnosticsProperty(
+          'whisperMaxAudioDuration', whisperMaxAudioDuration))
+      ..add(DiagnosticsProperty('inferenceInterval', inferenceInterval))
+      ..add(DiagnosticsProperty(
+          'whisperDefaultMaxDecodeTokens', whisperDefaultMaxDecodeTokens))
+      ..add(DiagnosticsProperty('whisperTemperature', whisperTemperature))
+      ..add(DiagnosticsProperty('llmTemperature', llmTemperature))
+      ..add(DiagnosticsProperty('llmMaxTokens', llmMaxTokens));
   }
 
   @override
@@ -290,7 +400,22 @@ class _$AppSettingsDataImpl
             (identical(other.audioLanguage, audioLanguage) ||
                 other.audioLanguage == audioLanguage) &&
             (identical(other.captionLanguage, captionLanguage) ||
-                other.captionLanguage == captionLanguage));
+                other.captionLanguage == captionLanguage) &&
+            (identical(
+                    other.whisperMaxAudioDuration, whisperMaxAudioDuration) ||
+                other.whisperMaxAudioDuration == whisperMaxAudioDuration) &&
+            (identical(other.inferenceInterval, inferenceInterval) ||
+                other.inferenceInterval == inferenceInterval) &&
+            (identical(other.whisperDefaultMaxDecodeTokens,
+                    whisperDefaultMaxDecodeTokens) ||
+                other.whisperDefaultMaxDecodeTokens ==
+                    whisperDefaultMaxDecodeTokens) &&
+            (identical(other.whisperTemperature, whisperTemperature) ||
+                other.whisperTemperature == whisperTemperature) &&
+            (identical(other.llmTemperature, llmTemperature) ||
+                other.llmTemperature == llmTemperature) &&
+            (identical(other.llmMaxTokens, llmMaxTokens) ||
+                other.llmMaxTokens == llmMaxTokens));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -305,7 +430,13 @@ class _$AppSettingsDataImpl
       llmProviderModel,
       llmContextOptimization,
       audioLanguage,
-      captionLanguage);
+      captionLanguage,
+      whisperMaxAudioDuration,
+      inferenceInterval,
+      whisperDefaultMaxDecodeTokens,
+      whisperTemperature,
+      llmTemperature,
+      llmMaxTokens);
 
   /// Create a copy of AppSettingsData
   /// with the given fields replaced by the non-null parameter values.
@@ -334,7 +465,13 @@ abstract class _AppSettingsData implements AppSettingsData {
       required final String llmProviderModel,
       required final bool llmContextOptimization,
       final String? audioLanguage,
-      final String? captionLanguage}) = _$AppSettingsDataImpl;
+      final String? captionLanguage,
+      final int whisperMaxAudioDuration,
+      final int inferenceInterval,
+      final int whisperDefaultMaxDecodeTokens,
+      final double whisperTemperature,
+      final double llmTemperature,
+      final int llmMaxTokens}) = _$AppSettingsDataImpl;
 
   factory _AppSettingsData.fromJson(Map<String, dynamic> json) =
       _$AppSettingsDataImpl.fromJson;
@@ -357,6 +494,18 @@ abstract class _AppSettingsData implements AppSettingsData {
   String? get audioLanguage;
   @override
   String? get captionLanguage;
+  @override
+  int get whisperMaxAudioDuration;
+  @override
+  int get inferenceInterval;
+  @override
+  int get whisperDefaultMaxDecodeTokens;
+  @override
+  double get whisperTemperature;
+  @override
+  double get llmTemperature;
+  @override
+  int get llmMaxTokens;
 
   /// Create a copy of AppSettingsData
   /// with the given fields replaced by the non-null parameter values.

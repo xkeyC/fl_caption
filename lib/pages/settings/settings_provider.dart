@@ -20,10 +20,15 @@ class AppSettingsData with _$AppSettingsData {
     required bool llmContextOptimization,
     String? audioLanguage,
     String? captionLanguage,
+    @Default(12) int whisperMaxAudioDuration,
+    @Default(2) int inferenceInterval,
+    @Default(256) int whisperDefaultMaxDecodeTokens,
+    @Default(0.0) double whisperTemperature,
+    @Default(0.1) double llmTemperature,
+    @Default(256) int llmMaxTokens,
   }) = _AppSettingsData;
 
-  factory AppSettingsData.fromJson(Map<String, dynamic> json) =>
-      _$AppSettingsDataFromJson(json);
+  factory AppSettingsData.fromJson(Map<String, dynamic> json) => _$AppSettingsDataFromJson(json);
 }
 
 @riverpod
@@ -33,8 +38,7 @@ class AppSettings extends _$AppSettings {
     final box = await Hive.openBox("settings");
     final String modelWorkingDir = box.get(
       "model_working_dir",
-      defaultValue:
-          "${(await getApplicationSupportDirectory()).absolute.path.replaceAll("\\", "/")}/whisper",
+      defaultValue: "${(await getApplicationSupportDirectory()).absolute.path.replaceAll("\\", "/")}/whisper",
     );
     final String whisperModel = box.get("whisper_model", defaultValue: "base");
     final String llmProviderUrl = box.get(
@@ -42,18 +46,20 @@ class AppSettings extends _$AppSettings {
       defaultValue: "http://localhost:11434/v1/chat/completions",
     );
     final String llmProviderKey = box.get("llm_provider_key", defaultValue: "");
-    final String llmProviderModel = box.get(
-      "llm_provider_model",
-      defaultValue: "",
-    );
-    final llmContextOptimization = box.get(
-      "llm_context_optimization",
-      defaultValue: true,
-    );
+    final String llmProviderModel = box.get("llm_provider_model", defaultValue: "");
+    final llmContextOptimization = box.get("llm_context_optimization", defaultValue: true);
 
     final String? audioLanguage = box.get("audio_language");
     final String? captionLanguage = box.get("caption_language");
     final bool tryWithCuda = box.get("try_with_cuda", defaultValue: true);
+
+    // 新增推理相关设置项
+    final int whisperMaxAudioDuration = box.get("whisper_max_audio_duration", defaultValue: 12);
+    final int inferenceInterval = box.get("inference_interval", defaultValue: 2);
+    final int whisperDefaultMaxDecodeTokens = box.get("whisper_default_max_decode_tokens", defaultValue: 256);
+    final double whisperTemperature = box.get("whisper_temperature", defaultValue: 0.0);
+    final double llmTemperature = box.get("llm_temperature", defaultValue: 0.1);
+    final int llmMaxTokens = box.get("llm_max_tokens", defaultValue: 256);
 
     return AppSettingsData(
       modelWorkingDir: modelWorkingDir,
@@ -65,6 +71,12 @@ class AppSettings extends _$AppSettings {
       captionLanguage: captionLanguage,
       tryWithCuda: tryWithCuda,
       llmContextOptimization: llmContextOptimization,
+      whisperMaxAudioDuration: whisperMaxAudioDuration,
+      inferenceInterval: inferenceInterval,
+      whisperDefaultMaxDecodeTokens: whisperDefaultMaxDecodeTokens,
+      whisperTemperature: whisperTemperature,
+      llmTemperature: llmTemperature,
+      llmMaxTokens: llmMaxTokens,
     );
   }
 
@@ -85,10 +97,13 @@ class AppSettings extends _$AppSettings {
       await box.put("audio_language", state.value!.audioLanguage);
       await box.put("caption_language", state.value!.captionLanguage);
       await box.put("try_with_cuda", state.value!.tryWithCuda);
-      await box.put(
-        "llm_context_optimization",
-        state.value!.llmContextOptimization,
-      );
+      await box.put("llm_context_optimization", state.value!.llmContextOptimization);
+      await box.put("whisper_max_audio_duration", state.value!.whisperMaxAudioDuration);
+      await box.put("inference_interval", state.value!.inferenceInterval);
+      await box.put("whisper_default_max_decode_tokens", state.value!.whisperDefaultMaxDecodeTokens);
+      await box.put("whisper_temperature", state.value!.whisperTemperature);
+      await box.put("llm_temperature", state.value!.llmTemperature);
+      await box.put("llm_max_tokens", state.value!.llmMaxTokens);
       return true;
     } catch (e) {
       debugPrint("Error saving settings: $e");

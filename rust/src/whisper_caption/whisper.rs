@@ -331,6 +331,7 @@ impl Decoder {
         times: Option<(f64, f64)>,
         timeout: Option<Duration>,
         max_tokens_per_segment: Option<usize>,
+        temperature: Option<f32>,
     ) -> anyhow::Result<Vec<Segment>> {
         let (_, _, content_frames) = mel.dims3()?;
         let mut seek = 0;
@@ -365,19 +366,32 @@ impl Decoder {
                 }
             });
 
-            // 使用修改后的decode_with_fallback，传入超时参数和token数量限制
-            let dr = match self.decode_with_fallback(
-                &mel_segment,
-                segment_timeout,
-                max_tokens_per_segment,
-            ) {
-                Ok(dr) => dr,
-                Err(e) => {
-                    if timeout.is_some() && e.to_string().contains("timed out") {
-                        // 超时的情况，直接跳出循环
-                        break;
+            // 使用固定温度或回退机制
+            let dr = if let Some(t) = temperature {
+                // 使用固定温度
+                match self.decode(&mel_segment, t as f64, segment_timeout, max_tokens_per_segment) {
+                    Ok(dr) => dr,
+                    Err(e) => {
+                        if timeout.is_some() && e.to_string().contains("timed out") {
+                            break;
+                        }
+                        return Err(e);
                     }
-                    return Err(e);
+                }
+            } else {
+                // 使用原始的温度回退机制
+                match self.decode_with_fallback(
+                    &mel_segment,
+                    segment_timeout,
+                    max_tokens_per_segment,
+                ) {
+                    Ok(dr) => dr,
+                    Err(e) => {
+                        if timeout.is_some() && e.to_string().contains("timed out") {
+                            break;
+                        }
+                        return Err(e);
+                    }
                 }
             };
 

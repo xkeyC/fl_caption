@@ -18,6 +18,15 @@ _$AppSettingsDataImpl _$$AppSettingsDataImplFromJson(
       llmContextOptimization: json['llmContextOptimization'] as bool,
       audioLanguage: json['audioLanguage'] as String?,
       captionLanguage: json['captionLanguage'] as String?,
+      whisperMaxAudioDuration:
+          (json['whisperMaxAudioDuration'] as num?)?.toInt() ?? 12,
+      inferenceInterval: (json['inferenceInterval'] as num?)?.toInt() ?? 2,
+      whisperDefaultMaxDecodeTokens:
+          (json['whisperDefaultMaxDecodeTokens'] as num?)?.toInt() ?? 256,
+      whisperTemperature:
+          (json['whisperTemperature'] as num?)?.toDouble() ?? 0.0,
+      llmTemperature: (json['llmTemperature'] as num?)?.toDouble() ?? 0.1,
+      llmMaxTokens: (json['llmMaxTokens'] as num?)?.toInt() ?? 256,
     );
 
 Map<String, dynamic> _$$AppSettingsDataImplToJson(
@@ -32,13 +41,19 @@ Map<String, dynamic> _$$AppSettingsDataImplToJson(
       'llmContextOptimization': instance.llmContextOptimization,
       'audioLanguage': instance.audioLanguage,
       'captionLanguage': instance.captionLanguage,
+      'whisperMaxAudioDuration': instance.whisperMaxAudioDuration,
+      'inferenceInterval': instance.inferenceInterval,
+      'whisperDefaultMaxDecodeTokens': instance.whisperDefaultMaxDecodeTokens,
+      'whisperTemperature': instance.whisperTemperature,
+      'llmTemperature': instance.llmTemperature,
+      'llmMaxTokens': instance.llmMaxTokens,
     };
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$appSettingsHash() => r'30ae0e6d5dacba828b2a6836c3f5fe55c034f56a';
+String _$appSettingsHash() => r'58a507eb5c1b4fe74a23def970619edd8d3bd591';
 
 /// See also [AppSettings].
 @ProviderFor(AppSettings)

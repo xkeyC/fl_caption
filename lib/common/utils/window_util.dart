@@ -1,5 +1,5 @@
 import 'package:desktop_multi_window/desktop_multi_window.dart';
-import 'package:fl_caption/common/settings_provider.dart';
+import 'package:fl_caption/pages/settings/settings_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show MethodCall;
 

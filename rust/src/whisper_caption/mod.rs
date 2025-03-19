@@ -28,8 +28,11 @@ pub async fn launch_caption<F>(
     with_timestamps: Option<bool>,
     verbose: Option<bool>,
     try_with_cuda: bool,
-    inference_timeout: Option<Duration>,   // 推理总超时参数
-    max_tokens_per_segment: Option<usize>, // 防止幻觉的每段最大token数
+    inference_timeout: Option<Duration>,     // 推理总超时参数
+    max_tokens_per_segment: Option<usize>,   // 防止幻觉的每段最大token数
+    whisper_max_audio_duration: Option<u32>, // 新增：音频上下文长度(秒)
+    inference_interval_ms: Option<u64>,      // 新增：推理间隔时间(毫秒)
+    whisper_temperature: Option<f32>,        // 新增：温度参数
     mut result_callback: F,
 ) -> anyhow::Result<()>
 where
@@ -271,10 +274,11 @@ where
     let mut history_pcm = Vec::new();
     let mut last_inference_time = Instant::now();
     let mut first_inference_done = false;
-    let inference_interval = Duration::from_millis(2000); // 推理间隔时间
-    let max_audio_duration: usize = 12; // 最大音频时长，单位：秒
+    let inference_interval = Duration::from_millis(inference_interval_ms.unwrap_or(2000)); // 默认2000毫秒
+    let max_audio_duration: usize = whisper_max_audio_duration.unwrap_or(12) as usize; // 默认12秒
     let mut language_token_set = false;
     let mut language_token_name: Option<String> = None;
+    let fixed_temperature = whisper_temperature;
 
     // 处理循环
     while !cancel_token.is_cancelled() {
@@ -389,7 +393,13 @@ where
         }
 
         // 运行解码器并获取结果
-        let mut segments = decoder.run(&mel, None, inference_timeout, max_tokens_per_segment)?;
+        let mut segments = decoder.run(
+            &mel,
+            None,
+            inference_timeout.or(Some(inference_interval)),
+            max_tokens_per_segment,
+            fixed_temperature,
+        )?;
         // 计算推理用时并输出
         let inference_duration = inference_start.elapsed();
 

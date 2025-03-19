@@ -165,7 +165,10 @@ class App extends HookConsumerWidget {
                                 TextSpan(
                                   text: "${caption.value?.reasoningDuration?.inMilliseconds ?? "?"}ms",
                                   style: TextStyle(
-                                    color: _getReasoningColor(caption.value?.reasoningDuration?.inMilliseconds),
+                                    color: _getReasoningColor(
+                                      caption.value?.reasoningDuration?.inMilliseconds,
+                                      ref.read(appSettingsProvider),
+                                    ),
                                   ),
                                 ),
                               ],
@@ -242,9 +245,12 @@ class App extends HookConsumerWidget {
     exit(0);
   }
 
-  Color _getReasoningColor(int? inMilliseconds) {
-    if (inMilliseconds == null || inMilliseconds < 800) return Colors.white.withValues(alpha: .6);
-    if (inMilliseconds < 1500) return Colors.yellow.withValues(alpha: .6);
+  Color _getReasoningColor(int? inMilliseconds, AsyncValue<AppSettingsData> appSettings) {
+    final whisperInferenceInterval = appSettings.value?.inferenceInterval ?? 2000;
+    if (inMilliseconds == null || inMilliseconds < whisperInferenceInterval * 0.85) {
+      return Colors.white.withValues(alpha: .6);
+    }
+    if (inMilliseconds < whisperInferenceInterval * 0.95) return Colors.yellow.withValues(alpha: .6);
     return Colors.red.withValues(alpha: .6);
   }
 }

@@ -246,7 +246,7 @@ class App extends HookConsumerWidget {
   }
 
   Color _getReasoningColor(int? inMilliseconds, AsyncValue<AppSettingsData> appSettings) {
-    final whisperInferenceInterval = appSettings.value?.inferenceInterval ?? 2000;
+    final whisperInferenceInterval = (appSettings.value?.inferenceInterval ?? 2) * 1000;
     if (inMilliseconds == null || inMilliseconds < whisperInferenceInterval * 0.85) {
       return Colors.white.withValues(alpha: .6);
     }

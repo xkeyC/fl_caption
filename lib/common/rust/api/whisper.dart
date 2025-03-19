@@ -24,6 +24,10 @@ Stream<List<Segment>> launchCaption({
   bool? withTimestamps,
   bool? verbose,
   bool? tryWithCuda,
+  int? whisperMaxAudioDuration,
+  BigInt? inferenceInterval,
+  BigInt? whisperDefaultMaxDecodeTokens,
+  double? whisperTemperature,
 }) => RustLib.instance.api.crateApiWhisperLaunchCaption(
   whisperClient: whisperClient,
   audioDevice: audioDevice,
@@ -33,6 +37,10 @@ Stream<List<Segment>> launchCaption({
   withTimestamps: withTimestamps,
   verbose: verbose,
   tryWithCuda: tryWithCuda,
+  whisperMaxAudioDuration: whisperMaxAudioDuration,
+  inferenceInterval: inferenceInterval,
+  whisperDefaultMaxDecodeTokens: whisperDefaultMaxDecodeTokens,
+  whisperTemperature: whisperTemperature,
 );
 
 class WhisperClient {

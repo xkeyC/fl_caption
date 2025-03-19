@@ -1,6 +1,7 @@
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:fl_caption/common/utils/window_util.dart';
 import 'package:fl_caption/pages/settings/settings_page_captions.dart';
+import 'package:fl_caption/pages/settings/settings_page_inference.dart';
 import 'package:fl_caption/pages/settings/settings_page_llm.dart';
 import 'package:fl_caption/pages/settings/settings_page_whisper.dart';
 import 'package:fluent_ui/fluent_ui.dart';
@@ -28,6 +29,14 @@ class SettingsApp extends HookConsumerWidget {
     final apiKeyController = useTextEditingController();
     final apiModelController = useTextEditingController();
 
+    // 推理设置相关控制器
+    final whisperMaxAudioDurationController = useTextEditingController();
+    final inferenceIntervalController = useTextEditingController();
+    final whisperDefaultMaxDecodeTokensController = useTextEditingController();
+    final whisperTemperatureController = useTextEditingController();
+    final llmTemperatureController = useTextEditingController();
+    final llmMaxTokensController = useTextEditingController();
+
     useEffect(() {
       DesktopMultiWindow.setMethodHandler(MultiWindowWindowUtil.windowMethodHandler);
       () async {
@@ -36,6 +45,14 @@ class SettingsApp extends HookConsumerWidget {
         apiUrlController.text = settings.llmProviderUrl;
         apiKeyController.text = settings.llmProviderKey;
         apiModelController.text = settings.llmProviderModel;
+
+        whisperMaxAudioDurationController.text = settings.whisperMaxAudioDuration.toString();
+        inferenceIntervalController.text = settings.inferenceInterval.toString();
+        whisperDefaultMaxDecodeTokensController.text = settings.whisperDefaultMaxDecodeTokens.toString();
+        whisperTemperatureController.text = settings.whisperTemperature.toString();
+        llmTemperatureController.text = settings.llmTemperature.toString();
+        llmMaxTokensController.text = settings.llmMaxTokens.toString();
+
         appSettingsData.value = settings;
       }();
       return () {
@@ -43,6 +60,14 @@ class SettingsApp extends HookConsumerWidget {
         apiUrlController.dispose();
         apiKeyController.dispose();
         apiModelController.dispose();
+
+        // 释放新增的控制器
+        whisperMaxAudioDurationController.dispose();
+        inferenceIntervalController.dispose();
+        whisperDefaultMaxDecodeTokensController.dispose();
+        whisperTemperatureController.dispose();
+        llmTemperatureController.dispose();
+        llmMaxTokensController.dispose();
       };
     }, const []);
 
@@ -107,6 +132,22 @@ class SettingsApp extends HookConsumerWidget {
                                 ),
                               ),
                             ),
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 24),
+                              child: VisibilityDetector(
+                                key: Key("menu_Inference"),
+                                onVisibilityChanged: (VisibilityInfo info) => _checkIndex(info, 3, selectedMenuIndex),
+                                child: SettingsInferencePage(
+                                  appSettingsData: appSettingsData,
+                                  whisperMaxAudioDurationController: whisperMaxAudioDurationController,
+                                  inferenceIntervalController: inferenceIntervalController,
+                                  whisperDefaultMaxDecodeTokensController: whisperDefaultMaxDecodeTokensController,
+                                  whisperTemperatureController: whisperTemperatureController,
+                                  llmTemperatureController: llmTemperatureController,
+                                  llmMaxTokensController: llmMaxTokensController,
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -127,6 +168,14 @@ class SettingsApp extends HookConsumerWidget {
                                   llmProviderKey: apiKeyController.text,
                                   llmProviderModel: apiModelController.text,
                                   whisperModel: appSettingsData.value!.whisperModel,
+                                  // 保存新增的设置值
+                                  whisperMaxAudioDuration: int.tryParse(whisperMaxAudioDurationController.text) ?? 12,
+                                  inferenceInterval: int.tryParse(inferenceIntervalController.text) ?? 2,
+                                  whisperDefaultMaxDecodeTokens:
+                                      int.tryParse(whisperDefaultMaxDecodeTokensController.text) ?? 256,
+                                  whisperTemperature: double.tryParse(whisperTemperatureController.text) ?? 0.0,
+                                  llmTemperature: double.tryParse(llmTemperatureController.text) ?? 0.1,
+                                  llmMaxTokens: int.tryParse(llmMaxTokensController.text) ?? 256,
                                 );
                                 await MultiWindowWindowUtil.setAppSettingsData(newSettings!);
                                 await MultiWindowWindowUtil.closeMineWindow();
@@ -155,6 +204,7 @@ class SettingsApp extends HookConsumerWidget {
       {'icon': FluentIcons.closed_caption, 'title': "字幕设置", 'index': 0},
       {'icon': FluentIcons.microphone, 'title': "Whisper 设置", 'index': 1},
       {'icon': FontAwesomeIcons.server, 'title': "LLM 设置", 'index': 2},
+      {'icon': FontAwesomeIcons.lightbulb, 'title': "推理设置", 'index': 3},
     ];
 
     return Container(

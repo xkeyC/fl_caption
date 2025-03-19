@@ -127,8 +127,8 @@ class App extends HookConsumerWidget {
                           ),
                         ),
                         Positioned(
-                          right: 12,
-                          top: 12,
+                          right: 0,
+                          top: 3,
                           child: Row(
                             children: [IconButton(icon: Icon(FluentIcons.settings), onPressed: _openSettings)],
                           ),
@@ -140,7 +140,7 @@ class App extends HookConsumerWidget {
               ),
               SizedBox(height: 3),
               Padding(
-                padding: const EdgeInsets.only(left: 15, right: 15, bottom: 3),
+                padding: const EdgeInsets.only(left: 15, right: 8, bottom: 3),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [

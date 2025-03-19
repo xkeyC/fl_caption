@@ -40,10 +40,25 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   bool dco_decode_box_autoadd_bool(dynamic raw);
 
   @protected
+  double dco_decode_box_autoadd_f_32(dynamic raw);
+
+  @protected
+  int dco_decode_box_autoadd_u_32(dynamic raw);
+
+  @protected
+  BigInt dco_decode_box_autoadd_u_64(dynamic raw);
+
+  @protected
+  BigInt dco_decode_box_autoadd_usize(dynamic raw);
+
+  @protected
   WhisperClient dco_decode_box_autoadd_whisper_client(dynamic raw);
 
   @protected
   DecodingResult dco_decode_decoding_result(dynamic raw);
+
+  @protected
+  double dco_decode_f_32(dynamic raw);
 
   @protected
   double dco_decode_f_64(dynamic raw);
@@ -73,16 +88,34 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   bool? dco_decode_opt_box_autoadd_bool(dynamic raw);
 
   @protected
+  double? dco_decode_opt_box_autoadd_f_32(dynamic raw);
+
+  @protected
+  int? dco_decode_opt_box_autoadd_u_32(dynamic raw);
+
+  @protected
+  BigInt? dco_decode_opt_box_autoadd_u_64(dynamic raw);
+
+  @protected
+  BigInt? dco_decode_opt_box_autoadd_usize(dynamic raw);
+
+  @protected
   Segment dco_decode_segment(dynamic raw);
 
   @protected
   int dco_decode_u_32(dynamic raw);
 
   @protected
+  BigInt dco_decode_u_64(dynamic raw);
+
+  @protected
   int dco_decode_u_8(dynamic raw);
 
   @protected
   void dco_decode_unit(dynamic raw);
+
+  @protected
+  BigInt dco_decode_usize(dynamic raw);
 
   @protected
   WhisperClient dco_decode_whisper_client(dynamic raw);
@@ -111,12 +144,27 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   bool sse_decode_box_autoadd_bool(SseDeserializer deserializer);
 
   @protected
+  double sse_decode_box_autoadd_f_32(SseDeserializer deserializer);
+
+  @protected
+  int sse_decode_box_autoadd_u_32(SseDeserializer deserializer);
+
+  @protected
+  BigInt sse_decode_box_autoadd_u_64(SseDeserializer deserializer);
+
+  @protected
+  BigInt sse_decode_box_autoadd_usize(SseDeserializer deserializer);
+
+  @protected
   WhisperClient sse_decode_box_autoadd_whisper_client(
     SseDeserializer deserializer,
   );
 
   @protected
   DecodingResult sse_decode_decoding_result(SseDeserializer deserializer);
+
+  @protected
+  double sse_decode_f_32(SseDeserializer deserializer);
 
   @protected
   double sse_decode_f_64(SseDeserializer deserializer);
@@ -146,16 +194,34 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   bool? sse_decode_opt_box_autoadd_bool(SseDeserializer deserializer);
 
   @protected
+  double? sse_decode_opt_box_autoadd_f_32(SseDeserializer deserializer);
+
+  @protected
+  int? sse_decode_opt_box_autoadd_u_32(SseDeserializer deserializer);
+
+  @protected
+  BigInt? sse_decode_opt_box_autoadd_u_64(SseDeserializer deserializer);
+
+  @protected
+  BigInt? sse_decode_opt_box_autoadd_usize(SseDeserializer deserializer);
+
+  @protected
   Segment sse_decode_segment(SseDeserializer deserializer);
 
   @protected
   int sse_decode_u_32(SseDeserializer deserializer);
 
   @protected
+  BigInt sse_decode_u_64(SseDeserializer deserializer);
+
+  @protected
   int sse_decode_u_8(SseDeserializer deserializer);
 
   @protected
   void sse_decode_unit(SseDeserializer deserializer);
+
+  @protected
+  BigInt sse_decode_usize(SseDeserializer deserializer);
 
   @protected
   WhisperClient sse_decode_whisper_client(SseDeserializer deserializer);
@@ -201,6 +267,30 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ffi.Pointer<ffi.Bool> cst_encode_box_autoadd_bool(bool raw) {
     // Codec=Cst (C-struct based), see doc to use other codecs
     return wire.cst_new_box_autoadd_bool(cst_encode_bool(raw));
+  }
+
+  @protected
+  ffi.Pointer<ffi.Float> cst_encode_box_autoadd_f_32(double raw) {
+    // Codec=Cst (C-struct based), see doc to use other codecs
+    return wire.cst_new_box_autoadd_f_32(cst_encode_f_32(raw));
+  }
+
+  @protected
+  ffi.Pointer<ffi.Uint32> cst_encode_box_autoadd_u_32(int raw) {
+    // Codec=Cst (C-struct based), see doc to use other codecs
+    return wire.cst_new_box_autoadd_u_32(cst_encode_u_32(raw));
+  }
+
+  @protected
+  ffi.Pointer<ffi.Uint64> cst_encode_box_autoadd_u_64(BigInt raw) {
+    // Codec=Cst (C-struct based), see doc to use other codecs
+    return wire.cst_new_box_autoadd_u_64(cst_encode_u_64(raw));
+  }
+
+  @protected
+  ffi.Pointer<ffi.UintPtr> cst_encode_box_autoadd_usize(BigInt raw) {
+    // Codec=Cst (C-struct based), see doc to use other codecs
+    return wire.cst_new_box_autoadd_usize(cst_encode_usize(raw));
   }
 
   @protected
@@ -276,6 +366,42 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   }
 
   @protected
+  ffi.Pointer<ffi.Float> cst_encode_opt_box_autoadd_f_32(double? raw) {
+    // Codec=Cst (C-struct based), see doc to use other codecs
+    return raw == null ? ffi.nullptr : cst_encode_box_autoadd_f_32(raw);
+  }
+
+  @protected
+  ffi.Pointer<ffi.Uint32> cst_encode_opt_box_autoadd_u_32(int? raw) {
+    // Codec=Cst (C-struct based), see doc to use other codecs
+    return raw == null ? ffi.nullptr : cst_encode_box_autoadd_u_32(raw);
+  }
+
+  @protected
+  ffi.Pointer<ffi.Uint64> cst_encode_opt_box_autoadd_u_64(BigInt? raw) {
+    // Codec=Cst (C-struct based), see doc to use other codecs
+    return raw == null ? ffi.nullptr : cst_encode_box_autoadd_u_64(raw);
+  }
+
+  @protected
+  ffi.Pointer<ffi.UintPtr> cst_encode_opt_box_autoadd_usize(BigInt? raw) {
+    // Codec=Cst (C-struct based), see doc to use other codecs
+    return raw == null ? ffi.nullptr : cst_encode_box_autoadd_usize(raw);
+  }
+
+  @protected
+  int cst_encode_u_64(BigInt raw) {
+    // Codec=Cst (C-struct based), see doc to use other codecs
+    return raw.toSigned(64).toInt();
+  }
+
+  @protected
+  int cst_encode_usize(BigInt raw) {
+    // Codec=Cst (C-struct based), see doc to use other codecs
+    return raw.toSigned(64).toInt();
+  }
+
+  @protected
   void cst_api_fill_to_wire_box_autoadd_whisper_client(
     WhisperClient apiObj,
     ffi.Pointer<wire_cst_whisper_client> wireObj,
@@ -325,6 +451,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   bool cst_encode_bool(bool raw);
 
   @protected
+  double cst_encode_f_32(double raw);
+
+  @protected
   double cst_encode_f_64(double raw);
 
   @protected
@@ -367,6 +496,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_box_autoadd_bool(bool self, SseSerializer serializer);
 
   @protected
+  void sse_encode_box_autoadd_f_32(double self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_u_32(int self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_u_64(BigInt self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_usize(BigInt self, SseSerializer serializer);
+
+  @protected
   void sse_encode_box_autoadd_whisper_client(
     WhisperClient self,
     SseSerializer serializer,
@@ -377,6 +518,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     DecodingResult self,
     SseSerializer serializer,
   );
+
+  @protected
+  void sse_encode_f_32(double self, SseSerializer serializer);
 
   @protected
   void sse_encode_f_64(double self, SseSerializer serializer);
@@ -412,16 +556,34 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_opt_box_autoadd_bool(bool? self, SseSerializer serializer);
 
   @protected
+  void sse_encode_opt_box_autoadd_f_32(double? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_u_32(int? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_u_64(BigInt? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_usize(BigInt? self, SseSerializer serializer);
+
+  @protected
   void sse_encode_segment(Segment self, SseSerializer serializer);
 
   @protected
   void sse_encode_u_32(int self, SseSerializer serializer);
 
   @protected
+  void sse_encode_u_64(BigInt self, SseSerializer serializer);
+
+  @protected
   void sse_encode_u_8(int self, SseSerializer serializer);
 
   @protected
   void sse_encode_unit(void self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_usize(BigInt self, SseSerializer serializer);
 
   @protected
   void sse_encode_whisper_client(WhisperClient self, SseSerializer serializer);
@@ -511,6 +673,10 @@ class RustLibWire implements BaseWire {
     ffi.Pointer<ffi.Bool> with_timestamps,
     ffi.Pointer<ffi.Bool> verbose,
     ffi.Pointer<ffi.Bool> try_with_cuda,
+    ffi.Pointer<ffi.Uint32> whisper_max_audio_duration,
+    ffi.Pointer<ffi.Uint64> inference_interval,
+    ffi.Pointer<ffi.UintPtr> whisper_default_max_decode_tokens,
+    ffi.Pointer<ffi.Float> whisper_temperature,
   ) {
     return _wire__crate__api__whisper__launch_caption(
       port_,
@@ -523,6 +689,10 @@ class RustLibWire implements BaseWire {
       with_timestamps,
       verbose,
       try_with_cuda,
+      whisper_max_audio_duration,
+      inference_interval,
+      whisper_default_max_decode_tokens,
+      whisper_temperature,
     );
   }
 
@@ -539,6 +709,10 @@ class RustLibWire implements BaseWire {
         ffi.Pointer<ffi.Bool>,
         ffi.Pointer<ffi.Bool>,
         ffi.Pointer<ffi.Bool>,
+        ffi.Pointer<ffi.Uint32>,
+        ffi.Pointer<ffi.Uint64>,
+        ffi.Pointer<ffi.UintPtr>,
+        ffi.Pointer<ffi.Float>,
       )
     >
   >('frbgen_fl_caption_wire__crate__api__whisper__launch_caption');
@@ -556,6 +730,10 @@ class RustLibWire implements BaseWire {
               ffi.Pointer<ffi.Bool>,
               ffi.Pointer<ffi.Bool>,
               ffi.Pointer<ffi.Bool>,
+              ffi.Pointer<ffi.Uint32>,
+              ffi.Pointer<ffi.Uint64>,
+              ffi.Pointer<ffi.UintPtr>,
+              ffi.Pointer<ffi.Float>,
             )
           >();
 
@@ -613,6 +791,53 @@ class RustLibWire implements BaseWire {
   late final _cst_new_box_autoadd_bool =
       _cst_new_box_autoadd_boolPtr
           .asFunction<ffi.Pointer<ffi.Bool> Function(bool)>();
+
+  ffi.Pointer<ffi.Float> cst_new_box_autoadd_f_32(double value) {
+    return _cst_new_box_autoadd_f_32(value);
+  }
+
+  late final _cst_new_box_autoadd_f_32Ptr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Float> Function(ffi.Float)>>(
+        'frbgen_fl_caption_cst_new_box_autoadd_f_32',
+      );
+  late final _cst_new_box_autoadd_f_32 =
+      _cst_new_box_autoadd_f_32Ptr
+          .asFunction<ffi.Pointer<ffi.Float> Function(double)>();
+
+  ffi.Pointer<ffi.Uint32> cst_new_box_autoadd_u_32(int value) {
+    return _cst_new_box_autoadd_u_32(value);
+  }
+
+  late final _cst_new_box_autoadd_u_32Ptr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Uint32> Function(ffi.Uint32)>>(
+        'frbgen_fl_caption_cst_new_box_autoadd_u_32',
+      );
+  late final _cst_new_box_autoadd_u_32 =
+      _cst_new_box_autoadd_u_32Ptr
+          .asFunction<ffi.Pointer<ffi.Uint32> Function(int)>();
+
+  ffi.Pointer<ffi.Uint64> cst_new_box_autoadd_u_64(int value) {
+    return _cst_new_box_autoadd_u_64(value);
+  }
+
+  late final _cst_new_box_autoadd_u_64Ptr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Uint64> Function(ffi.Uint64)>>(
+        'frbgen_fl_caption_cst_new_box_autoadd_u_64',
+      );
+  late final _cst_new_box_autoadd_u_64 =
+      _cst_new_box_autoadd_u_64Ptr
+          .asFunction<ffi.Pointer<ffi.Uint64> Function(int)>();
+
+  ffi.Pointer<ffi.UintPtr> cst_new_box_autoadd_usize(int value) {
+    return _cst_new_box_autoadd_usize(value);
+  }
+
+  late final _cst_new_box_autoadd_usizePtr = _lookup<
+    ffi.NativeFunction<ffi.Pointer<ffi.UintPtr> Function(ffi.UintPtr)>
+  >('frbgen_fl_caption_cst_new_box_autoadd_usize');
+  late final _cst_new_box_autoadd_usize =
+      _cst_new_box_autoadd_usizePtr
+          .asFunction<ffi.Pointer<ffi.UintPtr> Function(int)>();
 
   ffi.Pointer<wire_cst_whisper_client> cst_new_box_autoadd_whisper_client() {
     return _cst_new_box_autoadd_whisper_client();

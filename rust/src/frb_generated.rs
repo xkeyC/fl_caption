@@ -104,6 +104,10 @@ fn wire__crate__api__whisper__launch_caption_impl(
     with_timestamps: impl CstDecode<Option<bool>>,
     verbose: impl CstDecode<Option<bool>>,
     try_with_cuda: impl CstDecode<Option<bool>>,
+    whisper_max_audio_duration: impl CstDecode<Option<u32>>,
+    inference_interval: impl CstDecode<Option<u64>>,
+    whisper_default_max_decode_tokens: impl CstDecode<Option<usize>>,
+    whisper_temperature: impl CstDecode<Option<f32>>,
 ) {
     FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::DcoCodec, _, _, _>(
         flutter_rust_bridge::for_generated::TaskInfo {
@@ -121,6 +125,11 @@ fn wire__crate__api__whisper__launch_caption_impl(
             let api_with_timestamps = with_timestamps.cst_decode();
             let api_verbose = verbose.cst_decode();
             let api_try_with_cuda = try_with_cuda.cst_decode();
+            let api_whisper_max_audio_duration = whisper_max_audio_duration.cst_decode();
+            let api_inference_interval = inference_interval.cst_decode();
+            let api_whisper_default_max_decode_tokens =
+                whisper_default_max_decode_tokens.cst_decode();
+            let api_whisper_temperature = whisper_temperature.cst_decode();
             move |context| async move {
                 transform_result_dco::<_, _, flutter_rust_bridge::for_generated::anyhow::Error>(
                     (move || async move {
@@ -134,6 +143,10 @@ fn wire__crate__api__whisper__launch_caption_impl(
                             api_with_timestamps,
                             api_verbose,
                             api_try_with_cuda,
+                            api_whisper_max_audio_duration,
+                            api_inference_interval,
+                            api_whisper_default_max_decode_tokens,
+                            api_whisper_temperature,
                         )
                         .await?;
                         Ok(output_ok)
@@ -188,6 +201,12 @@ impl CstDecode<bool> for bool {
         self
     }
 }
+impl CstDecode<f32> for f32 {
+    // Codec=Cst (C-struct based), see doc to use other codecs
+    fn cst_decode(self) -> f32 {
+        self
+    }
+}
 impl CstDecode<f64> for f64 {
     // Codec=Cst (C-struct based), see doc to use other codecs
     fn cst_decode(self) -> f64 {
@@ -206,9 +225,21 @@ impl CstDecode<u32> for u32 {
         self
     }
 }
+impl CstDecode<u64> for u64 {
+    // Codec=Cst (C-struct based), see doc to use other codecs
+    fn cst_decode(self) -> u64 {
+        self
+    }
+}
 impl CstDecode<u8> for u8 {
     // Codec=Cst (C-struct based), see doc to use other codecs
     fn cst_decode(self) -> u8 {
+        self
+    }
+}
+impl CstDecode<usize> for usize {
+    // Codec=Cst (C-struct based), see doc to use other codecs
+    fn cst_decode(self) -> usize {
         self
     }
 }
@@ -286,6 +317,13 @@ impl SseDecode for crate::whisper_caption::whisper::DecodingResult {
             temperature: var_temperature,
             compression_ratio: var_compressionRatio,
         };
+    }
+}
+
+impl SseDecode for f32 {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        deserializer.cursor.read_f32::<NativeEndian>().unwrap()
     }
 }
 
@@ -374,6 +412,50 @@ impl SseDecode for Option<bool> {
     }
 }
 
+impl SseDecode for Option<f32> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<f32>::sse_decode(deserializer));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<u32> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<u32>::sse_decode(deserializer));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<u64> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<u64>::sse_decode(deserializer));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<usize> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<usize>::sse_decode(deserializer));
+        } else {
+            return None;
+        }
+    }
+}
+
 impl SseDecode for crate::whisper_caption::whisper::Segment {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -405,6 +487,13 @@ impl SseDecode for u32 {
     }
 }
 
+impl SseDecode for u64 {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        deserializer.cursor.read_u64::<NativeEndian>().unwrap()
+    }
+}
+
 impl SseDecode for u8 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -415,6 +504,13 @@ impl SseDecode for u8 {
 impl SseDecode for () {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {}
+}
+
+impl SseDecode for usize {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        deserializer.cursor.read_u64::<NativeEndian>().unwrap() as _
+    }
 }
 
 impl SseDecode for crate::api::whisper::WhisperClient {
@@ -629,6 +725,13 @@ impl SseEncode for crate::whisper_caption::whisper::DecodingResult {
     }
 }
 
+impl SseEncode for f32 {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        serializer.cursor.write_f32::<NativeEndian>(self).unwrap();
+    }
+}
+
 impl SseEncode for f64 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -703,6 +806,46 @@ impl SseEncode for Option<bool> {
     }
 }
 
+impl SseEncode for Option<f32> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <f32>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<u32> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <u32>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<u64> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <u64>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<usize> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <usize>::sse_encode(value, serializer);
+        }
+    }
+}
+
 impl SseEncode for crate::whisper_caption::whisper::Segment {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -723,6 +866,13 @@ impl SseEncode for u32 {
     }
 }
 
+impl SseEncode for u64 {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        serializer.cursor.write_u64::<NativeEndian>(self).unwrap();
+    }
+}
+
 impl SseEncode for u8 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -733,6 +883,16 @@ impl SseEncode for u8 {
 impl SseEncode for () {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {}
+}
+
+impl SseEncode for usize {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        serializer
+            .cursor
+            .write_u64::<NativeEndian>(self as _)
+            .unwrap();
+    }
 }
 
 impl SseEncode for crate::api::whisper::WhisperClient {
@@ -828,6 +988,30 @@ mod io {
     impl CstDecode<bool> for *mut bool {
         // Codec=Cst (C-struct based), see doc to use other codecs
         fn cst_decode(self) -> bool {
+            unsafe { *flutter_rust_bridge::for_generated::box_from_leak_ptr(self) }
+        }
+    }
+    impl CstDecode<f32> for *mut f32 {
+        // Codec=Cst (C-struct based), see doc to use other codecs
+        fn cst_decode(self) -> f32 {
+            unsafe { *flutter_rust_bridge::for_generated::box_from_leak_ptr(self) }
+        }
+    }
+    impl CstDecode<u32> for *mut u32 {
+        // Codec=Cst (C-struct based), see doc to use other codecs
+        fn cst_decode(self) -> u32 {
+            unsafe { *flutter_rust_bridge::for_generated::box_from_leak_ptr(self) }
+        }
+    }
+    impl CstDecode<u64> for *mut u64 {
+        // Codec=Cst (C-struct based), see doc to use other codecs
+        fn cst_decode(self) -> u64 {
+            unsafe { *flutter_rust_bridge::for_generated::box_from_leak_ptr(self) }
+        }
+    }
+    impl CstDecode<usize> for *mut usize {
+        // Codec=Cst (C-struct based), see doc to use other codecs
+        fn cst_decode(self) -> usize {
             unsafe { *flutter_rust_bridge::for_generated::box_from_leak_ptr(self) }
         }
     }
@@ -993,6 +1177,10 @@ mod io {
         with_timestamps: *mut bool,
         verbose: *mut bool,
         try_with_cuda: *mut bool,
+        whisper_max_audio_duration: *mut u32,
+        inference_interval: *mut u64,
+        whisper_default_max_decode_tokens: *mut usize,
+        whisper_temperature: *mut f32,
     ) {
         wire__crate__api__whisper__launch_caption_impl(
             port_,
@@ -1005,6 +1193,10 @@ mod io {
             with_timestamps,
             verbose,
             try_with_cuda,
+            whisper_max_audio_duration,
+            inference_interval,
+            whisper_default_max_decode_tokens,
+            whisper_temperature,
         )
     }
 
@@ -1029,6 +1221,26 @@ mod io {
 
     #[unsafe(no_mangle)]
     pub extern "C" fn frbgen_fl_caption_cst_new_box_autoadd_bool(value: bool) -> *mut bool {
+        flutter_rust_bridge::for_generated::new_leak_box_ptr(value)
+    }
+
+    #[unsafe(no_mangle)]
+    pub extern "C" fn frbgen_fl_caption_cst_new_box_autoadd_f_32(value: f32) -> *mut f32 {
+        flutter_rust_bridge::for_generated::new_leak_box_ptr(value)
+    }
+
+    #[unsafe(no_mangle)]
+    pub extern "C" fn frbgen_fl_caption_cst_new_box_autoadd_u_32(value: u32) -> *mut u32 {
+        flutter_rust_bridge::for_generated::new_leak_box_ptr(value)
+    }
+
+    #[unsafe(no_mangle)]
+    pub extern "C" fn frbgen_fl_caption_cst_new_box_autoadd_u_64(value: u64) -> *mut u64 {
+        flutter_rust_bridge::for_generated::new_leak_box_ptr(value)
+    }
+
+    #[unsafe(no_mangle)]
+    pub extern "C" fn frbgen_fl_caption_cst_new_box_autoadd_usize(value: usize) -> *mut usize {
         flutter_rust_bridge::for_generated::new_leak_box_ptr(value)
     }
 

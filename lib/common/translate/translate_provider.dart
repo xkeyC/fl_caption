@@ -95,9 +95,9 @@ class TranslateProvider extends _$TranslateProvider {
                   {"role": "user", "content": "<history> ${entry.key} -> ${entry.value} </history>"},
               {"role": "user", "content": "<live>$fixedText</live>"},
             ],
-            "temperature": 0.1,
+            "temperature": appSettings.llmTemperature,
             "stream": true, // Enable streaming
-            "max_tokens": 256,
+            "max_tokens": appSettings.llmMaxTokens,
           },
           options: Options(
             headers: {

@@ -65,15 +65,20 @@ pub async fn launch_caption(
     with_timestamps: Option<bool>,
     verbose: Option<bool>,
     try_with_cuda: Option<bool>,
+    whisper_max_audio_duration: Option<u32>, // 新增：音频上下文长度
+    inference_interval: Option<u64>,         // 新增：推理间隔时间
+    whisper_default_max_decode_tokens: Option<usize>, // 新增：最大推理token长度
+    whisper_temperature: Option<f32>,        // 新增：温度参数
 ) -> anyhow::Result<()> {
     let stream_sink_clone = stream_sink.clone();
-    let cancel_token = if let Ok(store) = TOKEN_STORE.lock() {
-        store
-            .get(&cancel_token_id)
-            .cloned()
-            .unwrap_or_else(CancellationToken::new)
-    } else {
-        return Err(anyhow::Error::msg("Failed to get cancellation token"));
+
+    let cancel_token = {
+        let store = TOKEN_STORE.lock().unwrap();
+        if let Some(token) = store.get(&cancel_token_id) {
+            token.clone()
+        } else {
+            return Err(anyhow::anyhow!("Invalid cancellation token ID"));
+        }
     };
 
     let r = whisper_caption::launch_caption(
@@ -89,8 +94,12 @@ pub async fn launch_caption(
         with_timestamps,
         verbose,
         try_with_cuda.unwrap_or(false),
-        Some(Duration::from_millis(1500)),
-        Some(128),
+        // 使用inference_interval作为超时时间
+        inference_interval.map(|ms| Duration::from_millis(ms)),
+        whisper_default_max_decode_tokens,
+        whisper_max_audio_duration, // 传递音频上下文长度
+        inference_interval,         // 传递推理间隔时间
+        whisper_temperature,        // 传递温度参数
         move |segments| {
             let _ = stream_sink.add(segments);
         },

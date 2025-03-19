@@ -101,6 +101,10 @@ class DartWhisperCaption extends _$DartWhisperCaption {
             audioDeviceIsInput: false,
             audioLanguage: appSettings.audioLanguage,
             tryWithCuda: appSettings.tryWithCuda,
+            whisperMaxAudioDuration: appSettings.whisperMaxAudioDuration.toInt(),
+            inferenceInterval: BigInt.from(appSettings.inferenceInterval * 1000),
+            whisperDefaultMaxDecodeTokens: BigInt.from(appSettings.whisperDefaultMaxDecodeTokens),
+            whisperTemperature: appSettings.whisperTemperature,
           )
           .listen(
             (data) {

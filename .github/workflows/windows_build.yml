@@ -16,7 +16,83 @@ jobs:
         env:
           INPUT_CUDA_VERSION: 12.4.0
       - name: Setup Developer Command Prompt
-        uses: ilammy/msvc-dev-cmd@v1          
+        uses: ilammy/msvc-dev-cmd@v1     
+        
+      - name: Find cl.exe Path
+        shell: pwsh
+        run: |
+          Write-Host "User: $env:USERNAME"
+          Write-Host "Date: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
+          Write-Host "========== Finding cl.exe locations =========="
+          
+          # Check if cl.exe is available in PATH
+          try {
+              $clCommand = Get-Command cl.exe -ErrorAction Stop
+              Write-Host "cl.exe found in PATH:" -ForegroundColor Green
+              Write-Host $clCommand.Source
+              
+              # Display the directory
+              Write-Host "Directory containing cl.exe:" -ForegroundColor Green
+              Write-Host (Split-Path -Parent $clCommand.Source)
+              
+              # Set NVCC_CCBIN environment variable for current step
+              $env:NVCC_CCBIN = Split-Path -Parent $clCommand.Source
+              Write-Host "NVCC_CCBIN set to: $env:NVCC_CCBIN"
+              echo "NVCC_CCBIN=$env:NVCC_CCBIN" >> $env:GITHUB_ENV
+          }
+          catch {
+              Write-Host "cl.exe not found in PATH. Searching Visual Studio directories..." -ForegroundColor Yellow
+              
+              # Search in common Visual Studio locations
+              $vsLocations = @(
+                  "C:\Program Files\Microsoft Visual Studio",
+                  "C:\Program Files (x86)\Microsoft Visual Studio"
+              )
+              
+              $foundCl = $false
+              foreach ($location in $vsLocations) {
+                  if (Test-Path $location) {
+                      Write-Host "Searching in $location..." -ForegroundColor Blue
+                      $clFiles = Get-ChildItem -Path $location -Recurse -Filter "cl.exe" -ErrorAction SilentlyContinue | Select-Object -First 5
+                      foreach ($file in $clFiles) {
+                          Write-Host "Found: $($file.FullName)" -ForegroundColor Green
+                          $foundCl = $true
+                          # Set the first found cl.exe as NVCC_CCBIN
+                          if (-not $env:NVCC_CCBIN) {
+                              $env:NVCC_CCBIN = Split-Path -Parent $file.FullName
+                              Write-Host "NVCC_CCBIN set to: $env:NVCC_CCBIN"
+                              echo "NVCC_CCBIN=$env:NVCC_CCBIN" >> $env:GITHUB_ENV
+                          }
+                      }
+                  }
+              }
+              
+              if (-not $foundCl) {
+                  Write-Host "cl.exe not found in Visual Studio directories!" -ForegroundColor Red
+              }
+          }
+          
+          # List environment variables related to Visual Studio and CUDA
+          Write-Host "========== Environment Variables =========="
+          Get-ChildItem env: | Where-Object { $_.Name -match "VS|MSVC|CUDA|NVCC" } | Format-Table -AutoSize
+      
+      - name: Test CUDA Build Environment
+        shell: cmd
+        run: |
+          echo "Testing CUDA build environment with NVCC_CCBIN=%NVCC_CCBIN%"
+          if defined NVCC_CCBIN (
+            echo NVCC_CCBIN is defined as %NVCC_CCBIN%
+            if exist "%NVCC_CCBIN%\cl.exe" (
+              echo cl.exe found at %NVCC_CCBIN%\cl.exe
+            ) else (
+              echo ERROR: cl.exe not found at %NVCC_CCBIN%\cl.exe
+            )
+          ) else (
+            echo WARNING: NVCC_CCBIN is not defined
+          )
+          
+          where cl.exe 2>nul && echo cl.exe is in PATH || echo cl.exe is NOT in PATH
+          
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -24,7 +100,6 @@ jobs:
           cache: true
           cache-key: 'flutter-:os:-:channel:-:version:-:arch:-:hash:' # optional, change this to force refresh cache
           cache-path: '${{ runner.tool_cache }}/flutter/:channel:-:version:-:arch:' # optional, change this to specify the cache path
-
       - run: flutter --version
 
       - name: Set up Rust

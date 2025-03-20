@@ -33,7 +33,7 @@ class WhisperModelData {
 const Map<String, WhisperModelData> whisperModels = {
   "base": WhisperModelData(
     name: 'base',
-    size: '290Mb',
+    size: '290 MB',
     sizeInt: 290 * 1024,
     isMultilingual: true,
     isQuantized: false,
@@ -49,15 +49,23 @@ const Map<String, WhisperModelData> whisperModels = {
   ),
   "large-v2": WhisperModelData(
     name: 'large-v2',
-    size: '5.75GB',
+    size: '5.75 GB',
     sizeInt: 5750 * 1024,
     isMultilingual: true,
     isQuantized: false,
     downloadUrl: 'https://huggingface.co/openai/whisper-large-v2/resolve/main/model.safetensors',
   ),
+  "large-v2_q4_1": WhisperModelData(
+    name: 'large-v2_q4_1',
+    size: '940 MB',
+    sizeInt: 5750 * 1024,
+    isMultilingual: true,
+    isQuantized: true,
+    downloadUrl: 'https://huggingface.co/xkeyC/whisper-large-v2-gguf/resolve/main/model.gguf',
+  ),
   "large-v3_q4k": WhisperModelData(
     name: 'large-v3_q4k',
-    size: '891Mb',
+    size: '891 Mb',
     sizeInt: 891 * 1024,
     isMultilingual: true,
     isQuantized: true,
@@ -65,10 +73,18 @@ const Map<String, WhisperModelData> whisperModels = {
   ),
   "large-v3-turbo": WhisperModelData(
     name: 'large-v3-turbo',
-    size: '1.62Gb',
+    size: '1.62 Gb',
     sizeInt: 1620 * 1024,
     isMultilingual: true,
     isQuantized: false,
     downloadUrl: 'https://huggingface.co/openai/whisper-large-v3-turbo/resolve/main/model.safetensors',
+  ),
+  "large-v3-turbo_q4_1": WhisperModelData(
+    name: 'large-v3-turbo_q4_1',
+    size: '501 MB',
+    sizeInt: 1620 * 1024,
+    isMultilingual: true,
+    isQuantized: true,
+    downloadUrl: 'https://huggingface.co/xkeyC/whisper-large-v3-turbo-gguf/resolve/main/model.gguf',
   ),
 };

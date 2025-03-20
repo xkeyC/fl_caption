@@ -61,7 +61,7 @@ const Map<String, WhisperModelData> whisperModels = {
     sizeInt: 5750 * 1024,
     isMultilingual: true,
     isQuantized: true,
-    downloadUrl: 'https://huggingface.co/xkeyC/whisper-large-v2-gguf/resolve/main/model.gguf',
+    downloadUrl: 'https://huggingface.co/xkeyC/whisper-large-v2-gguf/resolve/main/model_q4_1.gguf',
   ),
   "large-v3_q4k": WhisperModelData(
     name: 'large-v3_q4k',
@@ -85,6 +85,6 @@ const Map<String, WhisperModelData> whisperModels = {
     sizeInt: 1620 * 1024,
     isMultilingual: true,
     isQuantized: true,
-    downloadUrl: 'https://huggingface.co/xkeyC/whisper-large-v3-turbo-gguf/resolve/main/model.gguf',
+    downloadUrl: 'https://huggingface.co/xkeyC/whisper-large-v3-turbo-gguf/resolve/main/model_q4_1.gguf',
   ),
 };

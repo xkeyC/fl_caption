@@ -9,11 +9,10 @@ jobs:
         uses: actions/checkout@v4
       - name: Set up MSbuild
         uses: microsoft/setup-msbuild@v2
-      - name: Append the directory of 'cl.exe' to PATH environment variable
-        uses: myci-actions/export-env-var-powershell@1
-        with:
-          name: PATH
-          value: $env:PATH;C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build
+      - name: Install C++ Build Tools
+        run: |
+          choco install visualstudio2022buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.VCTools --includeRecommended --includeOptional --quiet --wait"
+          choco install visualstudio2022-workload-vctools
       - name: Setup CUDA Toolkit
         id: cuda-toolkit
         shell: pwsh
@@ -60,16 +59,12 @@ jobs:
         run: |
           cargo install cargo-expand 
           cargo install 'flutter_rust_bridge_codegen@^2.9.0'
-      - name: Build something requiring CL.EXE
-        uses: ilammy/msvc-dev-cmd@v1.13.0
       - name: Flutter Rust bridge generate
         run: flutter_rust_bridge_codegen generate
       #      - name: flutter gen l10n
       #        run: |
       #          flutter pub global activate intl_utils
       #          flutter pub global run intl_utils:generate
-      - name: Build something requiring CL.EXE
-        uses: ilammy/msvc-dev-cmd@v1.13.0
       - name: Flutter build Windows
         run: flutter build windows -v
 

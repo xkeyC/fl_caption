@@ -208,7 +208,7 @@ class SettingsApp extends HookConsumerWidget {
     ];
 
     return Container(
-      width: 230,
+      width: 180,
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
       decoration: BoxDecoration(color: Colors.grey.withValues(alpha: .3)),
       child: Column(

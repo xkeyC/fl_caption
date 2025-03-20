@@ -42,7 +42,7 @@ class SettingsInferencePage extends HookWidget {
 
         _buildSettingRow(
           label: '音频长度 (秒)：',
-          tooltip: '音频长度越长推理压力越大 (默认: 12秒)',
+          tooltip: '音频长度越长推理压力越大，若音频语速较快也可以减少长度从而减轻压力 (默认: 12秒)',
           controller: whisperMaxAudioDurationController,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
         ),

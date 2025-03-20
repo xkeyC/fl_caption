@@ -19,8 +19,8 @@ $src = "cuda"
 $dst = "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v$($CUDA_MAJOR).$($CUDA_MINOR)"
 $installer = "cuda.exe"
 
-if ($CUDA_VERSION_FULL -eq "12.5.0") {
-    $downloadUrl = "https://developer.download.nvidia.com/compute/cuda/12.5.0/local_installers/cuda_12.5.0_555.85_windows.exe"
+if ($CUDA_VERSION_FULL -eq "12.4.0") {
+    $downloadUrl = "https://developer.download.nvidia.com/compute/cuda/12.4.0/local_installers/cuda_12.4.0_551.61_windows.exe"
 } elseif ($CUDA_VERSION_FULL -eq "11.8.0") {
     $downloadUrl = "https://developer.download.nvidia.com/compute/cuda/11.8.0/local_installers/cuda_11.8.0_522.06_windows.exe"
 } else {

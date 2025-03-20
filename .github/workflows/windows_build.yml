@@ -139,12 +139,12 @@ jobs:
       #          flutter pub global activate intl_utils
       #          flutter pub global run intl_utils:generate
    
-      - name: Setup Visual Studio environment And Flutter Build
+      - name: Flutter Build
         shell: pwsh
         run: |
-          & cmd /c "call `"C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat`" && echo %PATH% >> ${env:GITHUB_PATH}"
-          $manifestPath = "D:/a/fl_caption/fl_caption/rust/Cargo.toml" -replace '\\', '/'
-          $targetDir = "D:/a/fl_caption/fl_caption/build/windows/x64/plugins/rust_lib_fl_caption/cargokit_build" -replace '\\', '/'
+          $repoRoot = $pwd.Path -replace '\\', '/'
+          $manifestPath = "$repoRoot/rust/Cargo.toml"
+          $targetDir = "$repoRoot/build/windows/x64/plugins/rust_lib_fl_caption/cargokit_build"
           rustup run stable cargo build --manifest-path $manifestPath -p "rust_lib_fl_caption" --release --target "x86_64-pc-windows-msvc" --target-dir $targetDir
           flutter build windows -v
 

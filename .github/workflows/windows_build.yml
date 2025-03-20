@@ -143,6 +143,9 @@ jobs:
         shell: pwsh
         run: |
           & cmd /c "call `"C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat`" && echo %PATH% >> ${env:GITHUB_PATH}"
+          $manifestPath = "D:/a/fl_caption/fl_caption/rust/Cargo.toml" -replace '\\', '/'
+          $targetDir = "D:/a/fl_caption/fl_caption/build/windows/x64/plugins/rust_lib_fl_caption/cargokit_build" -replace '\\', '/'
+          rustup run stable cargo build --manifest-path $manifestPath -p "rust_lib_fl_caption" --release --target "x86_64-pc-windows-msvc" --target-dir $targetDir
           flutter build windows -v
 
       - name: Archive build

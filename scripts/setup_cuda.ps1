@@ -107,5 +107,5 @@ Write-Output "CUDA_COMPUTE_CAP=75" >> $env:GITHUB_ENV
 # https://stackoverflow.com/questions/60169752
 Write-Output "Adding CUDA to PATH..."
 Write-Output "$dst\bin" >> $env:GITHUB_PATH
-
+Write-Output "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\MSVC\14.43.34808\bin\HostX64\x64\" >> $env:GITHUB_PATH
 Write-Output "Setup completed."

@@ -451,21 +451,37 @@ fn _try_get_cuda() -> candle_core::Device {
     })
 }
 
-// 将多声道音频合并为单声道（平均法）
+// 将多声道音频合并为单声道（平均法），并处理数据不完整的情况
 fn merge_channels(pcm: &[f32], channel_count: usize) -> Vec<f32> {
     if channel_count == 1 {
         return pcm.to_vec(); // 已经是单声道，直接返回
     }
 
-    let samples_per_channel = pcm.len() / channel_count;
-    let mut mono_pcm = Vec::with_capacity(samples_per_channel);
+    // 计算完整的样本组数量
+    let complete_groups = pcm.len() / channel_count;
+    // 计算最后一组中的样本数量
+    let remaining_samples = pcm.len() % channel_count;
+    // 分配结果向量的容量为完整的样本组数加上是否有剩余样本决定的额外容量
+    let result_capacity = complete_groups + if remaining_samples > 0 { 1 } else { 0 };
+    let mut mono_pcm = Vec::with_capacity(result_capacity);
 
-    for i in 0..samples_per_channel {
+    // 处理完整的样本组
+    for i in 0..complete_groups {
         let mut sample_sum = 0.0;
         for ch in 0..channel_count {
             sample_sum += pcm[i * channel_count + ch];
         }
         mono_pcm.push(sample_sum / (channel_count as f32));
+    }
+
+    // 处理可能存在的不完整样本组
+    if remaining_samples > 0 {
+        let start_idx = complete_groups * channel_count;
+        let mut sample_sum = 0.0;
+        for ch in 0..remaining_samples {
+            sample_sum += pcm[start_idx + ch];
+        }
+        mono_pcm.push(sample_sum / (remaining_samples as f32));
     }
 
     mono_pcm

@@ -51,11 +51,15 @@ class DartWhisper extends _$DartWhisper {
   }
 
   Future<String> getConfigByName(String name) async {
-    return await rootBundle.loadString("assets/whisper/$name-config.json");
+    final configName = whisperModels[name]?.configType.name;
+    if (configName == null) throw Exception("Config not found for model $name");
+    return await rootBundle.loadString("assets/whisper/$configName-config.json");
   }
 
   Future<Uint8List> getTokenizerByName(String name) async {
-    return (await rootBundle.load("assets/whisper/$name-tokenizer.json")).buffer.asUint8List();
+    final configName = whisperModels[name]?.configType.name;
+    if (configName == null) throw Exception("Tokenizer not found for model $name");
+    return (await rootBundle.load("assets/whisper/$configName-tokenizer.json")).buffer.asUint8List();
   }
 }
 

@@ -209,7 +209,7 @@ class App extends HookConsumerWidget {
       final window = await DesktopMultiWindow.createWindow(jsonEncode({'window_type': 'settings'}));
       window.setTitle("Settings");
       window
-        ..setFrame(const Offset(0, 0) & const Size(1700, 1080))
+        ..setFrame(const Offset(0, 0) & const Size(1700, 1200))
         ..center();
       await window.show();
       DesktopMultiWindow.invokeMethod(window.windowId, 'main_window_id_broadcast');
@@ -246,7 +246,7 @@ class App extends HookConsumerWidget {
   }
 
   Color _getReasoningColor(int? inMilliseconds, AsyncValue<AppSettingsData> appSettings) {
-    final whisperInferenceInterval = (appSettings.value?.inferenceInterval ?? 2) * 1000;
+    final whisperInferenceInterval = (appSettings.value?.inferenceInterval ?? 2000);
     if (inMilliseconds == null || inMilliseconds < whisperInferenceInterval * 0.85) {
       return Colors.white.withValues(alpha: .6);
     }

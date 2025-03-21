@@ -103,32 +103,24 @@ class SettingsApp extends HookConsumerWidget {
                             Padding(
                               padding: const EdgeInsets.only(bottom: 24),
                               child: VisibilityDetector(
-                                key: Key("menu_Captions"),
+                                key: Key("menu_base"),
                                 onVisibilityChanged: (VisibilityInfo info) => _checkIndex(info, 0, selectedMenuIndex),
-                                child: SettingsCaptionsPage(appSettingsData: appSettingsData),
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 24),
-                              child: VisibilityDetector(
-                                key: Key("menu_Whisper"),
-                                onVisibilityChanged: (VisibilityInfo info) => _checkIndex(info, 1, selectedMenuIndex),
-                                child: SettingsWhisperPage(
-                                  appSettingsData: appSettingsData,
-                                  modelDirController: modelDirController,
-                                ),
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 24),
-                              child: VisibilityDetector(
-                                key: Key("menu_LLM"),
-                                onVisibilityChanged: (VisibilityInfo info) => _checkIndex(info, 2, selectedMenuIndex),
-                                child: SettingsLlmPage(
-                                  apiUrlController: apiUrlController,
-                                  apiKeyController: apiKeyController,
-                                  apiModelController: apiModelController,
-                                  appSettingsData: appSettingsData,
+                                child: Column(
+                                  children: [
+                                    SettingsCaptionsPage(appSettingsData: appSettingsData),
+                                    SizedBox(height: 12),
+                                    SettingsWhisperPage(
+                                      appSettingsData: appSettingsData,
+                                      modelDirController: modelDirController,
+                                    ),
+                                    SizedBox(height: 12),
+                                    SettingsLlmPage(
+                                      apiUrlController: apiUrlController,
+                                      apiKeyController: apiKeyController,
+                                      apiModelController: apiModelController,
+                                      appSettingsData: appSettingsData,
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
@@ -136,7 +128,7 @@ class SettingsApp extends HookConsumerWidget {
                               padding: const EdgeInsets.only(bottom: 24),
                               child: VisibilityDetector(
                                 key: Key("menu_Inference"),
-                                onVisibilityChanged: (VisibilityInfo info) => _checkIndex(info, 3, selectedMenuIndex),
+                                onVisibilityChanged: (VisibilityInfo info) => _checkIndex(info, 1, selectedMenuIndex),
                                 child: SettingsInferencePage(
                                   appSettingsData: appSettingsData,
                                   whisperMaxAudioDurationController: whisperMaxAudioDurationController,
@@ -201,10 +193,8 @@ class SettingsApp extends HookConsumerWidget {
     ValueNotifier<int> selectedMenuIndex,
   ) {
     final menuItems = [
-      {'icon': FluentIcons.closed_caption, 'title': "字幕设置", 'index': 0},
-      {'icon': FluentIcons.microphone, 'title': "Whisper 设置", 'index': 1},
-      {'icon': FontAwesomeIcons.server, 'title': "LLM 设置", 'index': 2},
-      {'icon': FontAwesomeIcons.lightbulb, 'title': "推理设置", 'index': 3},
+      {'icon': FluentIcons.closed_caption, 'title': "基础设置", 'index': 0},
+      {'icon': FontAwesomeIcons.lightbulb, 'title': "推理设置", 'index': 1},
     ];
 
     return Container(
@@ -269,7 +259,7 @@ class SettingsApp extends HookConsumerWidget {
     listController.animateToItem(
       index: i,
       scrollController: scrollController,
-      alignment: 0.5,
+      alignment: 0,
       duration: (estimatedDistance) => Duration(milliseconds: 250),
       curve: (estimatedDistance) => Curves.easeInOut,
     );

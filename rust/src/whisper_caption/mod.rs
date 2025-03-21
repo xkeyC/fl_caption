@@ -140,18 +140,14 @@ where
     let audio_thread = thread::spawn(move || {
         let audio_cancel_token_clone = audio_cancel_token.child_token();
         // 在标准线程中创建并管理音频流
-        let stream = if cfg!(target_os = "macos") && !is_input {
+        let stream: cpal::Stream = if cfg!(target_os = "macos") && !is_input {
             match audio_device.build_output_stream(
                 &audio_config.config(),
                 move |pcm: &mut [f32], _: &cpal::OutputCallbackInfo| {
                     if audio_cancel_token.is_cancelled() {
                         return;
                     }
-                    let captured_pcm = pcm
-                        .iter()
-                        .step_by(channel_count)
-                        .copied()
-                        .collect::<Vec<f32>>();
+                    let captured_pcm = merge_channels(pcm, channel_count);
 
                     if !captured_pcm.is_empty() {
                         // 使用 send 发送音频数据
@@ -177,11 +173,7 @@ where
                         return;
                     }
 
-                    let pcm = pcm
-                        .iter()
-                        .step_by(channel_count)
-                        .copied()
-                        .collect::<Vec<f32>>();
+                    let pcm = merge_channels(pcm, channel_count);
 
                     if !pcm.is_empty() {
                         // 使用 send 发送音频数据
@@ -457,6 +449,26 @@ fn _try_get_cuda() -> candle_core::Device {
         // 返回 CPU 设备
         candle_core::Device::Cpu
     })
+}
+
+// 将多声道音频合并为单声道（平均法）
+fn merge_channels(pcm: &[f32], channel_count: usize) -> Vec<f32> {
+    if channel_count == 1 {
+        return pcm.to_vec(); // 已经是单声道，直接返回
+    }
+
+    let samples_per_channel = pcm.len() / channel_count;
+    let mut mono_pcm = Vec::with_capacity(samples_per_channel);
+
+    for i in 0..samples_per_channel {
+        let mut sample_sum = 0.0;
+        for ch in 0..channel_count {
+            sample_sum += pcm[i * channel_count + ch];
+        }
+        mono_pcm.push(sample_sum / (channel_count as f32));
+    }
+
+    mono_pcm
 }
 
 fn _make_status_response(status: whisper::WhisperStatus) -> Vec<Segment> {

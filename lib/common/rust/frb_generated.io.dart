@@ -3,6 +3,7 @@
 
 // ignore_for_file: unused_import, unused_element, unnecessary_import, duplicate_ignore, invalid_use_of_internal_member, annotate_overrides, non_constant_identifier_names, curly_braces_in_flow_control_structures, prefer_const_literals_to_create_immutables, unused_field
 
+import 'api/text_util.dart';
 import 'api/whisper.dart';
 import 'dart:async';
 import 'dart:convert';
@@ -651,6 +652,29 @@ class RustLibWire implements BaseWire {
             void Function(int, ffi.Pointer<wire_cst_list_prim_u_8_strict>)
           >();
 
+  void wire__crate__api__text_util__count_duplicate_characters(
+    int port_,
+    ffi.Pointer<wire_cst_list_prim_u_8_strict> input,
+  ) {
+    return _wire__crate__api__text_util__count_duplicate_characters(
+      port_,
+      input,
+    );
+  }
+
+  late final _wire__crate__api__text_util__count_duplicate_charactersPtr = _lookup<
+    ffi.NativeFunction<
+      ffi.Void Function(ffi.Int64, ffi.Pointer<wire_cst_list_prim_u_8_strict>)
+    >
+  >(
+    'frbgen_fl_caption_wire__crate__api__text_util__count_duplicate_characters',
+  );
+  late final _wire__crate__api__text_util__count_duplicate_characters =
+      _wire__crate__api__text_util__count_duplicate_charactersPtr
+          .asFunction<
+            void Function(int, ffi.Pointer<wire_cst_list_prim_u_8_strict>)
+          >();
+
   void wire__crate__api__whisper__create_cancellation_token(int port_) {
     return _wire__crate__api__whisper__create_cancellation_token(port_);
   }
@@ -677,6 +701,7 @@ class RustLibWire implements BaseWire {
     ffi.Pointer<ffi.Uint64> inference_interval,
     ffi.Pointer<ffi.UintPtr> whisper_default_max_decode_tokens,
     ffi.Pointer<ffi.Float> whisper_temperature,
+    ffi.Pointer<wire_cst_list_prim_u_8_strict> vad_model_path,
   ) {
     return _wire__crate__api__whisper__launch_caption(
       port_,
@@ -693,6 +718,7 @@ class RustLibWire implements BaseWire {
       inference_interval,
       whisper_default_max_decode_tokens,
       whisper_temperature,
+      vad_model_path,
     );
   }
 
@@ -713,6 +739,7 @@ class RustLibWire implements BaseWire {
         ffi.Pointer<ffi.Uint64>,
         ffi.Pointer<ffi.UintPtr>,
         ffi.Pointer<ffi.Float>,
+        ffi.Pointer<wire_cst_list_prim_u_8_strict>,
       )
     >
   >('frbgen_fl_caption_wire__crate__api__whisper__launch_caption');
@@ -734,6 +761,7 @@ class RustLibWire implements BaseWire {
               ffi.Pointer<ffi.Uint64>,
               ffi.Pointer<ffi.UintPtr>,
               ffi.Pointer<ffi.Float>,
+              ffi.Pointer<wire_cst_list_prim_u_8_strict>,
             )
           >();
 

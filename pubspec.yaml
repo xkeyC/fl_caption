@@ -69,6 +69,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/whisper/
+    - assets/models/
   fonts:
     - family: SourceHanSansCN-Regular
       fonts:

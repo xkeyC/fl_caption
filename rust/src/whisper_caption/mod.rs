@@ -4,10 +4,10 @@ pub mod whisper;
 use std::time::Duration;
 
 use crate::whisper_caption::whisper::{Model, Segment};
+use crate::{get_device, vad};
 use candle_nn::VarBuilder;
 use candle_transformers::models::whisper::{self as m, audio, Config};
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
-use native_dialog::{MessageDialog, MessageType};
 use std::sync::mpsc as std_mpsc;
 use std::{panic, thread};
 use tokenizers::Tokenizer;
@@ -30,25 +30,17 @@ pub async fn launch_caption<F>(
     try_with_cuda: bool,
     inference_timeout: Option<Duration>,     // 推理总超时参数
     max_tokens_per_segment: Option<usize>,   // 防止幻觉的每段最大token数
-    whisper_max_audio_duration: Option<u32>, // 新增：音频上下文长度(秒)
-    inference_interval_ms: Option<u64>,      // 新增：推理间隔时间(毫秒)
-    whisper_temperature: Option<f32>,        // 新增：温度参数
+    whisper_max_audio_duration: Option<u32>, // 音频上下文长度(秒)
+    inference_interval_ms: Option<u64>,      // 推理间隔时间(毫秒)
+    whisper_temperature: Option<f32>,        // 温度参数
+    vad_model_path: Option<String>,          // VAD模型路径
     mut result_callback: F,
 ) -> anyhow::Result<()>
 where
     F: FnMut(Vec<Segment>) + Send + 'static,
 {
     result_callback(_make_status_response(whisper::WhisperStatus::Loading));
-    let device = if try_with_cuda {
-        if cfg!(target_os = "macos") {
-            candle_core::Device::new_metal(0)?
-        } else {
-            _try_get_cuda()
-        }
-    } else {
-        candle_core::Device::Cpu
-    };
-
+    let device = get_device(try_with_cuda)?;
     let arg_is_multilingual = is_multilingual.unwrap_or(false);
     let arg_language = audio_language;
     let arg_device = audio_device;
@@ -256,7 +248,6 @@ where
                     resampled_pcm.extend_from_slice(&res[0][..valid_len.min(res[0].len())]);
                 }
             }
-
             let _ = result_tx.send(resampled_pcm).await;
         }
     });
@@ -274,6 +265,20 @@ where
     let mut language_token_set = false;
     let mut language_token_name: Option<String> = None;
     let fixed_temperature = whisper_temperature;
+
+    println!("Check and loading vad model...");
+    let vad_model = if let Some(vad_model_path) = vad_model_path {
+        // try_with_gpu: [false] candle-onnx not support gpu
+        let model = vad::new_vad_model(vad_model_path, false);
+        if let Ok(model) = model {
+            Some(model)
+        } else {
+            println!("Failed to load VAD model: {:?}", model.err().unwrap());
+            None
+        }
+    } else {
+        None
+    };
 
     // 处理循环
     while !cancel_token.is_cancelled() {
@@ -310,7 +315,27 @@ where
         // 记录推理开始时间
         let inference_start = Instant::now();
 
-        // 计算最大样本数（现在要使用16000采样率）
+        if let Some(vad_model) = &vad_model {
+            let resampled_pcm = buffered_pcm.clone();
+            let vad_result = vad_model.check_vad(resampled_pcm);
+            if vad_result.is_err() {
+                println!("VAD error: {:?}", vad_result.err().unwrap());
+            } else {
+                let vad_result = vad_result?;
+
+                if vad_result.prediction < 0.5 {
+                    println!(
+                        "VAD prediction: {:?} , clear buffered_pcm",
+                        vad_result.prediction
+                    );
+                    buffered_pcm.clear();
+                    last_inference_time = Instant::now();
+                    continue; // 语音活动检测结果小于阈值，跳过当前数据块
+                }
+            }
+        }
+
+        // 计算最大样本数（使用16000采样率）
         let max_samples = max_audio_duration * 16000;
 
         // 计算总长度
@@ -427,31 +452,6 @@ where
 
     println!("Whisper Exit");
     Ok(())
-}
-
-fn _try_get_cuda() -> candle_core::Device {
-    // get a cuda device
-    let result = panic::catch_unwind(|| candle_core::Device::cuda_if_available(0).unwrap());
-    result.unwrap_or_else(|panic_err| {
-        // 尝试从 panic 值中提取有用信息
-        let panic_info = if let Some(s) = panic_err.downcast_ref::<String>() {
-            s.clone()
-        } else if let Some(s) = panic_err.downcast_ref::<&str>() {
-            s.to_string()
-        } else {
-            "Unknow CUDA device initialization error".to_string()
-        };
-        // show dialog
-        MessageDialog::new()
-            .set_type(MessageType::Error)
-            .set_title("CUDA device initialization error , fall back to CPU")
-            .set_text(&panic_info)
-            .show_alert()
-            .unwrap_or(());
-        eprintln!("CUDA device initialization error {}", panic_info);
-        // 返回 CPU 设备
-        candle_core::Device::Cpu
-    })
 }
 
 // 将多声道音频合并为单声道（平均法），并处理数据不完整的情况

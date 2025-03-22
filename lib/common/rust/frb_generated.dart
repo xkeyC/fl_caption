@@ -3,6 +3,7 @@
 
 // ignore_for_file: unused_import, unused_element, unnecessary_import, duplicate_ignore, invalid_use_of_internal_member, annotate_overrides, non_constant_identifier_names, curly_braces_in_flow_control_structures, prefer_const_literals_to_create_immutables, unused_field
 
+import 'api/text_util.dart';
 import 'api/whisper.dart';
 import 'dart:async';
 import 'dart:convert';
@@ -63,7 +64,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.9.0';
 
   @override
-  int get rustContentHash => 789492351;
+  int get rustContentHash => 1363425016;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -76,6 +77,10 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
 abstract class RustLibApi extends BaseApi {
   Future<void> crateApiWhisperCancelCancellationToken({
     required String tokenId,
+  });
+
+  Future<BigInt> crateApiTextUtilCountDuplicateCharacters({
+    required String input,
   });
 
   Future<String> crateApiWhisperCreateCancellationToken();
@@ -93,6 +98,7 @@ abstract class RustLibApi extends BaseApi {
     BigInt? inferenceInterval,
     BigInt? whisperDefaultMaxDecodeTokens,
     double? whisperTemperature,
+    String? vadModelPath,
   });
 
   Future<WhisperClient> crateApiWhisperWhisperClientNew({
@@ -143,6 +149,36 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  Future<BigInt> crateApiTextUtilCountDuplicateCharacters({
+    required String input,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          var arg0 = cst_encode_String(input);
+          return wire.wire__crate__api__text_util__count_duplicate_characters(
+            port_,
+            arg0,
+          );
+        },
+        codec: DcoCodec(
+          decodeSuccessData: dco_decode_usize,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiTextUtilCountDuplicateCharactersConstMeta,
+        argValues: [input],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiTextUtilCountDuplicateCharactersConstMeta =>
+      const TaskConstMeta(
+        debugName: "count_duplicate_characters",
+        argNames: ["input"],
+      );
+
+  @override
   Future<String> crateApiWhisperCreateCancellationToken() {
     return handler.executeNormal(
       NormalTask(
@@ -179,6 +215,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     BigInt? inferenceInterval,
     BigInt? whisperDefaultMaxDecodeTokens,
     double? whisperTemperature,
+    String? vadModelPath,
   }) {
     final streamSink = RustStreamSink<List<Segment>>();
     unawaited(
@@ -200,6 +237,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
               whisperDefaultMaxDecodeTokens,
             );
             var arg12 = cst_encode_opt_box_autoadd_f_32(whisperTemperature);
+            var arg13 = cst_encode_opt_String(vadModelPath);
             return wire.wire__crate__api__whisper__launch_caption(
               port_,
               arg0,
@@ -215,6 +253,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
               arg10,
               arg11,
               arg12,
+              arg13,
             );
           },
           codec: DcoCodec(
@@ -236,6 +275,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             inferenceInterval,
             whisperDefaultMaxDecodeTokens,
             whisperTemperature,
+            vadModelPath,
           ],
           apiImpl: this,
         ),
@@ -261,6 +301,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           "inferenceInterval",
           "whisperDefaultMaxDecodeTokens",
           "whisperTemperature",
+          "vadModelPath",
         ],
       );
 

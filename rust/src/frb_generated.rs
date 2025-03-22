@@ -37,7 +37,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueNom,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.9.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 789492351;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 1363425016;
 
 // Section: executor
 
@@ -64,6 +64,32 @@ fn wire__crate__api__whisper__cancel_cancellation_token_impl(
                     })?;
                     Ok(output_ok)
                 })())
+            }
+        },
+    )
+}
+fn wire__crate__api__text_util__count_duplicate_characters_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    input: impl CstDecode<String>,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::DcoCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "count_duplicate_characters",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let api_input = input.cst_decode();
+            move |context| async move {
+                transform_result_dco::<_, _, ()>(
+                    (move || async move {
+                        let output_ok = Result::<_, ()>::Ok(
+                            crate::api::text_util::count_duplicate_characters(api_input).await,
+                        )?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
             }
         },
     )
@@ -108,6 +134,7 @@ fn wire__crate__api__whisper__launch_caption_impl(
     inference_interval: impl CstDecode<Option<u64>>,
     whisper_default_max_decode_tokens: impl CstDecode<Option<usize>>,
     whisper_temperature: impl CstDecode<Option<f32>>,
+    vad_model_path: impl CstDecode<Option<String>>,
 ) {
     FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::DcoCodec, _, _, _>(
         flutter_rust_bridge::for_generated::TaskInfo {
@@ -130,6 +157,7 @@ fn wire__crate__api__whisper__launch_caption_impl(
             let api_whisper_default_max_decode_tokens =
                 whisper_default_max_decode_tokens.cst_decode();
             let api_whisper_temperature = whisper_temperature.cst_decode();
+            let api_vad_model_path = vad_model_path.cst_decode();
             move |context| async move {
                 transform_result_dco::<_, _, flutter_rust_bridge::for_generated::anyhow::Error>(
                     (move || async move {
@@ -147,6 +175,7 @@ fn wire__crate__api__whisper__launch_caption_impl(
                             api_inference_interval,
                             api_whisper_default_max_decode_tokens,
                             api_whisper_temperature,
+                            api_vad_model_path,
                         )
                         .await?;
                         Ok(output_ok)
@@ -1159,6 +1188,14 @@ mod io {
     }
 
     #[unsafe(no_mangle)]
+    pub extern "C" fn frbgen_fl_caption_wire__crate__api__text_util__count_duplicate_characters(
+        port_: i64,
+        input: *mut wire_cst_list_prim_u_8_strict,
+    ) {
+        wire__crate__api__text_util__count_duplicate_characters_impl(port_, input)
+    }
+
+    #[unsafe(no_mangle)]
     pub extern "C" fn frbgen_fl_caption_wire__crate__api__whisper__create_cancellation_token(
         port_: i64,
     ) {
@@ -1181,6 +1218,7 @@ mod io {
         inference_interval: *mut u64,
         whisper_default_max_decode_tokens: *mut usize,
         whisper_temperature: *mut f32,
+        vad_model_path: *mut wire_cst_list_prim_u_8_strict,
     ) {
         wire__crate__api__whisper__launch_caption_impl(
             port_,
@@ -1197,6 +1235,7 @@ mod io {
             inference_interval,
             whisper_default_max_decode_tokens,
             whisper_temperature,
+            vad_model_path,
         )
     }
 

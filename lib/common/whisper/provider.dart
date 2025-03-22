@@ -5,6 +5,7 @@ import 'package:fl_caption/pages/settings/settings_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:fl_caption/common/rust/api/whisper.dart' as rs;
 
@@ -94,10 +95,11 @@ class DartWhisperCaption extends _$DartWhisperCaption {
     debugPrint("[DartWhisperCaption] build");
     final dartWhisper = await ref.watch(dartWhisperProvider.future);
     debugPrint("[DartWhisperCaption] WhisperClient: ${dartWhisper.client}");
-    _cancelToken = await rs.createCancellationToken();
-    debugPrint("[DartWhisperCaption] launchCaption");
-    final appSettings = await ref.read(appSettingsProvider.future);
     try {
+      _cancelToken = await rs.createCancellationToken();
+      debugPrint("[DartWhisperCaption] launchCaption");
+      final appSettings = await ref.read(appSettingsProvider.future);
+      final vadModelPath = await _checkVadModel(appSettings);
       final sub = rs
           .launchCaption(
             whisperClient: dartWhisper.client,
@@ -109,12 +111,32 @@ class DartWhisperCaption extends _$DartWhisperCaption {
             inferenceInterval: BigInt.from(appSettings.inferenceInterval),
             whisperDefaultMaxDecodeTokens: BigInt.from(appSettings.whisperDefaultMaxDecodeTokens),
             whisperTemperature: appSettings.whisperTemperature,
+            vadModelPath: vadModelPath,
           )
           .listen(
-            (data) {
+            (data) async {
               if (data.isNotEmpty) {
-                // debugPrint("[DartWhisperCaption] Data: $data");
-                final newData = data.map((e) => e.dr.text).toList().join(" ");
+                final resultList = data.map((e) => e.dr).toList();
+                final newResultList = List.from(resultList);
+                for (final r in resultList) {
+                  debugPrint(
+                    "[DartWhisperCaption] Result:  ${r.text} avgLogprob =${r.avgLogprob.toStringAsFixed(6)} noSpeechProb= ${r.noSpeechProb.toStringAsFixed(6)}",
+                  );
+                }
+                newResultList.removeWhere((e) {
+                  // 移除低置信度的结果
+                  if (e.avgLogprob < -1.0) {
+                    debugPrint("[DartWhisperCaption] Remove low logprob: ${e.avgLogprob}");
+                    return true;
+                  }
+                  if (e.noSpeechProb > 0.5) {
+                    debugPrint("[DartWhisperCaption] Remove high no speech prob: ${e.noSpeechProb}");
+                    return true;
+                  }
+                  return false;
+                });
+                if (newResultList.isEmpty) return;
+                final newData = newResultList.map((e) => e.text).toList().join(" ");
                 state = AsyncData(
                   DartWhisperCaptionResult(
                     text: newData,
@@ -174,5 +196,25 @@ class DartWhisperCaption extends _$DartWhisperCaption {
     debugPrint("[DartWhisperCaption] Cancel");
     rs.cancelCancellationToken(tokenId: cancelToken);
     _cancelToken = null;
+  }
+
+  Future<String?> _checkVadModel(AppSettingsData appSettings) async {
+    if (!appSettings.withVAD) return null;
+    final vadModelPath = "${(await getApplicationSupportDirectory()).absolute.path}/vad_model/silero-vad-v5_q4.onnx"
+        .replaceAll("\\", "/");
+    final file = File(vadModelPath);
+    if (await file.exists()) {
+      debugPrint("[DartWhisperCaption] Vad model exists");
+      return vadModelPath;
+    } else {
+      // extract from assets
+      debugPrint("[DartWhisperCaption] Vad model not found, extracting from assets");
+      const assetsPath = "assets/models/silero-vad-v5_q4.onnx";
+      final bytes = await rootBundle.load(assetsPath);
+      await file.create(recursive: true);
+      await file.writeAsBytes(bytes.buffer.asUint8List(bytes.offsetInBytes, bytes.lengthInBytes), flush: true);
+      debugPrint("[DartWhisperCaption] Vad model extracted to $vadModelPath");
+      return vadModelPath;
+    }
   }
 }

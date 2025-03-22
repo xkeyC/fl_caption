@@ -12,7 +12,8 @@ part of 'provider.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
+  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
+);
 
 /// @nodoc
 mixin _$DartWhisperClient {
@@ -29,8 +30,9 @@ mixin _$DartWhisperClient {
 /// @nodoc
 abstract class $DartWhisperClientCopyWith<$Res> {
   factory $DartWhisperClientCopyWith(
-          DartWhisperClient value, $Res Function(DartWhisperClient) then) =
-      _$DartWhisperClientCopyWithImpl<$Res, DartWhisperClient>;
+    DartWhisperClient value,
+    $Res Function(DartWhisperClient) then,
+  ) = _$DartWhisperClientCopyWithImpl<$Res, DartWhisperClient>;
   @useResult
   $Res call({rs.WhisperClient client, DartWhisperClientError? errorType});
 }
@@ -49,29 +51,32 @@ class _$DartWhisperClientCopyWithImpl<$Res, $Val extends DartWhisperClient>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? client = null,
-    Object? errorType = freezed,
-  }) {
-    return _then(_value.copyWith(
-      client: null == client
-          ? _value.client
-          : client // ignore: cast_nullable_to_non_nullable
-              as rs.WhisperClient,
-      errorType: freezed == errorType
-          ? _value.errorType
-          : errorType // ignore: cast_nullable_to_non_nullable
-              as DartWhisperClientError?,
-    ) as $Val);
+  $Res call({Object? client = null, Object? errorType = freezed}) {
+    return _then(
+      _value.copyWith(
+            client:
+                null == client
+                    ? _value.client
+                    : client // ignore: cast_nullable_to_non_nullable
+                        as rs.WhisperClient,
+            errorType:
+                freezed == errorType
+                    ? _value.errorType
+                    : errorType // ignore: cast_nullable_to_non_nullable
+                        as DartWhisperClientError?,
+          )
+          as $Val,
+    );
   }
 }
 
 /// @nodoc
 abstract class _$$DartWhisperClientImplCopyWith<$Res>
     implements $DartWhisperClientCopyWith<$Res> {
-  factory _$$DartWhisperClientImplCopyWith(_$DartWhisperClientImpl value,
-          $Res Function(_$DartWhisperClientImpl) then) =
-      __$$DartWhisperClientImplCopyWithImpl<$Res>;
+  factory _$$DartWhisperClientImplCopyWith(
+    _$DartWhisperClientImpl value,
+    $Res Function(_$DartWhisperClientImpl) then,
+  ) = __$$DartWhisperClientImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({rs.WhisperClient client, DartWhisperClientError? errorType});
@@ -81,28 +86,30 @@ abstract class _$$DartWhisperClientImplCopyWith<$Res>
 class __$$DartWhisperClientImplCopyWithImpl<$Res>
     extends _$DartWhisperClientCopyWithImpl<$Res, _$DartWhisperClientImpl>
     implements _$$DartWhisperClientImplCopyWith<$Res> {
-  __$$DartWhisperClientImplCopyWithImpl(_$DartWhisperClientImpl _value,
-      $Res Function(_$DartWhisperClientImpl) _then)
-      : super(_value, _then);
+  __$$DartWhisperClientImplCopyWithImpl(
+    _$DartWhisperClientImpl _value,
+    $Res Function(_$DartWhisperClientImpl) _then,
+  ) : super(_value, _then);
 
   /// Create a copy of DartWhisperClient
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? client = null,
-    Object? errorType = freezed,
-  }) {
-    return _then(_$DartWhisperClientImpl(
-      client: null == client
-          ? _value.client
-          : client // ignore: cast_nullable_to_non_nullable
-              as rs.WhisperClient,
-      errorType: freezed == errorType
-          ? _value.errorType
-          : errorType // ignore: cast_nullable_to_non_nullable
-              as DartWhisperClientError?,
-    ));
+  $Res call({Object? client = null, Object? errorType = freezed}) {
+    return _then(
+      _$DartWhisperClientImpl(
+        client:
+            null == client
+                ? _value.client
+                : client // ignore: cast_nullable_to_non_nullable
+                    as rs.WhisperClient,
+        errorType:
+            freezed == errorType
+                ? _value.errorType
+                : errorType // ignore: cast_nullable_to_non_nullable
+                    as DartWhisperClientError?,
+      ),
+    );
   }
 }
 
@@ -152,13 +159,16 @@ class _$DartWhisperClientImpl
   @pragma('vm:prefer-inline')
   _$$DartWhisperClientImplCopyWith<_$DartWhisperClientImpl> get copyWith =>
       __$$DartWhisperClientImplCopyWithImpl<_$DartWhisperClientImpl>(
-          this, _$identity);
+        this,
+        _$identity,
+      );
 }
 
 abstract class _DartWhisperClient implements DartWhisperClient {
-  factory _DartWhisperClient(
-      {required final rs.WhisperClient client,
-      final DartWhisperClientError? errorType}) = _$DartWhisperClientImpl;
+  factory _DartWhisperClient({
+    required final rs.WhisperClient client,
+    final DartWhisperClientError? errorType,
+  }) = _$DartWhisperClientImpl;
 
   @override
   rs.WhisperClient get client;

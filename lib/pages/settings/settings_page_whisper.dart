@@ -37,6 +37,14 @@ class SettingsWhisperPage extends HookConsumerWidget {
           },
           content: const Text("启用 CUDA 加速 (需要 NVIDIA 显卡)"),
         ),
+        const SizedBox(height: 16),
+        ToggleSwitch(
+          checked: appSettingsData.value?.withVAD ?? true,
+          onChanged: (value) {
+            appSettingsData.value = appSettingsData.value?.copyWith(withVAD: value);
+          },
+          content: const Text("使用 VAD 模型过滤音频 (减少非文字音频产生的幻觉，增加些许推理时间)"),
+        ),
       ],
     );
   }

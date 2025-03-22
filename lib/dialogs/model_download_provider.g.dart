@@ -7,24 +7,24 @@ part of 'model_download_provider.dart';
 // **************************************************************************
 
 _$ModelDownloadStateDataImpl _$$ModelDownloadStateDataImplFromJson(
-        Map<String, dynamic> json) =>
-    _$ModelDownloadStateDataImpl(
-      modelName: json['modelName'] as String,
-      modelPath: json['modelPath'] as String,
-      progress: (json['progress'] as num).toDouble(),
-      isReady: json['isReady'] as bool,
-      errorText: json['errorText'] as String?,
-    );
+  Map<String, dynamic> json,
+) => _$ModelDownloadStateDataImpl(
+  modelName: json['modelName'] as String,
+  modelPath: json['modelPath'] as String,
+  progress: (json['progress'] as num).toDouble(),
+  isReady: json['isReady'] as bool,
+  errorText: json['errorText'] as String?,
+);
 
 Map<String, dynamic> _$$ModelDownloadStateDataImplToJson(
-        _$ModelDownloadStateDataImpl instance) =>
-    <String, dynamic>{
-      'modelName': instance.modelName,
-      'modelPath': instance.modelPath,
-      'progress': instance.progress,
-      'isReady': instance.isReady,
-      'errorText': instance.errorText,
-    };
+  _$ModelDownloadStateDataImpl instance,
+) => <String, dynamic>{
+  'modelName': instance.modelName,
+  'modelPath': instance.modelPath,
+  'progress': instance.progress,
+  'isReady': instance.isReady,
+  'errorText': instance.errorText,
+};
 
 // **************************************************************************
 // RiverpodGenerator
@@ -59,10 +59,7 @@ abstract class _$ModelDownloadState
   late final String modelName;
   late final String savePath;
 
-  ModelDownloadStateData build(
-    String modelName,
-    String savePath,
-  );
+  ModelDownloadStateData build(String modelName, String savePath);
 }
 
 /// See also [ModelDownloadState].
@@ -75,24 +72,15 @@ class ModelDownloadStateFamily extends Family<ModelDownloadStateData> {
   const ModelDownloadStateFamily();
 
   /// See also [ModelDownloadState].
-  ModelDownloadStateProvider call(
-    String modelName,
-    String savePath,
-  ) {
-    return ModelDownloadStateProvider(
-      modelName,
-      savePath,
-    );
+  ModelDownloadStateProvider call(String modelName, String savePath) {
+    return ModelDownloadStateProvider(modelName, savePath);
   }
 
   @override
   ModelDownloadStateProvider getProviderOverride(
     covariant ModelDownloadStateProvider provider,
   ) {
-    return call(
-      provider.modelName,
-      provider.savePath,
-    );
+    return call(provider.modelName, provider.savePath);
   }
 
   static const Iterable<ProviderOrFamily>? _dependencies = null;
@@ -111,28 +99,31 @@ class ModelDownloadStateFamily extends Family<ModelDownloadStateData> {
 }
 
 /// See also [ModelDownloadState].
-class ModelDownloadStateProvider extends AutoDisposeNotifierProviderImpl<
-    ModelDownloadState, ModelDownloadStateData> {
+class ModelDownloadStateProvider
+    extends
+        AutoDisposeNotifierProviderImpl<
+          ModelDownloadState,
+          ModelDownloadStateData
+        > {
   /// See also [ModelDownloadState].
-  ModelDownloadStateProvider(
-    String modelName,
-    String savePath,
-  ) : this._internal(
-          () => ModelDownloadState()
-            ..modelName = modelName
-            ..savePath = savePath,
-          from: modelDownloadStateProvider,
-          name: r'modelDownloadStateProvider',
-          debugGetCreateSourceHash:
-              const bool.fromEnvironment('dart.vm.product')
-                  ? null
-                  : _$modelDownloadStateHash,
-          dependencies: ModelDownloadStateFamily._dependencies,
-          allTransitiveDependencies:
-              ModelDownloadStateFamily._allTransitiveDependencies,
-          modelName: modelName,
-          savePath: savePath,
-        );
+  ModelDownloadStateProvider(String modelName, String savePath)
+    : this._internal(
+        () =>
+            ModelDownloadState()
+              ..modelName = modelName
+              ..savePath = savePath,
+        from: modelDownloadStateProvider,
+        name: r'modelDownloadStateProvider',
+        debugGetCreateSourceHash:
+            const bool.fromEnvironment('dart.vm.product')
+                ? null
+                : _$modelDownloadStateHash,
+        dependencies: ModelDownloadStateFamily._dependencies,
+        allTransitiveDependencies:
+            ModelDownloadStateFamily._allTransitiveDependencies,
+        modelName: modelName,
+        savePath: savePath,
+      );
 
   ModelDownloadStateProvider._internal(
     super._createNotifier, {
@@ -152,10 +143,7 @@ class ModelDownloadStateProvider extends AutoDisposeNotifierProviderImpl<
   ModelDownloadStateData runNotifierBuild(
     covariant ModelDownloadState notifier,
   ) {
-    return notifier.build(
-      modelName,
-      savePath,
-    );
+    return notifier.build(modelName, savePath);
   }
 
   @override
@@ -163,9 +151,10 @@ class ModelDownloadStateProvider extends AutoDisposeNotifierProviderImpl<
     return ProviderOverride(
       origin: this,
       override: ModelDownloadStateProvider._internal(
-        () => create()
-          ..modelName = modelName
-          ..savePath = savePath,
+        () =>
+            create()
+              ..modelName = modelName
+              ..savePath = savePath,
         from: from,
         name: null,
         dependencies: null,
@@ -179,7 +168,7 @@ class ModelDownloadStateProvider extends AutoDisposeNotifierProviderImpl<
 
   @override
   AutoDisposeNotifierProviderElement<ModelDownloadState, ModelDownloadStateData>
-      createElement() {
+  createElement() {
     return _ModelDownloadStateProviderElement(this);
   }
 
@@ -212,8 +201,12 @@ mixin ModelDownloadStateRef
 }
 
 class _ModelDownloadStateProviderElement
-    extends AutoDisposeNotifierProviderElement<ModelDownloadState,
-        ModelDownloadStateData> with ModelDownloadStateRef {
+    extends
+        AutoDisposeNotifierProviderElement<
+          ModelDownloadState,
+          ModelDownloadStateData
+        >
+    with ModelDownloadStateRef {
   _ModelDownloadStateProviderElement(super.provider);
 
   @override
@@ -221,5 +214,6 @@ class _ModelDownloadStateProviderElement
   @override
   String get savePath => (origin as ModelDownloadStateProvider).savePath;
 }
+
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

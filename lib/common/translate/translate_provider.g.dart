@@ -6,20 +6,21 @@ part of 'translate_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$translateProviderHash() => r'605474f304a686887c41962f4fe56a74d53e4460';
+String _$translateProviderHash() => r'659830d2881fa6fbf537e1b962503b1b4092a900';
 
 /// See also [TranslateProvider].
 @ProviderFor(TranslateProvider)
 final translateProviderProvider =
     AutoDisposeNotifierProvider<TranslateProvider, String>.internal(
-  TranslateProvider.new,
-  name: r'translateProviderProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$translateProviderHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+      TranslateProvider.new,
+      name: r'translateProviderProvider',
+      debugGetCreateSourceHash:
+          const bool.fromEnvironment('dart.vm.product')
+              ? null
+              : _$translateProviderHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
 
 typedef _$TranslateProvider = AutoDisposeNotifier<String>;
 // ignore_for_file: type=lint

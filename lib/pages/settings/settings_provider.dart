@@ -14,6 +14,7 @@ class AppSettingsData with _$AppSettingsData {
     required String modelWorkingDir,
     required String whisperModel,
     required bool tryWithCuda,
+    required bool withVAD,
     required String llmProviderUrl,
     required String llmProviderKey,
     required String llmProviderModel,
@@ -52,6 +53,7 @@ class AppSettings extends _$AppSettings {
     final String? audioLanguage = box.get("audio_language");
     final String? captionLanguage = box.get("caption_language");
     final bool tryWithCuda = box.get("try_with_cuda", defaultValue: true);
+    final bool withVAD = box.get("with_vad", defaultValue: true);
 
     // 新增推理相关设置项
     final int whisperMaxAudioDuration = box.get("whisper_max_audio_duration", defaultValue: 12);
@@ -77,6 +79,7 @@ class AppSettings extends _$AppSettings {
       whisperTemperature: whisperTemperature,
       llmTemperature: llmTemperature,
       llmMaxTokens: llmMaxTokens,
+      withVAD: withVAD,
     );
   }
 
@@ -97,6 +100,7 @@ class AppSettings extends _$AppSettings {
       await box.put("audio_language", state.value!.audioLanguage);
       await box.put("caption_language", state.value!.captionLanguage);
       await box.put("try_with_cuda", state.value!.tryWithCuda);
+      await box.put("with_vad", state.value!.withVAD);
       await box.put("llm_context_optimization", state.value!.llmContextOptimization);
       await box.put("whisper_max_audio_duration", state.value!.whisperMaxAudioDuration);
       await box.put("inference_interval_ms", state.value!.inferenceInterval);

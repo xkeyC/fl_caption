@@ -65,10 +65,11 @@ pub async fn launch_caption(
     with_timestamps: Option<bool>,
     verbose: Option<bool>,
     try_with_cuda: Option<bool>,
-    whisper_max_audio_duration: Option<u32>, // 新增：音频上下文长度
-    inference_interval: Option<u64>,         // 新增：推理间隔时间
-    whisper_default_max_decode_tokens: Option<usize>, // 新增：最大推理token长度
-    whisper_temperature: Option<f32>,        // 新增：温度参数
+    whisper_max_audio_duration: Option<u32>, // 音频上下文长度
+    inference_interval: Option<u64>,         // 推理间隔时间
+    whisper_default_max_decode_tokens: Option<usize>, // 最大推理token长度
+    whisper_temperature: Option<f32>,        // 温度参数
+    vad_model_path: Option<String>,          // VAD模型路径
 ) -> anyhow::Result<()> {
     let stream_sink_clone = stream_sink.clone();
 
@@ -100,6 +101,7 @@ pub async fn launch_caption(
         whisper_max_audio_duration, // 传递音频上下文长度
         inference_interval,         // 传递推理间隔时间
         whisper_temperature,        // 传递温度参数
+        vad_model_path,             // 传递VAD模型路径
         move |segments| {
             let _ = stream_sink.add(segments);
         },

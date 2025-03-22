@@ -54,7 +54,10 @@ where
     let arg_device = audio_device;
     let is_input = audio_device_is_input.unwrap_or(true);
 
-    let config: Config = serde_json::from_str(config_data)?;
+    let mut config: Config = serde_json::from_str(config_data)?;
+    if cfg!(not(target_os = "macos")) {
+        config.use_flash_attn = true;
+    }
     let tokenizer = Tokenizer::from_bytes(tokenizer_data).unwrap();
 
     // check model path

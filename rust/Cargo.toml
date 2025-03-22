@@ -28,12 +28,17 @@ native-dialog = "0.7.0"
 [target.'cfg(any(target_os = "windows", target_os = "linux"))'.dependencies]
 candle-core = { version = "0.8.4", features = ["cuda"] }
 candle-nn = { version = "0.8.4", features = ["cuda"] }
-candle-transformers = { version = "0.8.4", features = ["cuda"] }
+candle-transformers = { version = "0.8.4", features = ["cuda", "flash-attn"] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 candle-core = { version = "0.8.4", features = ["metal"] }
 candle-nn = { version = "0.8.4", features = ["metal"] }
 candle-transformers = { version = "0.8.4", features = ["metal"] }
+
+[patch.crates-io]
+candle-core = { git = "https://github.com/xkeyC/candle.git", branch = "fl_caption_build" }
+candle-nn = { git = "https://github.com/xkeyC/candle.git", branch = "fl_caption_build" }
+candle-transformers = { git = "https://github.com/xkeyC/candle.git", branch = "fl_caption_build" }
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(frb_expand)'] }

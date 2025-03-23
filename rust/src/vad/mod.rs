@@ -18,12 +18,18 @@ pub struct VadDevice {
 
 pub struct VadResult {
     pub chunk_results: Vec<f32>,
+    pub pcm_results: Vec<f32>,
     pub res_len: f32,
     pub prediction: f32,
+    pub filtered_count: usize,
 }
 
 impl VadDevice {
-    pub fn check_vad(&self, audio_sample: Vec<f32>) -> Result<VadResult> {
+    pub fn check_vad(
+        &self,
+        audio_sample: Vec<f32>,
+        filters_value: Option<f32>,
+    ) -> Result<VadResult> {
         let start = std::time::Instant::now();
         // println!(
         //     "check_vad start audio_sample len =  {:?}",
@@ -43,9 +49,12 @@ impl VadDevice {
             .map(|chunk| chunk.to_vec())
             .collect();
 
+        let mut filtered_count: usize = 0;
+
         let mut res = vec![];
-        for chunk in chunks {
-            let mut chunk = chunk;
+        let mut pcm_res: Vec<f32> = vec![];
+        for chunk_value in chunks {
+            let mut chunk = chunk_value.clone();
             if chunk.len() < self.state.frame_size {
                 // pad the chunk with zeros
                 chunk.resize(self.state.frame_size, 0.0);
@@ -59,7 +68,7 @@ impl VadDevice {
             let chunk = Tensor::from_vec(chunk, (1, self.state.frame_size), &device)?;
             let chunk = Tensor::cat(&[&context, &chunk], 1)?;
             let inputs = std::collections::HashMap::from_iter([
-                ("input".to_string(), chunk),
+                ("input".to_string(), chunk.clone()),
                 ("sr".to_string(), self.state.sample_rate.clone()),
                 ("state".to_string(), state.clone()),
             ]);
@@ -74,16 +83,28 @@ impl VadDevice {
             assert_eq!(output.len(), 1);
             let output = output[0];
             // println!("vad chunk prediction: {output}");
-            res.push(output);
+            res.push(output.clone());
+            if filters_value.is_some() {
+                let value = filters_value.unwrap();
+                if output > value {
+                    pcm_res.extend(chunk_value);
+                } else {
+                    // pad zero for low confidence
+                    pcm_res.extend(vec![0.0; chunk_value.len()]);
+                    filtered_count = filtered_count + chunk_value.len();
+                }
+            }
         }
-        println!("calculated prediction in {:?}", start.elapsed());
+        println!("VAD calculated prediction in {:?}", start.elapsed());
         let res_len = res.len() as f32;
         let prediction = res.iter().sum::<f32>() / res_len;
         // println!("vad average prediction: {prediction}");
         Ok(VadResult {
             chunk_results: res,
+            pcm_results: pcm_res,
             res_len,
             prediction,
+            filtered_count,
         })
     }
 }

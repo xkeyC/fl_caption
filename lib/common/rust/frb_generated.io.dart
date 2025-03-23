@@ -702,6 +702,7 @@ class RustLibWire implements BaseWire {
     ffi.Pointer<ffi.UintPtr> whisper_default_max_decode_tokens,
     ffi.Pointer<ffi.Float> whisper_temperature,
     ffi.Pointer<wire_cst_list_prim_u_8_strict> vad_model_path,
+    ffi.Pointer<ffi.Float> vad_filters_value,
   ) {
     return _wire__crate__api__whisper__launch_caption(
       port_,
@@ -719,6 +720,7 @@ class RustLibWire implements BaseWire {
       whisper_default_max_decode_tokens,
       whisper_temperature,
       vad_model_path,
+      vad_filters_value,
     );
   }
 
@@ -740,6 +742,7 @@ class RustLibWire implements BaseWire {
         ffi.Pointer<ffi.UintPtr>,
         ffi.Pointer<ffi.Float>,
         ffi.Pointer<wire_cst_list_prim_u_8_strict>,
+        ffi.Pointer<ffi.Float>,
       )
     >
   >('frbgen_fl_caption_wire__crate__api__whisper__launch_caption');
@@ -762,6 +765,7 @@ class RustLibWire implements BaseWire {
               ffi.Pointer<ffi.UintPtr>,
               ffi.Pointer<ffi.Float>,
               ffi.Pointer<wire_cst_list_prim_u_8_strict>,
+              ffi.Pointer<ffi.Float>,
             )
           >();
 

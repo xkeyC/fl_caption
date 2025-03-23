@@ -25,6 +25,7 @@ mixin _$AppSettingsData {
   String get whisperModel => throw _privateConstructorUsedError;
   bool get tryWithCuda => throw _privateConstructorUsedError;
   bool get withVAD => throw _privateConstructorUsedError;
+  double get vadThreshold => throw _privateConstructorUsedError;
   String get llmProviderUrl => throw _privateConstructorUsedError;
   String get llmProviderKey => throw _privateConstructorUsedError;
   String get llmProviderModel => throw _privateConstructorUsedError;
@@ -60,6 +61,7 @@ abstract class $AppSettingsDataCopyWith<$Res> {
     String whisperModel,
     bool tryWithCuda,
     bool withVAD,
+    double vadThreshold,
     String llmProviderUrl,
     String llmProviderKey,
     String llmProviderModel,
@@ -94,6 +96,7 @@ class _$AppSettingsDataCopyWithImpl<$Res, $Val extends AppSettingsData>
     Object? whisperModel = null,
     Object? tryWithCuda = null,
     Object? withVAD = null,
+    Object? vadThreshold = null,
     Object? llmProviderUrl = null,
     Object? llmProviderKey = null,
     Object? llmProviderModel = null,
@@ -129,6 +132,11 @@ class _$AppSettingsDataCopyWithImpl<$Res, $Val extends AppSettingsData>
                     ? _value.withVAD
                     : withVAD // ignore: cast_nullable_to_non_nullable
                         as bool,
+            vadThreshold:
+                null == vadThreshold
+                    ? _value.vadThreshold
+                    : vadThreshold // ignore: cast_nullable_to_non_nullable
+                        as double,
             llmProviderUrl:
                 null == llmProviderUrl
                     ? _value.llmProviderUrl
@@ -209,6 +217,7 @@ abstract class _$$AppSettingsDataImplCopyWith<$Res>
     String whisperModel,
     bool tryWithCuda,
     bool withVAD,
+    double vadThreshold,
     String llmProviderUrl,
     String llmProviderKey,
     String llmProviderModel,
@@ -242,6 +251,7 @@ class __$$AppSettingsDataImplCopyWithImpl<$Res>
     Object? whisperModel = null,
     Object? tryWithCuda = null,
     Object? withVAD = null,
+    Object? vadThreshold = null,
     Object? llmProviderUrl = null,
     Object? llmProviderKey = null,
     Object? llmProviderModel = null,
@@ -277,6 +287,11 @@ class __$$AppSettingsDataImplCopyWithImpl<$Res>
                 ? _value.withVAD
                 : withVAD // ignore: cast_nullable_to_non_nullable
                     as bool,
+        vadThreshold:
+            null == vadThreshold
+                ? _value.vadThreshold
+                : vadThreshold // ignore: cast_nullable_to_non_nullable
+                    as double,
         llmProviderUrl:
             null == llmProviderUrl
                 ? _value.llmProviderUrl
@@ -352,6 +367,7 @@ class _$AppSettingsDataImpl
     required this.whisperModel,
     required this.tryWithCuda,
     required this.withVAD,
+    required this.vadThreshold,
     required this.llmProviderUrl,
     required this.llmProviderKey,
     required this.llmProviderModel,
@@ -377,6 +393,8 @@ class _$AppSettingsDataImpl
   final bool tryWithCuda;
   @override
   final bool withVAD;
+  @override
+  final double vadThreshold;
   @override
   final String llmProviderUrl;
   @override
@@ -410,7 +428,7 @@ class _$AppSettingsDataImpl
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'AppSettingsData(modelWorkingDir: $modelWorkingDir, whisperModel: $whisperModel, tryWithCuda: $tryWithCuda, withVAD: $withVAD, llmProviderUrl: $llmProviderUrl, llmProviderKey: $llmProviderKey, llmProviderModel: $llmProviderModel, llmContextOptimization: $llmContextOptimization, audioLanguage: $audioLanguage, captionLanguage: $captionLanguage, whisperMaxAudioDuration: $whisperMaxAudioDuration, inferenceInterval: $inferenceInterval, whisperDefaultMaxDecodeTokens: $whisperDefaultMaxDecodeTokens, whisperTemperature: $whisperTemperature, llmTemperature: $llmTemperature, llmMaxTokens: $llmMaxTokens)';
+    return 'AppSettingsData(modelWorkingDir: $modelWorkingDir, whisperModel: $whisperModel, tryWithCuda: $tryWithCuda, withVAD: $withVAD, vadThreshold: $vadThreshold, llmProviderUrl: $llmProviderUrl, llmProviderKey: $llmProviderKey, llmProviderModel: $llmProviderModel, llmContextOptimization: $llmContextOptimization, audioLanguage: $audioLanguage, captionLanguage: $captionLanguage, whisperMaxAudioDuration: $whisperMaxAudioDuration, inferenceInterval: $inferenceInterval, whisperDefaultMaxDecodeTokens: $whisperDefaultMaxDecodeTokens, whisperTemperature: $whisperTemperature, llmTemperature: $llmTemperature, llmMaxTokens: $llmMaxTokens)';
   }
 
   @override
@@ -422,6 +440,7 @@ class _$AppSettingsDataImpl
       ..add(DiagnosticsProperty('whisperModel', whisperModel))
       ..add(DiagnosticsProperty('tryWithCuda', tryWithCuda))
       ..add(DiagnosticsProperty('withVAD', withVAD))
+      ..add(DiagnosticsProperty('vadThreshold', vadThreshold))
       ..add(DiagnosticsProperty('llmProviderUrl', llmProviderUrl))
       ..add(DiagnosticsProperty('llmProviderKey', llmProviderKey))
       ..add(DiagnosticsProperty('llmProviderModel', llmProviderModel))
@@ -457,6 +476,8 @@ class _$AppSettingsDataImpl
             (identical(other.tryWithCuda, tryWithCuda) ||
                 other.tryWithCuda == tryWithCuda) &&
             (identical(other.withVAD, withVAD) || other.withVAD == withVAD) &&
+            (identical(other.vadThreshold, vadThreshold) ||
+                other.vadThreshold == vadThreshold) &&
             (identical(other.llmProviderUrl, llmProviderUrl) ||
                 other.llmProviderUrl == llmProviderUrl) &&
             (identical(other.llmProviderKey, llmProviderKey) ||
@@ -498,6 +519,7 @@ class _$AppSettingsDataImpl
     whisperModel,
     tryWithCuda,
     withVAD,
+    vadThreshold,
     llmProviderUrl,
     llmProviderKey,
     llmProviderModel,
@@ -535,6 +557,7 @@ abstract class _AppSettingsData implements AppSettingsData {
     required final String whisperModel,
     required final bool tryWithCuda,
     required final bool withVAD,
+    required final double vadThreshold,
     required final String llmProviderUrl,
     required final String llmProviderKey,
     required final String llmProviderModel,
@@ -560,6 +583,8 @@ abstract class _AppSettingsData implements AppSettingsData {
   bool get tryWithCuda;
   @override
   bool get withVAD;
+  @override
+  double get vadThreshold;
   @override
   String get llmProviderUrl;
   @override

@@ -75,7 +75,6 @@ class TranslateProvider extends _$TranslateProvider {
                       "<system>You are an online subtitle translation tool. The input is a streaming response, which may have incoherent beginnings or endings. user will provide historical context in "
                       "<history> \$sourceText -> \$translate </history>, and the main content within <live></live> tags. If there is a possible overlap between the beginning of <live> and <history>, "
                       "please ignore this part (if it is a complete sentence) or complete this part (if it is an incomplete sentence) according to the context. If the end of <live> is fragmented, append `....` to indicate continuation. "
-                      "If you encounter a large amount of repeated content, it is most likely a speech recognition error. Please translate it into the form of \$content x \$count."
                       "Translate the user's content to "
                       "${captionLanguage.displayName} (${captionLanguage.code}) "
                       "and output the final translation within <result> tags. "
@@ -87,7 +86,6 @@ class TranslateProvider extends _$TranslateProvider {
                   "content":
                       "<system>You are an online subtitle translator, translating <live> \$userMessage </live> into "
                       "${captionLanguage.displayName} (${captionLanguage.code}), "
-                      "If you encounter a large amount of repeated content, it is most likely a speech recognition error. Please translate it into the form of \$content x \$count."
                       "And out put to result block; eg: <result>This is Translate Output</result>> </system>",
                 },
               if (appSettings.llmContextOptimization)

@@ -107,10 +107,13 @@ class App extends HookConsumerWidget {
                                   if (caption.value!.whisperStatus == WhisperStatus.loading) ...[
                                     ProgressRing(),
                                   ] else ...[
-                                    Text(
-                                      caption.value!.text.isEmpty ? "<wait audio input ...>" : caption.value!.text,
-                                      style: TextStyle(fontSize: 16, color: Colors.white),
-                                      maxLines: 1,
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                                      child: Text(
+                                        caption.value!.text.isEmpty ? "<wait audio input ...>" : caption.value!.text,
+                                        style: TextStyle(fontSize: 16, color: Colors.white),
+                                        maxLines: 1,
+                                      ),
                                     ),
                                     SizedBox(height: 12),
                                     Consumer(

@@ -29,6 +29,7 @@ Stream<List<Segment>> launchCaption({
   BigInt? whisperDefaultMaxDecodeTokens,
   double? whisperTemperature,
   String? vadModelPath,
+  double? vadFiltersValue,
 }) => RustLib.instance.api.crateApiWhisperLaunchCaption(
   whisperClient: whisperClient,
   audioDevice: audioDevice,
@@ -43,6 +44,7 @@ Stream<List<Segment>> launchCaption({
   whisperDefaultMaxDecodeTokens: whisperDefaultMaxDecodeTokens,
   whisperTemperature: whisperTemperature,
   vadModelPath: vadModelPath,
+  vadFiltersValue: vadFiltersValue,
 );
 
 class WhisperClient {

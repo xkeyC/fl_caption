@@ -70,6 +70,7 @@ pub async fn launch_caption(
     whisper_default_max_decode_tokens: Option<usize>, // 最大推理token长度
     whisper_temperature: Option<f32>,        // 温度参数
     vad_model_path: Option<String>,          // VAD模型路径
+    vad_filters_value: Option<f32>,          // VAD过滤值
 ) -> anyhow::Result<()> {
     let stream_sink_clone = stream_sink.clone();
 
@@ -102,6 +103,7 @@ pub async fn launch_caption(
         inference_interval,         // 传递推理间隔时间
         whisper_temperature,        // 传递温度参数
         vad_model_path,             // 传递VAD模型路径
+        vad_filters_value,
         move |segments| {
             let _ = stream_sink.add(segments);
         },

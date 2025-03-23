@@ -135,6 +135,7 @@ fn wire__crate__api__whisper__launch_caption_impl(
     whisper_default_max_decode_tokens: impl CstDecode<Option<usize>>,
     whisper_temperature: impl CstDecode<Option<f32>>,
     vad_model_path: impl CstDecode<Option<String>>,
+    vad_filters_value: impl CstDecode<Option<f32>>,
 ) {
     FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::DcoCodec, _, _, _>(
         flutter_rust_bridge::for_generated::TaskInfo {
@@ -158,6 +159,7 @@ fn wire__crate__api__whisper__launch_caption_impl(
                 whisper_default_max_decode_tokens.cst_decode();
             let api_whisper_temperature = whisper_temperature.cst_decode();
             let api_vad_model_path = vad_model_path.cst_decode();
+            let api_vad_filters_value = vad_filters_value.cst_decode();
             move |context| async move {
                 transform_result_dco::<_, _, flutter_rust_bridge::for_generated::anyhow::Error>(
                     (move || async move {
@@ -176,6 +178,7 @@ fn wire__crate__api__whisper__launch_caption_impl(
                             api_whisper_default_max_decode_tokens,
                             api_whisper_temperature,
                             api_vad_model_path,
+                            api_vad_filters_value,
                         )
                         .await?;
                         Ok(output_ok)
@@ -1219,6 +1222,7 @@ mod io {
         whisper_default_max_decode_tokens: *mut usize,
         whisper_temperature: *mut f32,
         vad_model_path: *mut wire_cst_list_prim_u_8_strict,
+        vad_filters_value: *mut f32,
     ) {
         wire__crate__api__whisper__launch_caption_impl(
             port_,
@@ -1236,6 +1240,7 @@ mod io {
             whisper_default_max_decode_tokens,
             whisper_temperature,
             vad_model_path,
+            vad_filters_value,
         )
     }
 

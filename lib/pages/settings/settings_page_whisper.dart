@@ -19,6 +19,15 @@ class SettingsWhisperPage extends HookConsumerWidget {
       children: [
         const Text("Whisper", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
         const SizedBox(height: 16),
+        // CUDA toggle
+        ToggleSwitch(
+          checked: appSettingsData.value?.tryWithCuda ?? true,
+          onChanged: (value) {
+            appSettingsData.value = appSettingsData.value?.copyWith(tryWithCuda: value);
+          },
+          content: const Text("启用 CUDA 加速 (需要 NVIDIA 显卡)"),
+        ),
+        const SizedBox(height: 16),
         Row(
           children: [
             // Model folder settings section
@@ -29,22 +38,42 @@ class SettingsWhisperPage extends HookConsumerWidget {
           ],
         ),
         const SizedBox(height: 16),
-        // CUDA toggle
-        ToggleSwitch(
-          checked: appSettingsData.value?.tryWithCuda ?? true,
-          onChanged: (value) {
-            appSettingsData.value = appSettingsData.value?.copyWith(tryWithCuda: value);
-          },
-          content: const Text("启用 CUDA 加速 (需要 NVIDIA 显卡)"),
-        ),
-        const SizedBox(height: 16),
         ToggleSwitch(
           checked: appSettingsData.value?.withVAD ?? true,
           onChanged: (value) {
             appSettingsData.value = appSettingsData.value?.copyWith(withVAD: value);
           },
-          content: const Text("使用 VAD 模型过滤音频 (减少非文字音频产生的幻觉，增加些许推理时间)"),
+          content: const Text("使用 VAD 模型 (减少非文字音频产生的幻觉，增加些许推理时间)"),
         ),
+        const SizedBox(height: 16),
+        if (appSettingsData.value?.withVAD ?? true) ...[
+          Row(
+            children: [
+              Text("VAD 过滤阈值:"),
+              const SizedBox(width: 8),
+              // slider 0 ~ 1  step 0.1
+              SizedBox(
+                width: 400,
+                child: Slider(
+                  value: appSettingsData.value?.vadThreshold ?? 0.1,
+                  min: 0,
+                  max: 1,
+                  divisions: 100,
+                  label: (appSettingsData.value?.vadThreshold ?? 0.1).toStringAsFixed(2),
+                  onChanged: (value) {
+                    appSettingsData.value = appSettingsData.value?.copyWith(vadThreshold: value);
+                  },
+                ),
+              ),
+              Text(" ${(appSettingsData.value?.vadThreshold ?? 0.1).toStringAsFixed(2)}"),
+            ],
+          ),
+          SizedBox(height: 6),
+          Text(
+            "VAD 模型会对音频进行打分，低于此值的音频将被过滤，范围 0.0 ~ 1.0，默认值 0.1",
+            style: TextStyle(fontSize: 14, color: Colors.white.withValues(alpha: .6)),
+          ),
+        ],
       ],
     );
   }

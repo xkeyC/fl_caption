@@ -99,6 +99,7 @@ abstract class RustLibApi extends BaseApi {
     BigInt? whisperDefaultMaxDecodeTokens,
     double? whisperTemperature,
     String? vadModelPath,
+    double? vadFiltersValue,
   });
 
   Future<WhisperClient> crateApiWhisperWhisperClientNew({
@@ -216,6 +217,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     BigInt? whisperDefaultMaxDecodeTokens,
     double? whisperTemperature,
     String? vadModelPath,
+    double? vadFiltersValue,
   }) {
     final streamSink = RustStreamSink<List<Segment>>();
     unawaited(
@@ -238,6 +240,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             );
             var arg12 = cst_encode_opt_box_autoadd_f_32(whisperTemperature);
             var arg13 = cst_encode_opt_String(vadModelPath);
+            var arg14 = cst_encode_opt_box_autoadd_f_32(vadFiltersValue);
             return wire.wire__crate__api__whisper__launch_caption(
               port_,
               arg0,
@@ -254,6 +257,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
               arg11,
               arg12,
               arg13,
+              arg14,
             );
           },
           codec: DcoCodec(
@@ -276,6 +280,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             whisperDefaultMaxDecodeTokens,
             whisperTemperature,
             vadModelPath,
+            vadFiltersValue,
           ],
           apiImpl: this,
         ),
@@ -302,6 +307,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           "whisperDefaultMaxDecodeTokens",
           "whisperTemperature",
           "vadModelPath",
+          "vadFiltersValue",
         ],
       );
 

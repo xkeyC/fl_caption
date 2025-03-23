@@ -34,6 +34,7 @@ pub async fn launch_caption<F>(
     inference_interval_ms: Option<u64>,      // 推理间隔时间(毫秒)
     whisper_temperature: Option<f32>,        // 温度参数
     vad_model_path: Option<String>,          // VAD模型路径
+    vad_filters_value: Option<f32>,          // VAD模型阈值
     mut result_callback: F,
 ) -> anyhow::Result<()>
 where
@@ -317,20 +318,21 @@ where
 
         if let Some(vad_model) = &vad_model {
             let resampled_pcm = buffered_pcm.clone();
-            let vad_result = vad_model.check_vad(resampled_pcm);
+            let vad_result = vad_model.check_vad(resampled_pcm, vad_filters_value);
             if vad_result.is_err() {
                 println!("VAD error: {:?}", vad_result.err().unwrap());
             } else {
                 let vad_result = vad_result?;
-
-                if vad_result.prediction < 0.5 {
-                    println!(
-                        "VAD prediction: {:?} , clear buffered_pcm",
-                        vad_result.prediction
-                    );
+                println!(
+                    "VAD prediction: {:?} filtered_count: {:?}",
+                    vad_result.prediction, vad_result.filtered_count
+                );
+                if vad_result.prediction > vad_filters_value.unwrap_or(0.1) {
+                    buffered_pcm = vad_result.pcm_results;
+                } else {
                     buffered_pcm.clear();
                     last_inference_time = Instant::now();
-                    continue; // 语音活动检测结果小于阈值，跳过当前数据块
+                    continue;
                 }
             }
         }

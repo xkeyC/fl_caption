@@ -112,6 +112,7 @@ class DartWhisperCaption extends _$DartWhisperCaption {
             whisperDefaultMaxDecodeTokens: BigInt.from(appSettings.whisperDefaultMaxDecodeTokens),
             whisperTemperature: appSettings.whisperTemperature,
             vadModelPath: vadModelPath,
+            vadFiltersValue: appSettings.vadThreshold,
           )
           .listen(
             (data) async {

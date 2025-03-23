@@ -15,6 +15,7 @@ class AppSettingsData with _$AppSettingsData {
     required String whisperModel,
     required bool tryWithCuda,
     required bool withVAD,
+    required double vadThreshold,
     required String llmProviderUrl,
     required String llmProviderKey,
     required String llmProviderModel,
@@ -54,6 +55,7 @@ class AppSettings extends _$AppSettings {
     final String? captionLanguage = box.get("caption_language");
     final bool tryWithCuda = box.get("try_with_cuda", defaultValue: true);
     final bool withVAD = box.get("with_vad", defaultValue: true);
+    final double vadThreshold = box.get("vad_threshold", defaultValue: 0.1);
 
     // 新增推理相关设置项
     final int whisperMaxAudioDuration = box.get("whisper_max_audio_duration", defaultValue: 12);
@@ -80,6 +82,7 @@ class AppSettings extends _$AppSettings {
       llmTemperature: llmTemperature,
       llmMaxTokens: llmMaxTokens,
       withVAD: withVAD,
+      vadThreshold: vadThreshold,
     );
   }
 
@@ -108,6 +111,7 @@ class AppSettings extends _$AppSettings {
       await box.put("whisper_temperature", state.value!.whisperTemperature);
       await box.put("llm_temperature", state.value!.llmTemperature);
       await box.put("llm_max_tokens", state.value!.llmMaxTokens);
+      await box.put("vad_threshold", state.value!.vadThreshold);
       return true;
     } catch (e) {
       debugPrint("Error saving settings: $e");

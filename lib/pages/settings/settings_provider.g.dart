@@ -13,6 +13,7 @@ _$AppSettingsDataImpl _$$AppSettingsDataImplFromJson(
   whisperModel: json['whisperModel'] as String,
   tryWithCuda: json['tryWithCuda'] as bool,
   withVAD: json['withVAD'] as bool,
+  vadThreshold: (json['vadThreshold'] as num).toDouble(),
   llmProviderUrl: json['llmProviderUrl'] as String,
   llmProviderKey: json['llmProviderKey'] as String,
   llmProviderModel: json['llmProviderModel'] as String,
@@ -36,6 +37,7 @@ Map<String, dynamic> _$$AppSettingsDataImplToJson(
   'whisperModel': instance.whisperModel,
   'tryWithCuda': instance.tryWithCuda,
   'withVAD': instance.withVAD,
+  'vadThreshold': instance.vadThreshold,
   'llmProviderUrl': instance.llmProviderUrl,
   'llmProviderKey': instance.llmProviderKey,
   'llmProviderModel': instance.llmProviderModel,
@@ -54,7 +56,7 @@ Map<String, dynamic> _$$AppSettingsDataImplToJson(
 // RiverpodGenerator
 // **************************************************************************
 
-String _$appSettingsHash() => r'a2fb16a4e29be5043dc7ebff00ea909b950570ad';
+String _$appSettingsHash() => r'6ecd523e6d3bb87f06e182ca4bafdae0b50d1e59';
 
 /// See also [AppSettings].
 @ProviderFor(AppSettings)

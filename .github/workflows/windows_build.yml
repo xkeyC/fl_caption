@@ -9,6 +9,8 @@ jobs:
         uses: actions/checkout@v4
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
+      - name: Setup Protoc
+        uses: arduino/setup-protoc@v3
       - name: Setup CUDA Toolkit
         id: cuda-toolkit
         shell: pwsh

@@ -101,7 +101,7 @@ Write-Output "NVCC_APPEND_FLAGS=-allow-unsupported-compiler" >> $env:GITHUB_ENV
 Write-Output "CUDA_VERSION=$CUDA_VERSION_FULL" >> $env:GITHUB_ENV
 
 # SET CUDA_COMPUTE_CAP fix for building https://github.com/huggingface/candle/issues/1516
-Write-Output "CUDA_COMPUTE_CAP=75" >> $env:GITHUB_ENV
+Write-Output "CUDA_COMPUTE_CAP=61" >> $env:GITHUB_ENV
 
 # Add to GITHUB PATH use echo "" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 # https://stackoverflow.com/questions/60169752

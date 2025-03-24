@@ -105,7 +105,7 @@ class DartWhisperCaption extends _$DartWhisperCaption {
             whisperClient: dartWhisper.client,
             cancelTokenId: _cancelToken ?? "",
             audioDeviceIsInput: false,
-            audioLanguage: appSettings.audioLanguage,
+            audioLanguage: dartWhisper.client.isMultilingual ? appSettings.audioLanguage : null,
             tryWithCuda: appSettings.tryWithCuda,
             whisperMaxAudioDuration: appSettings.whisperMaxAudioDuration.toInt(),
             inferenceInterval: BigInt.from(appSettings.inferenceInterval),
@@ -126,11 +126,11 @@ class DartWhisperCaption extends _$DartWhisperCaption {
                 }
                 newResultList.removeWhere((e) {
                   // 移除低置信度的结果
-                  if (e.avgLogprob < -1.0) {
+                  if (e.avgLogprob < -1.5) {
                     debugPrint("[DartWhisperCaption] Remove low logprob: ${e.avgLogprob}");
                     return true;
                   }
-                  if (e.noSpeechProb > 0.5) {
+                  if (e.noSpeechProb > 0.8) {
                     debugPrint("[DartWhisperCaption] Remove high no speech prob: ${e.noSpeechProb}");
                     return true;
                   }

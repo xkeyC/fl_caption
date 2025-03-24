@@ -37,7 +37,8 @@ enum WhisperModelConfigType {
   medium('medium'),
   largeV2('large-v2'),
   largeV3('large-v3'),
-  largeV3Turbo('large-v3-turbo');
+  largeV3Turbo('large-v3-turbo'),
+  jaAnimeV0_1('ja-anime-v0.1');
 
   final String name;
 
@@ -107,5 +108,14 @@ const Map<String, WhisperModelData> whisperModels = {
     isQuantized: true,
     downloadUrl: 'https://huggingface.co/xkeyC/whisper-large-v3-turbo-gguf/resolve/main/model_q4_k.gguf',
     configType: WhisperModelConfigType.largeV3Turbo,
+  ),
+  "ja-anime-v0.1": WhisperModelData(
+    name: 'ja-anime-v0.1',
+    size: '1.62 Gb',
+    sizeInt: 1620 * 1024,
+    isMultilingual: false,
+    isQuantized: false,
+    downloadUrl: 'https://huggingface.co/efwkjn/whisper-ja-anime-v0.1/resolve/main/model.safetensors',
+    configType: WhisperModelConfigType.jaAnimeV0_1,
   ),
 };

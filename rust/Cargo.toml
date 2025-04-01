@@ -21,7 +21,7 @@ rand = "0.9.0"
 rand_distr = "0.5.1"
 cpal = "0.15.2"
 byteorder = "1.5.0"
-rubato = "0.16.1"
+rubato = "0.16.2"
 once_cell = "1.21.3"
 uuid = { version = "1.4.1", features = ["v4"] }
 native-dialog = "0.7.0"

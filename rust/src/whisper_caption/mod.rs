@@ -78,8 +78,8 @@ where
     )?;
 
     let mel_bytes = match config.num_mel_bins {
-        80 => include_bytes!("../../whisper/melfilters.bytes").as_slice(),
-        128 => include_bytes!("../../whisper/melfilters128.bytes").as_slice(),
+        80 => include_bytes!("../../assets/whisper/melfilters.bytes").as_slice(),
+        128 => include_bytes!("../../assets/whisper/melfilters128.bytes").as_slice(),
         nmel => anyhow::bail!("unexpected num_mel_bins {nmel}"),
     };
     let mut mel_filters = vec![0f32; mel_bytes.len() / 4];

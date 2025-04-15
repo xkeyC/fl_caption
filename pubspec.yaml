@@ -16,7 +16,7 @@ dependencies:
   hooks_riverpod: ^2.6.1
   json_annotation: ^4.9.0
   flutter_rust_bridge: ^2.7.1
-  fluent_ui: ^4.11.2
+  fluent_ui: ^4.11.3
   freezed_annotation: ^2.4.1
   visibility_detector: ^0.4.0+2
   rust_lib_fl_caption:

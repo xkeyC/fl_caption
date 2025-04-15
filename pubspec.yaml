@@ -17,7 +17,7 @@ dependencies:
   json_annotation: ^4.9.0
   flutter_rust_bridge: ^2.7.1
   fluent_ui: ^4.11.3
-  freezed_annotation: ^2.4.1
+  freezed_annotation: ^3.0.0
   visibility_detector: ^0.4.0+2
   rust_lib_fl_caption:
     path: rust_builder
@@ -58,11 +58,11 @@ dev_dependencies:
   flutter_lints: ^5.0.0
   msix: ^3.16.4
   build_runner: ^2.4.8
-  freezed: ^2.4.5
+  freezed: ^3.0.6
   json_serializable: ^6.7.1
-  riverpod_generator: ^2.6.2
-  custom_lint: ^0.7.0
-  riverpod_lint: ^2.6.2
+  riverpod_generator: ^2.6.5
+  custom_lint: ^0.7.5
+  riverpod_lint: ^2.6.5
   ffigen: ^18.1.0
 
 flutter:

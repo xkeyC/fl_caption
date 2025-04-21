@@ -59,7 +59,7 @@ dev_dependencies:
   msix: ^3.16.4
   build_runner: ^2.4.8
   freezed: ^3.0.6
-  json_serializable: ^6.7.1
+  json_serializable: ^6.9.5
   riverpod_generator: ^2.6.5
   custom_lint: ^0.7.5
   riverpod_lint: ^2.6.5

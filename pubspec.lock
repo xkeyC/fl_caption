@@ -529,10 +529,10 @@ packages:
     dependency: "direct main"
     description:
       name: hive_ce_flutter
-      sha256: "74c1d5f10d803446b4e7913bb272137e2724ba8a56465444f9e7713aeb60a877"
+      sha256: "5eaf57a5af980eda63ddaa8c34d618dc446f76fe79410f2a283522744291c05c"
       url: "https://pub.dev"
     source: hosted
-    version: "2.2.0"
+    version: "2.3.0"
   hooks_riverpod:
     dependency: "direct main"
     description:

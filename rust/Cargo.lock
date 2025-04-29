@@ -253,9 +253,9 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "06ccf5ee3532e66868516d9b315f73aec9f34ea1a37ae98514534d458915dbf1"
 dependencies = [
  "byteorder",
- "candle-kernels",
- "candle-metal-kernels",
- "cudarc",
+ "candle-kernels 0.8.4",
+ "candle-metal-kernels 0.8.4",
+ "cudarc 0.13.9",
  "gemm 0.17.1",
  "half",
  "memmap2",
@@ -268,8 +268,8 @@ dependencies = [
  "safetensors",
  "thiserror 1.0.69",
  "ug 0.1.0",
- "ug-cuda",
- "ug-metal",
+ "ug-cuda 0.1.0",
+ "ug-metal 0.1.0",
  "yoke",
  "zip",
 ]
@@ -281,9 +281,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c76c4e748a73dfea4d801013905c94742803ea12ce6e5f3f300378c0fd918e5c"
 dependencies = [
  "byteorder",
+ "candle-kernels 0.9.0",
+ "candle-metal-kernels 0.9.0",
+ "cudarc 0.16.2",
  "gemm 0.17.1",
  "half",
  "memmap2",
+ "metal 0.27.0",
  "num-traits",
  "num_cpus",
  "rand 0.9.1",
@@ -292,6 +296,8 @@ dependencies = [
  "safetensors",
  "thiserror 1.0.69",
  "ug 0.4.0",
+ "ug-cuda 0.4.0",
+ "ug-metal 0.4.0",
  "yoke",
  "zip",
 ]
@@ -301,6 +307,15 @@ name = "candle-kernels"
 version = "0.8.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a10885bd902fad1b8518ba2b22369aaed88a3d94e123533ad3ca73db33b1c8ca"
+dependencies = [
+ "bindgen_cuda",
+]
+
+[[package]]
+name = "candle-kernels"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4c9a4a0f80722a4bf778e8d47c99fbd5d6cd41c8a07bc00e18c82c3b48fe2331"
 dependencies = [
  "bindgen_cuda",
 ]
@@ -318,13 +333,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "candle-metal-kernels"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a09a9e52954bc367d43cea5fd2074a1b4d28843e8d0cd99c677857861af7d8d5"
+dependencies = [
+ "half",
+ "metal 0.27.0",
+ "once_cell",
+ "thiserror 1.0.69",
+ "tracing",
+]
+
+[[package]]
 name = "candle-nn"
 version = "0.8.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "be1160c3b63f47d40d91110a3e1e1e566ae38edddbbf492a60b40ffc3bc1ff38"
 dependencies = [
  "candle-core 0.8.4",
- "candle-metal-kernels",
+ "candle-metal-kernels 0.8.4",
  "half",
  "metal 0.27.0",
  "num-traits",
@@ -630,6 +658,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "cudarc"
+version = "0.16.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e4ed411343abcb4dd6fd1fbc32db3533d76c2af0fd40735a9e5e39e778a81254"
+dependencies = [
+ "half",
+ "libloading",
+]
+
+[[package]]
 name = "darling"
 version = "0.20.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -850,7 +888,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "33d852cb9b869c2a9b3df2f71a3074817f01e1844f839a144f5fcef059a4eb5d"
 dependencies = [
  "libc",
- "windows-sys 0.59.0",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -2394,7 +2432,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "byteorder",
- "candle-core 0.8.4",
+ "candle-core 0.9.0",
  "candle-nn 0.8.4",
  "candle-onnx",
  "candle-transformers",
@@ -2450,7 +2488,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys 0.4.15",
- "windows-sys 0.59.0",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -2463,7 +2501,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys 0.9.3",
- "windows-sys 0.59.0",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -2680,7 +2718,7 @@ dependencies = [
  "getrandom 0.3.2",
  "once_cell",
  "rustix 1.0.3",
- "windows-sys 0.59.0",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -2918,11 +2956,24 @@ version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "50758486d7941f8b0a636ba7e29455c07071f41590beac1fd307ec893e8db69a"
 dependencies = [
- "cudarc",
+ "cudarc 0.13.9",
  "half",
  "serde",
  "thiserror 1.0.69",
  "ug 0.1.0",
+]
+
+[[package]]
+name = "ug-cuda"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "14053653d0b7fa7b21015aa9a62edc8af2f60aa6f9c54e66386ecce55f22ed29"
+dependencies = [
+ "cudarc 0.16.2",
+ "half",
+ "serde",
+ "thiserror 1.0.69",
+ "ug 0.4.0",
 ]
 
 [[package]]
@@ -2937,6 +2988,20 @@ dependencies = [
  "serde",
  "thiserror 1.0.69",
  "ug 0.1.0",
+]
+
+[[package]]
+name = "ug-metal"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "76daec3c7a32a1b4a0e3307b6b057fa067aa64e750713987410a2c402e5cd731"
+dependencies = [
+ "half",
+ "metal 0.29.0",
+ "objc",
+ "serde",
+ "thiserror 1.0.69",
+ "ug 0.4.0",
 ]
 
 [[package]]
@@ -3157,7 +3222,7 @@ version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf221c93e13a30d793f7645a0e7762c55d169dbb0a49671918a2319d289b10bb"
 dependencies = [
- "windows-sys 0.59.0",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]

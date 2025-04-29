@@ -267,9 +267,31 @@ dependencies = [
  "rayon",
  "safetensors",
  "thiserror 1.0.69",
- "ug",
+ "ug 0.1.0",
  "ug-cuda",
  "ug-metal",
+ "yoke",
+ "zip",
+]
+
+[[package]]
+name = "candle-core"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c76c4e748a73dfea4d801013905c94742803ea12ce6e5f3f300378c0fd918e5c"
+dependencies = [
+ "byteorder",
+ "gemm 0.17.1",
+ "half",
+ "memmap2",
+ "num-traits",
+ "num_cpus",
+ "rand 0.9.1",
+ "rand_distr",
+ "rayon",
+ "safetensors",
+ "thiserror 1.0.69",
+ "ug 0.4.0",
  "yoke",
  "zip",
 ]
@@ -301,7 +323,7 @@ version = "0.8.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "be1160c3b63f47d40d91110a3e1e1e566ae38edddbbf492a60b40ffc3bc1ff38"
 dependencies = [
- "candle-core",
+ "candle-core 0.8.4",
  "candle-metal-kernels",
  "half",
  "metal 0.27.0",
@@ -313,13 +335,28 @@ dependencies = [
 ]
 
 [[package]]
-name = "candle-onnx"
-version = "0.8.4"
+name = "candle-nn"
+version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5d8e1b5113bc7cf40371e78f5123fe428c9d47ad84869082246d2c40b12699cf"
+checksum = "6a3ff6712fb82f6ac85b962692d76038ae6320875e69118257920bcb3eeba458"
 dependencies = [
- "candle-core",
- "candle-nn",
+ "candle-core 0.9.0",
+ "half",
+ "num-traits",
+ "rayon",
+ "safetensors",
+ "serde",
+ "thiserror 1.0.69",
+]
+
+[[package]]
+name = "candle-onnx"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "89c7dfaf0e43be96d6e117c341998f16c98b8fa7d80a5cfc4d97872c1ed7f470"
+dependencies = [
+ "candle-core 0.9.0",
+ "candle-nn 0.9.0",
  "prost",
  "prost-build",
 ]
@@ -331,8 +368,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "94a0900d49f8605e0e7e6693a1f560e6271279de98e5fa369e7abf3aac245020"
 dependencies = [
  "byteorder",
- "candle-core",
- "candle-nn",
+ "candle-core 0.8.4",
+ "candle-nn 0.8.4",
  "fancy-regex",
  "num-traits",
  "rand 0.9.1",
@@ -2357,8 +2394,8 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "byteorder",
- "candle-core",
- "candle-nn",
+ "candle-core 0.8.4",
+ "candle-nn 0.8.4",
  "candle-onnx",
  "candle-transformers",
  "cpal",
@@ -2855,6 +2892,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "ug"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "90b70b37e9074642bc5f60bb23247fd072a84314ca9e71cdf8527593406a0dd3"
+dependencies = [
+ "gemm 0.18.2",
+ "half",
+ "libloading",
+ "memmap2",
+ "num",
+ "num-traits",
+ "num_cpus",
+ "rayon",
+ "safetensors",
+ "serde",
+ "thiserror 1.0.69",
+ "tracing",
+ "yoke",
+]
+
+[[package]]
 name = "ug-cuda"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2864,7 +2922,7 @@ dependencies = [
  "half",
  "serde",
  "thiserror 1.0.69",
- "ug",
+ "ug 0.1.0",
 ]
 
 [[package]]
@@ -2878,7 +2936,7 @@ dependencies = [
  "objc",
  "serde",
  "thiserror 1.0.69",
- "ug",
+ "ug 0.1.0",
 ]
 
 [[package]]

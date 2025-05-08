@@ -63,7 +63,7 @@ Future<void> _handleMultiWindow(List<String> args) async {
   }
 }
 
-class App extends HookConsumerWidget {
+class App extends HookConsumerWidget with WindowListener {
   const App({super.key});
 
   @override
@@ -71,8 +71,12 @@ class App extends HookConsumerWidget {
     final caption = ref.watch(dartWhisperCaptionProvider);
 
     useEffect(() {
+      windowManager.addListener(this);
+      windowManager.setPreventClose(true);
       DesktopMultiWindow.setMethodHandler((c, h) => _subWindowMethodHandler(c, h, ref));
-      return null;
+      return () async {
+        windowManager.removeListener(this);
+      };
     }, const []);
 
     return DragToMoveArea(
@@ -255,5 +259,19 @@ class App extends HookConsumerWidget {
     }
     if (inMilliseconds < whisperInferenceInterval * 0.95) return Colors.yellow.withValues(alpha: .6);
     return Colors.red.withValues(alpha: .6);
+  }
+
+  @override
+  Future<void> onWindowClose() async {
+    debugPrint("onWindowClose");
+    if (await windowManager.isPreventClose()) {
+      final windows = await DesktopMultiWindow.getAllSubWindowIds();
+      for (final id in windows) {
+        await WindowController.fromWindowId(id).close();
+      }
+      await windowManager.destroy();
+      exit(0);
+    }
+    super.onWindowClose();
   }
 }

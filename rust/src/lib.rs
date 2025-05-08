@@ -1,12 +1,12 @@
+use native_dialog::{DialogBuilder, MessageLevel};
 use std::panic;
-use native_dialog::{MessageDialog, MessageType};
 
 pub mod api;
-pub mod whisper_caption;
-pub mod vad;
 mod frb_generated;
+pub mod vad;
+pub mod whisper_caption;
 
-pub(crate) fn get_device(try_with_gpu:bool) -> anyhow::Result<candle_core::Device> {
+pub(crate) fn get_device(try_with_gpu: bool) -> anyhow::Result<candle_core::Device> {
     let device = if try_with_gpu {
         if cfg!(target_os = "macos") {
             candle_core::Device::new_metal(0)?
@@ -32,12 +32,13 @@ fn _try_get_cuda() -> candle_core::Device {
             "Unknow CUDA device initialization error".to_string()
         };
         // show dialog
-        MessageDialog::new()
-            .set_type(MessageType::Error)
+        DialogBuilder::message()
+            .set_level(MessageLevel::Error)
             .set_title("CUDA device initialization error , fall back to CPU")
             .set_text(&panic_info)
-            .show_alert()
-            .unwrap_or(());
+            .alert()
+            .show()
+            .unwrap();
         eprintln!("CUDA device initialization error {}", panic_info);
         // 返回 CPU 设备
         candle_core::Device::Cpu

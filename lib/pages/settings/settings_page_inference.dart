@@ -12,6 +12,7 @@ class SettingsInferencePage extends HookWidget {
   final TextEditingController whisperTemperatureController;
   final TextEditingController llmTemperatureController;
   final TextEditingController llmMaxTokensController;
+  final TextEditingController llmPromptPrefixController;
 
   const SettingsInferencePage({
     super.key,
@@ -22,6 +23,7 @@ class SettingsInferencePage extends HookWidget {
     required this.whisperTemperatureController,
     required this.llmTemperatureController,
     required this.llmMaxTokensController,
+    required this.llmPromptPrefixController,
   });
 
   @override
@@ -78,6 +80,12 @@ class SettingsInferencePage extends HookWidget {
         const SizedBox(height: 16),
 
         _buildSettingRow(
+          label: "LLM Prompt 前缀",
+          tooltip: "为 llm Prompt 增加前缀，如 qwen3 模型填写 /no_think 前缀即可禁用模型思考",
+          controller: llmPromptPrefixController,
+        ),
+
+        _buildSettingRow(
           label: 'LLM温度：',
           tooltip: '较低的值使输出更加确定，较高的值输出越有创造性 (0.0-1.0, 默认: 0.1)',
           controller: llmTemperatureController,
@@ -115,7 +123,7 @@ class SettingsInferencePage extends HookWidget {
             ],
           ),
           SizedBox(height: 4),
-          Text(tooltip, style: TextStyle(color: Colors.white.withValues(alpha: .6))),
+          SelectionArea(child: Text(tooltip, style: TextStyle(color: Colors.white.withValues(alpha: .6)))),
         ],
       ),
     );

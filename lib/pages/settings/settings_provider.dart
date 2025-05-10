@@ -9,7 +9,7 @@ part 'settings_provider.g.dart';
 part 'settings_provider.freezed.dart';
 
 @freezed
-class AppSettingsData with _$AppSettingsData {
+abstract class AppSettingsData with _$AppSettingsData {
   factory AppSettingsData({
     required String modelWorkingDir,
     required String whisperModel,
@@ -28,6 +28,7 @@ class AppSettingsData with _$AppSettingsData {
     @Default(0.0) double whisperTemperature,
     @Default(0.1) double llmTemperature,
     @Default(256) int llmMaxTokens,
+    @Default("") String llmPromptPrefix,
   }) = _AppSettingsData;
 
   factory AppSettingsData.fromJson(Map<String, dynamic> json) => _$AppSettingsDataFromJson(json);
@@ -57,13 +58,14 @@ class AppSettings extends _$AppSettings {
     final bool withVAD = box.get("with_vad", defaultValue: true);
     final double vadThreshold = box.get("vad_threshold", defaultValue: 0.1);
 
-    // 新增推理相关设置项
+    // 推理设置项
     final int whisperMaxAudioDuration = box.get("whisper_max_audio_duration", defaultValue: 12);
     final int inferenceInterval = box.get("inference_interval_ms", defaultValue: 2000);
     final int whisperDefaultMaxDecodeTokens = box.get("whisper_default_max_decode_tokens", defaultValue: 256);
     final double whisperTemperature = box.get("whisper_temperature", defaultValue: 0.0);
     final double llmTemperature = box.get("llm_temperature", defaultValue: 0.1);
     final int llmMaxTokens = box.get("llm_max_tokens", defaultValue: 256);
+    final String llmPromptPrefix = box.get("llm_prompt_prefix", defaultValue: "");
 
     return AppSettingsData(
       modelWorkingDir: modelWorkingDir,
@@ -81,6 +83,7 @@ class AppSettings extends _$AppSettings {
       whisperTemperature: whisperTemperature,
       llmTemperature: llmTemperature,
       llmMaxTokens: llmMaxTokens,
+      llmPromptPrefix: llmPromptPrefix,
       withVAD: withVAD,
       vadThreshold: vadThreshold,
     );
@@ -112,6 +115,7 @@ class AppSettings extends _$AppSettings {
       await box.put("llm_temperature", state.value!.llmTemperature);
       await box.put("llm_max_tokens", state.value!.llmMaxTokens);
       await box.put("vad_threshold", state.value!.vadThreshold);
+      await box.put("llm_prompt_prefix", state.value!.llmPromptPrefix);
       return true;
     } catch (e) {
       debugPrint("Error saving settings: $e");

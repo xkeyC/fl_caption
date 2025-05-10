@@ -36,6 +36,7 @@ class SettingsApp extends HookConsumerWidget {
     final whisperTemperatureController = useTextEditingController();
     final llmTemperatureController = useTextEditingController();
     final llmMaxTokensController = useTextEditingController();
+    final llmPromptPrefixController = useTextEditingController();
 
     useEffect(() {
       DesktopMultiWindow.setMethodHandler(MultiWindowWindowUtil.windowMethodHandler);
@@ -52,6 +53,7 @@ class SettingsApp extends HookConsumerWidget {
         whisperTemperatureController.text = settings.whisperTemperature.toString();
         llmTemperatureController.text = settings.llmTemperature.toString();
         llmMaxTokensController.text = settings.llmMaxTokens.toString();
+        llmPromptPrefixController.text = settings.llmPromptPrefix;
 
         appSettingsData.value = settings;
       }();
@@ -137,6 +139,7 @@ class SettingsApp extends HookConsumerWidget {
                                   whisperTemperatureController: whisperTemperatureController,
                                   llmTemperatureController: llmTemperatureController,
                                   llmMaxTokensController: llmMaxTokensController,
+                                  llmPromptPrefixController: llmPromptPrefixController,
                                 ),
                               ),
                             ),
@@ -160,7 +163,6 @@ class SettingsApp extends HookConsumerWidget {
                                   llmProviderKey: apiKeyController.text,
                                   llmProviderModel: apiModelController.text,
                                   whisperModel: appSettingsData.value!.whisperModel,
-                                  // 保存新增的设置值
                                   whisperMaxAudioDuration: int.tryParse(whisperMaxAudioDurationController.text) ?? 12,
                                   inferenceInterval: int.tryParse(inferenceIntervalController.text) ?? 2,
                                   whisperDefaultMaxDecodeTokens:
@@ -168,6 +170,7 @@ class SettingsApp extends HookConsumerWidget {
                                   whisperTemperature: double.tryParse(whisperTemperatureController.text) ?? 0.0,
                                   llmTemperature: double.tryParse(llmTemperatureController.text) ?? 0.1,
                                   llmMaxTokens: int.tryParse(llmMaxTokensController.text) ?? 256,
+                                  llmPromptPrefix: llmPromptPrefixController.text.trim(),
                                 );
                                 await MultiWindowWindowUtil.setAppSettingsData(newSettings!);
                                 await MultiWindowWindowUtil.closeMineWindow();

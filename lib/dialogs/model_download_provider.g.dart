@@ -6,9 +6,9 @@ part of 'model_download_provider.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$ModelDownloadStateDataImpl _$$ModelDownloadStateDataImplFromJson(
+_ModelDownloadStateData _$ModelDownloadStateDataFromJson(
   Map<String, dynamic> json,
-) => _$ModelDownloadStateDataImpl(
+) => _ModelDownloadStateData(
   modelName: json['modelName'] as String,
   modelPath: json['modelPath'] as String,
   progress: (json['progress'] as num).toDouble(),
@@ -16,8 +16,8 @@ _$ModelDownloadStateDataImpl _$$ModelDownloadStateDataImplFromJson(
   errorText: json['errorText'] as String?,
 );
 
-Map<String, dynamic> _$$ModelDownloadStateDataImplToJson(
-  _$ModelDownloadStateDataImpl instance,
+Map<String, dynamic> _$ModelDownloadStateDataToJson(
+  _ModelDownloadStateData instance,
 ) => <String, dynamic>{
   'modelName': instance.modelName,
   'modelPath': instance.modelPath,

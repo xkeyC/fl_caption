@@ -12,7 +12,7 @@ part 'model_download_provider.g.dart';
 part 'model_download_provider.freezed.dart';
 
 @freezed
-class ModelDownloadStateData with _$ModelDownloadStateData {
+abstract class ModelDownloadStateData with _$ModelDownloadStateData {
   factory ModelDownloadStateData({
     required String modelName,
     required String modelPath,

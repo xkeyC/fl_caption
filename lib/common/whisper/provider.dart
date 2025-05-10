@@ -18,7 +18,7 @@ part 'provider.freezed.dart';
 enum DartWhisperClientError { modelNotFound, unknown }
 
 @freezed
-class DartWhisperClient with _$DartWhisperClient {
+abstract class DartWhisperClient with _$DartWhisperClient {
   factory DartWhisperClient({required rs.WhisperClient client, DartWhisperClientError? errorType}) = _DartWhisperClient;
 }
 

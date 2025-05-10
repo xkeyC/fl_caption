@@ -6,57 +6,58 @@ part of 'settings_provider.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$AppSettingsDataImpl _$$AppSettingsDataImplFromJson(
-  Map<String, dynamic> json,
-) => _$AppSettingsDataImpl(
-  modelWorkingDir: json['modelWorkingDir'] as String,
-  whisperModel: json['whisperModel'] as String,
-  tryWithCuda: json['tryWithCuda'] as bool,
-  withVAD: json['withVAD'] as bool,
-  vadThreshold: (json['vadThreshold'] as num).toDouble(),
-  llmProviderUrl: json['llmProviderUrl'] as String,
-  llmProviderKey: json['llmProviderKey'] as String,
-  llmProviderModel: json['llmProviderModel'] as String,
-  llmContextOptimization: json['llmContextOptimization'] as bool,
-  audioLanguage: json['audioLanguage'] as String?,
-  captionLanguage: json['captionLanguage'] as String?,
-  whisperMaxAudioDuration:
-      (json['whisperMaxAudioDuration'] as num?)?.toInt() ?? 12,
-  inferenceInterval: (json['inferenceInterval'] as num?)?.toInt() ?? 2,
-  whisperDefaultMaxDecodeTokens:
-      (json['whisperDefaultMaxDecodeTokens'] as num?)?.toInt() ?? 256,
-  whisperTemperature: (json['whisperTemperature'] as num?)?.toDouble() ?? 0.0,
-  llmTemperature: (json['llmTemperature'] as num?)?.toDouble() ?? 0.1,
-  llmMaxTokens: (json['llmMaxTokens'] as num?)?.toInt() ?? 256,
-);
+_AppSettingsData _$AppSettingsDataFromJson(Map<String, dynamic> json) =>
+    _AppSettingsData(
+      modelWorkingDir: json['modelWorkingDir'] as String,
+      whisperModel: json['whisperModel'] as String,
+      tryWithCuda: json['tryWithCuda'] as bool,
+      withVAD: json['withVAD'] as bool,
+      vadThreshold: (json['vadThreshold'] as num).toDouble(),
+      llmProviderUrl: json['llmProviderUrl'] as String,
+      llmProviderKey: json['llmProviderKey'] as String,
+      llmProviderModel: json['llmProviderModel'] as String,
+      llmContextOptimization: json['llmContextOptimization'] as bool,
+      audioLanguage: json['audioLanguage'] as String?,
+      captionLanguage: json['captionLanguage'] as String?,
+      whisperMaxAudioDuration:
+          (json['whisperMaxAudioDuration'] as num?)?.toInt() ?? 12,
+      inferenceInterval: (json['inferenceInterval'] as num?)?.toInt() ?? 2,
+      whisperDefaultMaxDecodeTokens:
+          (json['whisperDefaultMaxDecodeTokens'] as num?)?.toInt() ?? 256,
+      whisperTemperature:
+          (json['whisperTemperature'] as num?)?.toDouble() ?? 0.0,
+      llmTemperature: (json['llmTemperature'] as num?)?.toDouble() ?? 0.1,
+      llmMaxTokens: (json['llmMaxTokens'] as num?)?.toInt() ?? 256,
+      llmPromptPrefix: json['llmPromptPrefix'] as String? ?? "",
+    );
 
-Map<String, dynamic> _$$AppSettingsDataImplToJson(
-  _$AppSettingsDataImpl instance,
-) => <String, dynamic>{
-  'modelWorkingDir': instance.modelWorkingDir,
-  'whisperModel': instance.whisperModel,
-  'tryWithCuda': instance.tryWithCuda,
-  'withVAD': instance.withVAD,
-  'vadThreshold': instance.vadThreshold,
-  'llmProviderUrl': instance.llmProviderUrl,
-  'llmProviderKey': instance.llmProviderKey,
-  'llmProviderModel': instance.llmProviderModel,
-  'llmContextOptimization': instance.llmContextOptimization,
-  'audioLanguage': instance.audioLanguage,
-  'captionLanguage': instance.captionLanguage,
-  'whisperMaxAudioDuration': instance.whisperMaxAudioDuration,
-  'inferenceInterval': instance.inferenceInterval,
-  'whisperDefaultMaxDecodeTokens': instance.whisperDefaultMaxDecodeTokens,
-  'whisperTemperature': instance.whisperTemperature,
-  'llmTemperature': instance.llmTemperature,
-  'llmMaxTokens': instance.llmMaxTokens,
-};
+Map<String, dynamic> _$AppSettingsDataToJson(_AppSettingsData instance) =>
+    <String, dynamic>{
+      'modelWorkingDir': instance.modelWorkingDir,
+      'whisperModel': instance.whisperModel,
+      'tryWithCuda': instance.tryWithCuda,
+      'withVAD': instance.withVAD,
+      'vadThreshold': instance.vadThreshold,
+      'llmProviderUrl': instance.llmProviderUrl,
+      'llmProviderKey': instance.llmProviderKey,
+      'llmProviderModel': instance.llmProviderModel,
+      'llmContextOptimization': instance.llmContextOptimization,
+      'audioLanguage': instance.audioLanguage,
+      'captionLanguage': instance.captionLanguage,
+      'whisperMaxAudioDuration': instance.whisperMaxAudioDuration,
+      'inferenceInterval': instance.inferenceInterval,
+      'whisperDefaultMaxDecodeTokens': instance.whisperDefaultMaxDecodeTokens,
+      'whisperTemperature': instance.whisperTemperature,
+      'llmTemperature': instance.llmTemperature,
+      'llmMaxTokens': instance.llmMaxTokens,
+      'llmPromptPrefix': instance.llmPromptPrefix,
+    };
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$appSettingsHash() => r'6ecd523e6d3bb87f06e182ca4bafdae0b50d1e59';
+String _$appSettingsHash() => r'67f36add654e71becf193a9731d1ade866c40b81';
 
 /// See also [AppSettings].
 @ProviderFor(AppSettings)

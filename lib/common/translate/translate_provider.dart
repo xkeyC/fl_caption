@@ -61,6 +61,7 @@ class TranslateProvider extends _$TranslateProvider {
       });
       try {
         var fixedText = text;
+        final llmPromptPrefix = appSettings.llmPromptPrefix;
         // Set up streaming request
         final workingDur = Duration(seconds: 2);
         final response = await _dio!.post(
@@ -72,6 +73,7 @@ class TranslateProvider extends _$TranslateProvider {
                 {
                   "role": "system",
                   "content":
+                      "${(llmPromptPrefix.isNotEmpty) ? "$llmPromptPrefix " : ""}"
                       "<system>You are an online subtitle translation tool. The input is a streaming response, which may have incoherent beginnings or endings. user will provide historical context in "
                       "<history> \$sourceText -> \$translate </history>, and the main content within <live></live> tags. If there is a possible overlap between the beginning of <live> and <history>, "
                       "please ignore this part (if it is a complete sentence) or complete this part (if it is an incomplete sentence) according to the context. If the end of <live> is fragmented, append `....` to indicate continuation. "
@@ -84,6 +86,7 @@ class TranslateProvider extends _$TranslateProvider {
                 {
                   "role": "system",
                   "content":
+                      "${(llmPromptPrefix.isNotEmpty) ? "$llmPromptPrefix " : ""}"
                       "<system>You are an online subtitle translator, translating <live> \$userMessage </live> into "
                       "${captionLanguage.displayName} (${captionLanguage.code}), "
                       "And out put to result block; eg: <result>This is Translate Output</result>> </system>",

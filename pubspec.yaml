@@ -63,7 +63,7 @@ dev_dependencies:
   riverpod_generator: ^2.6.5
   custom_lint: ^0.7.5
   riverpod_lint: ^2.6.5
-  ffigen: ^18.1.0
+  ffigen: ^19.0.0
 
 flutter:
   uses-material-design: true

@@ -3,6 +3,7 @@
 
 // ignore_for_file: unused_import, unused_element, unnecessary_import, duplicate_ignore, invalid_use_of_internal_member, annotate_overrides, non_constant_identifier_names, curly_braces_in_flow_control_structures, prefer_const_literals_to_create_immutables, unused_field
 
+import 'api/lingua_spark.dart';
 import 'api/text_util.dart';
 import 'api/whisper.dart';
 import 'dart:async';
@@ -685,6 +686,24 @@ class RustLibWire implements BaseWire {
   late final _wire__crate__api__whisper__create_cancellation_token =
       _wire__crate__api__whisper__create_cancellation_tokenPtr
           .asFunction<void Function(int)>();
+
+  void wire__crate__api__lingua_spark__init_engine(
+    int port_,
+    ffi.Pointer<wire_cst_list_prim_u_8_strict> models_dir,
+  ) {
+    return _wire__crate__api__lingua_spark__init_engine(port_, models_dir);
+  }
+
+  late final _wire__crate__api__lingua_spark__init_enginePtr = _lookup<
+    ffi.NativeFunction<
+      ffi.Void Function(ffi.Int64, ffi.Pointer<wire_cst_list_prim_u_8_strict>)
+    >
+  >('frbgen_fl_caption_wire__crate__api__lingua_spark__init_engine');
+  late final _wire__crate__api__lingua_spark__init_engine =
+      _wire__crate__api__lingua_spark__init_enginePtr
+          .asFunction<
+            void Function(int, ffi.Pointer<wire_cst_list_prim_u_8_strict>)
+          >();
 
   void wire__crate__api__whisper__launch_caption(
     int port_,

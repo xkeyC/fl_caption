@@ -3,6 +3,7 @@
 
 // ignore_for_file: unused_import, unused_element, unnecessary_import, duplicate_ignore, invalid_use_of_internal_member, annotate_overrides, non_constant_identifier_names, curly_braces_in_flow_control_structures, prefer_const_literals_to_create_immutables, unused_field
 
+import 'api/lingua_spark.dart';
 import 'api/text_util.dart';
 import 'api/whisper.dart';
 import 'dart:async';
@@ -64,7 +65,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.10.0';
 
   @override
-  int get rustContentHash => 1363425016;
+  int get rustContentHash => 1344520178;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -84,6 +85,8 @@ abstract class RustLibApi extends BaseApi {
   });
 
   Future<String> crateApiWhisperCreateCancellationToken();
+
+  Future<void> crateApiLinguaSparkInitEngine({required String modelsDir});
 
   Stream<List<Segment>> crateApiWhisperLaunchCaption({
     required WhisperClient whisperClient,
@@ -201,6 +204,28 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   TaskConstMeta get kCrateApiWhisperCreateCancellationTokenConstMeta =>
       const TaskConstMeta(debugName: "create_cancellation_token", argNames: []);
+
+  @override
+  Future<void> crateApiLinguaSparkInitEngine({required String modelsDir}) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          var arg0 = cst_encode_String(modelsDir);
+          return wire.wire__crate__api__lingua_spark__init_engine(port_, arg0);
+        },
+        codec: DcoCodec(
+          decodeSuccessData: dco_decode_unit,
+          decodeErrorData: dco_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiLinguaSparkInitEngineConstMeta,
+        argValues: [modelsDir],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiLinguaSparkInitEngineConstMeta =>
+      const TaskConstMeta(debugName: "init_engine", argNames: ["modelsDir"]);
 
   @override
   Stream<List<Segment>> crateApiWhisperLaunchCaption({

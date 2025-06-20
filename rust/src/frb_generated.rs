@@ -37,7 +37,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueNom,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.10.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 1363425016;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 1344520178;
 
 // Section: executor
 
@@ -110,6 +110,31 @@ fn wire__crate__api__whisper__create_cancellation_token_impl(
                         Result::<_, ()>::Ok(crate::api::whisper::create_cancellation_token())?;
                     Ok(output_ok)
                 })())
+            }
+        },
+    )
+}
+fn wire__crate__api__lingua_spark__init_engine_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    models_dir: impl CstDecode<String>,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::DcoCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "init_engine",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let api_models_dir = models_dir.cst_decode();
+            move |context| async move {
+                transform_result_dco::<_, _, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || async move {
+                        let output_ok =
+                            crate::api::lingua_spark::init_engine(api_models_dir).await?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
             }
         },
     )
@@ -1203,6 +1228,14 @@ mod io {
         port_: i64,
     ) {
         wire__crate__api__whisper__create_cancellation_token_impl(port_)
+    }
+
+    #[unsafe(no_mangle)]
+    pub extern "C" fn frbgen_fl_caption_wire__crate__api__lingua_spark__init_engine(
+        port_: i64,
+        models_dir: *mut wire_cst_list_prim_u_8_strict,
+    ) {
+        wire__crate__api__lingua_spark__init_engine_impl(port_, models_dir)
     }
 
     #[unsafe(no_mangle)]

@@ -26,6 +26,10 @@ once_cell = "1.21.3"
 uuid = { version = "1.17.0", features = ["v4"] }
 native-dialog = "0.9.0"
 rayon = "1.10.0"
+isolang = "2.4.0"
+whichlang = "0.1.1"
+linguaspark = { git = "https://github.com/xkeyC/linguaspark_core.git", branch = "main" }
+log = "0.4.27"
 
 [target.'cfg(any(target_os = "windows", target_os = "linux"))'.dependencies]
 candle-core = { version = "0.9.1", features = ["cuda"] }

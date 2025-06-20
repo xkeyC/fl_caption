@@ -14,6 +14,8 @@ part 'translate_provider.g.dart';
 
 @riverpod
 class TranslateProvider extends _$TranslateProvider {
+  final useLLM = false;
+
   @override
   String build() {
     ref.listen(dartWhisperCaptionProvider, (p, n) async {
@@ -24,20 +26,24 @@ class TranslateProvider extends _$TranslateProvider {
 
   void _updateTranslate(String? p, String? n, String? lang) async {
     final appSettings = await ref.watch(appSettingsProvider.future);
-    if (appSettings.llmProviderUrl.isEmpty || appSettings.llmProviderModel.isEmpty) {
-      state = "";
-      return;
+    if (useLLM) {
+      if (appSettings.llmProviderUrl.isEmpty || appSettings.llmProviderModel.isEmpty) {
+        state = "";
+        return;
+      }
+      if (appSettings.captionLanguage == null) {
+        state = "<Not config captionLanguage>";
+        return;
+      }
+      final captionLanguage = captionLanguages[appSettings.captionLanguage!]!;
+      final pText = p ?? "";
+      final text = n ?? "";
+      if (pText == text) return;
+      if (text.isEmpty) return;
+      _doLLMTranslate(text: text, appSettings: appSettings, captionLanguage: captionLanguage);
+    } else {
+      final firefoxTranslateModelsPath = appSettings.modelWorkingDir;
     }
-    if (appSettings.captionLanguage == null) {
-      state = "<Not config captionLanguage>";
-      return;
-    }
-    final captionLanguage = captionLanguages[appSettings.captionLanguage!]!;
-    final pText = p ?? "";
-    final text = n ?? "";
-    if (pText == text) return;
-    if (text.isEmpty) return;
-    _doTranslate(text: text, appSettings: appSettings, captionLanguage: captionLanguage);
   }
 
   final _asyncLock = Lock();
@@ -46,7 +52,7 @@ class TranslateProvider extends _$TranslateProvider {
 
   final Map<String, String> _historyMessage = {};
 
-  void _doTranslate({
+  void _doLLMTranslate({
     required String text,
     required AppSettingsData appSettings,
     required WhisperLanguage captionLanguage,

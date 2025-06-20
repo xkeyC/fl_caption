@@ -57,7 +57,7 @@ Map<String, dynamic> _$AppSettingsDataToJson(_AppSettingsData instance) =>
 // RiverpodGenerator
 // **************************************************************************
 
-String _$appSettingsHash() => r'67f36add654e71becf193a9731d1ade866c40b81';
+String _$appSettingsHash() => r'96c81bc4989baa5817b3da872b81fef4dc1514b8';
 
 /// See also [AppSettings].
 @ProviderFor(AppSettings)

@@ -2,6 +2,7 @@ use native_dialog::{DialogBuilder, MessageLevel};
 use std::panic;
 
 pub mod api;
+pub mod audio_capture;
 mod frb_generated;
 pub mod vad;
 pub mod whisper_caption;

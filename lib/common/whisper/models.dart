@@ -38,8 +38,9 @@ enum WhisperModelConfigType {
   largeV2('large-v2'),
   largeV3('large-v3'),
   largeV3Turbo('large-v3-turbo'),
-  jaAnimeV0_1('ja-anime-v0.1');
-
+  jaAnimeV0_1('ja-anime-v0.1'),
+  jaAnimeV0_3('ja-anime-v0.3'),
+  distilLargeV3_5('distil-large-v3.5');
   final String name;
 
   const WhisperModelConfigType(this.name);
@@ -84,7 +85,7 @@ const Map<String, WhisperModelData> whisperModels = {
   ),
   "large-v3_q4k": WhisperModelData(
     name: 'large-v3_q4k',
-    size: '891 Mb',
+    size: '891 MB',
     sizeInt: 891 * 1024,
     isMultilingual: true,
     isQuantized: true,
@@ -93,7 +94,7 @@ const Map<String, WhisperModelData> whisperModels = {
   ),
   "large-v3-turbo": WhisperModelData(
     name: 'large-v3-turbo',
-    size: '1.62 Gb',
+    size: '1.62 GB',
     sizeInt: 1620 * 1024,
     isMultilingual: true,
     isQuantized: false,
@@ -117,5 +118,23 @@ const Map<String, WhisperModelData> whisperModels = {
     isQuantized: false,
     downloadUrl: 'https://huggingface.co/efwkjn/whisper-ja-anime-v0.1/resolve/main/model.safetensors',
     configType: WhisperModelConfigType.jaAnimeV0_1,
+  ),
+  "ja-anime-v0.3": WhisperModelData(
+    name: 'ja-anime-v0.3',
+    size: '3.07 GB',
+    sizeInt: 3070 * 1024,
+    isMultilingual: false,
+    isQuantized: false,
+    downloadUrl: 'https://huggingface.co/efwkjn/whisper-ja-anime-v0.3/resolve/main/model.safetensors',
+    configType: WhisperModelConfigType.jaAnimeV0_3,
+  ),
+  "distil-large-v3.5": WhisperModelData(
+    name: 'distil-large-v3.5',
+    size: '3.03 GB',
+    sizeInt: 3030 * 1024,
+    isMultilingual: false,
+    isQuantized: false,
+    downloadUrl: 'https://huggingface.co/distil-whisper/distil-large-v3.5/resolve/main/model.safetensors',
+    configType: WhisperModelConfigType.distilLargeV3_5,
   ),
 };

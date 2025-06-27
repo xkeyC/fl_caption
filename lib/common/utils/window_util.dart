@@ -33,4 +33,8 @@ class MultiWindowWindowUtil {
     final result = await DesktopMultiWindow.invokeMethod(mainWindowId, "set_app_settings", settings.toJson());
     return result as bool;
   }
+
+  static void launchUrl(String url) {
+    DesktopMultiWindow.invokeMethod(mainWindowId, "launch_url", url);
+  }
 }

@@ -15,6 +15,7 @@ import 'package:hive_ce_flutter/adapters.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:rhttp/rhttp.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 import 'package:window_manager/window_manager.dart';
 
 import 'common/rust/frb_generated.dart';
@@ -267,11 +268,14 @@ class App extends HookConsumerWidget with WindowListener {
         return true;
       case "close_mine_window":
         return await WindowController.fromWindowId(fromWindowId).close();
+      case "launch_url":
+        launchUrlString(call.arguments);
+        return true;
     }
     return null;
   }
 
-  _exitApp() async {
+  Future<void> _exitApp() async {
     // close all sub windows
     final subWindowIds = await DesktopMultiWindow.getAllSubWindowIds();
     for (final id in subWindowIds) {

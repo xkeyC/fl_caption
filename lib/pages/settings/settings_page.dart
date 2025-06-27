@@ -11,6 +11,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
+import 'about_page.dart';
 import 'settings_provider.dart';
 
 class SettingsApp extends HookConsumerWidget {
@@ -143,6 +144,14 @@ class SettingsApp extends HookConsumerWidget {
                                 ),
                               ),
                             ),
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 24),
+                              child: VisibilityDetector(
+                                key: Key("menu_about"),
+                                onVisibilityChanged: (VisibilityInfo info) => _checkIndex(info, 2, selectedMenuIndex),
+                                child: const AboutPage(),
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -198,6 +207,7 @@ class SettingsApp extends HookConsumerWidget {
     final menuItems = [
       {'icon': FluentIcons.closed_caption, 'title': "基础设置", 'index': 0},
       {'icon': FontAwesomeIcons.lightbulb, 'title': "推理设置", 'index': 1},
+      {'icon': FluentIcons.info, 'title': "关于", 'index': 2},
     ];
 
     return Container(
@@ -253,7 +263,7 @@ class SettingsApp extends HookConsumerWidget {
     );
   }
 
-  _scrollToIndex(
+  void _scrollToIndex(
     int i,
     ScrollController scrollController,
     ListController listController,

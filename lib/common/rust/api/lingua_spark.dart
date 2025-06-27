@@ -4,7 +4,66 @@
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
 import '../frb_generated.dart';
+import '../lingua_spark/translation.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-Future<void> initEngine({required String modelsDir}) =>
+Future<AppState> initEngine({required String modelsDir}) =>
     RustLib.instance.api.crateApiLinguaSparkInitEngine(modelsDir: modelsDir);
+
+Future<List<LanguagePair>> getModels({required AppState engine}) =>
+    RustLib.instance.api.crateApiLinguaSparkGetModels(engine: engine);
+
+Future<TranslatorResult> translate({
+  required AppState engine,
+  String? from,
+  required String to,
+  required String text,
+}) => RustLib.instance.api.crateApiLinguaSparkTranslate(
+  engine: engine,
+  from: from,
+  to: to,
+  text: text,
+);
+
+class LanguagePair {
+  final String from;
+  final String to;
+
+  const LanguagePair({required this.from, required this.to});
+
+  @override
+  int get hashCode => from.hashCode ^ to.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is LanguagePair &&
+          runtimeType == other.runtimeType &&
+          from == other.from &&
+          to == other.to;
+}
+
+class TranslatorResult {
+  final LanguagePair pair;
+  final String sourceText;
+  final String translatedText;
+
+  const TranslatorResult({
+    required this.pair,
+    required this.sourceText,
+    required this.translatedText,
+  });
+
+  @override
+  int get hashCode =>
+      pair.hashCode ^ sourceText.hashCode ^ translatedText.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is TranslatorResult &&
+          runtimeType == other.runtimeType &&
+          pair == other.pair &&
+          sourceText == other.sourceText &&
+          translatedText == other.translatedText;
+}

@@ -1,11 +1,10 @@
 use anyhow::{anyhow, Result};
 use isolang::Language;
 use linguaspark::Translator;
-use std::sync::Arc;
 
-pub(crate) struct AppState {
+pub struct AppState {
     pub(crate) translator: Translator,
-    pub(crate) models: Vec<(Language, Language)>,
+    pub models: Vec<(Language, Language)>,
 }
 
 pub fn parse_language_code(code: &str) -> Result<Language> {
@@ -29,8 +28,8 @@ pub fn detect_language_code(text: &str) -> Result<&'static str> {
     )
 }
 
-pub(crate) async fn perform_translation(
-    state: &Arc<AppState>,
+pub(crate) fn perform_translation(
+    state: &AppState,
     text: &str,
     from_lang: Option<String>,
     to_lang: &str,

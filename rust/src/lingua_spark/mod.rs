@@ -1,7 +1,6 @@
 use anyhow::{anyhow, Context};
 use isolang::Language;
 use linguaspark::Translator;
-use log::info;
 use std::fs;
 use std::path::PathBuf;
 
@@ -9,7 +8,7 @@ pub mod translation;
 
 pub(crate) fn new_app_state(models_dir: &PathBuf) -> anyhow::Result<translation::AppState> {
     let translator = Translator::new(1).context("Failed to initialize translator")?;
-    info!("Loading translation models from {}", models_dir.display());
+    println!("Loading translation models from {}", models_dir.display());
     let models = load_models_manually(&translator, &models_dir)
         .context("Failed to load translation models")?;
     let state = translation::AppState { translator, models };
@@ -26,7 +25,7 @@ pub(crate) fn load_models_manually(
         let model_dir_path = entry.path();
         let language_pair = entry.file_name().to_string_lossy().into_owned();
 
-        info!("Looking for models in {}", model_dir_path.display());
+        println!("Looking for models in {}", model_dir_path.display());
         translator.load_model(&language_pair, model_dir_path)?;
 
         if language_pair.len() >= 4 {
@@ -39,7 +38,7 @@ pub(crate) fn load_models_manually(
                 language_pair
             ));
         }
-        info!("Loaded model for language pair '{}'", language_pair);
+        println!("Loaded model for language pair '{}'", language_pair);
     }
 
     Ok(models)

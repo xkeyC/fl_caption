@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:fl_caption/common/io/http.dart';
@@ -9,6 +10,9 @@ import 'package:fl_caption/common/whisper/provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:synchronized/synchronized.dart';
+
+import '../rust/api/lingua_spark.dart' as lingua_spark;
+import '../rust/lingua_spark/translation.dart' as lingua_spark_state;
 
 part 'translate_provider.g.dart';
 
@@ -23,6 +27,8 @@ class TranslateProvider extends _$TranslateProvider {
     });
     return "";
   }
+
+  lingua_spark_state.AppState? linguaSparkEngine;
 
   void _updateTranslate(String? p, String? n, String? lang) async {
     final appSettings = await ref.watch(appSettingsProvider.future);
@@ -42,7 +48,36 @@ class TranslateProvider extends _$TranslateProvider {
       if (text.isEmpty) return;
       _doLLMTranslate(text: text, appSettings: appSettings, captionLanguage: captionLanguage);
     } else {
-      final firefoxTranslateModelsPath = appSettings.modelWorkingDir;
+      if (linguaSparkEngine == null) {
+        var firefoxTranslateModelsPathStr = "${appSettings.modelWorkingDir}/firefox_translate_models";
+        // fix for cpp side
+        if (Platform.isWindows) {
+          firefoxTranslateModelsPathStr = firefoxTranslateModelsPathStr.replaceAll("/", "\\");
+        }
+        try {
+          await _initLinguaSparkEngine(
+            firefoxTranslateModelsPathStr: firefoxTranslateModelsPathStr,
+            appSettings: appSettings,
+          );
+        } catch (e) {
+          debugPrint("[TranslateProvider] Error initializing lingua_spark engine: $e");
+          state = "<Error initializing translation engine>:$e";
+          return;
+        }
+      }
+      // firefox only support language code without region
+      var fromLang = lang;
+      if (fromLang?.contains("_") ?? false) {
+        fromLang = fromLang!.split("_").first;
+      }
+
+      var toLang = appSettings.captionLanguage ?? "";
+      if (toLang.contains("_")) {
+        toLang = toLang.split("_").first;
+      }
+
+      final result = await lingua_spark.translate(engine: linguaSparkEngine!, from: lang, to: toLang, text: n ?? "");
+      state = result.translatedText;
     }
   }
 
@@ -176,4 +211,22 @@ class TranslateProvider extends _$TranslateProvider {
       sink.add(data);
     },
   );
+
+  Future<void> _initLinguaSparkEngine({
+    required String firefoxTranslateModelsPathStr,
+    required AppSettingsData appSettings,
+  }) async {
+    final firefoxTranslateModelsPath = Directory(firefoxTranslateModelsPathStr);
+    debugPrint("lingua_spark.initEngine >>> $firefoxTranslateModelsPath");
+    if (!await firefoxTranslateModelsPath.exists()) {
+      await firefoxTranslateModelsPath.create(recursive: true);
+      debugPrint("Created directory: $firefoxTranslateModelsPath");
+    }
+    final engine = await lingua_spark.initEngine(modelsDir: firefoxTranslateModelsPathStr);
+    final models = await lingua_spark.getModels(engine: engine);
+    for (final p in models) {
+      debugPrint("[_initLinguaSparkEngine] lingua_spark.models >>> ${p.from} -> ${p.to}");
+    }
+    linguaSparkEngine = engine;
+  }
 }

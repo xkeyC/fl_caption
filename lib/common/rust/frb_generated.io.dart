@@ -10,6 +10,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:ffi' as ffi;
 import 'frb_generated.dart';
+import 'lingua_spark/translation.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated_io.dart';
 import 'whisper_caption/whisper.dart';
 
@@ -21,8 +22,29 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     required super.portManager,
   });
 
+  CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_AppStatePtr =>
+      wire._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppStatePtr;
+
   @protected
   AnyhowException dco_decode_AnyhowException(dynamic raw);
+
+  @protected
+  AppState
+  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppState(
+    dynamic raw,
+  );
+
+  @protected
+  AppState
+  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppState(
+    dynamic raw,
+  );
+
+  @protected
+  AppState
+  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppState(
+    dynamic raw,
+  );
 
   @protected
   RustStreamSink<List<Segment>> dco_decode_StreamSink_list_segment_Dco(
@@ -69,6 +91,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int dco_decode_i_32(dynamic raw);
 
   @protected
+  LanguagePair dco_decode_language_pair(dynamic raw);
+
+  @protected
+  List<LanguagePair> dco_decode_list_language_pair(dynamic raw);
+
+  @protected
   Uint32List dco_decode_list_prim_u_32_strict(dynamic raw);
 
   @protected
@@ -105,6 +133,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Segment dco_decode_segment(dynamic raw);
 
   @protected
+  TranslatorResult dco_decode_translator_result(dynamic raw);
+
+  @protected
   int dco_decode_u_32(dynamic raw);
 
   @protected
@@ -127,6 +158,24 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   AnyhowException sse_decode_AnyhowException(SseDeserializer deserializer);
+
+  @protected
+  AppState
+  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppState(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  AppState
+  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppState(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  AppState
+  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppState(
+    SseDeserializer deserializer,
+  );
 
   @protected
   RustStreamSink<List<Segment>> sse_decode_StreamSink_list_segment_Dco(
@@ -175,6 +224,14 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int sse_decode_i_32(SseDeserializer deserializer);
 
   @protected
+  LanguagePair sse_decode_language_pair(SseDeserializer deserializer);
+
+  @protected
+  List<LanguagePair> sse_decode_list_language_pair(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   Uint32List sse_decode_list_prim_u_32_strict(SseDeserializer deserializer);
 
   @protected
@@ -209,6 +266,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   Segment sse_decode_segment(SseDeserializer deserializer);
+
+  @protected
+  TranslatorResult sse_decode_translator_result(SseDeserializer deserializer);
 
   @protected
   int sse_decode_u_32(SseDeserializer deserializer);
@@ -303,6 +363,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     final ptr = wire.cst_new_box_autoadd_whisper_client();
     cst_api_fill_to_wire_whisper_client(raw, ptr.ref);
     return ptr;
+  }
+
+  @protected
+  ffi.Pointer<wire_cst_list_language_pair> cst_encode_list_language_pair(
+    List<LanguagePair> raw,
+  ) {
+    // Codec=Cst (C-struct based), see doc to use other codecs
+    final ans = wire.cst_new_list_language_pair(raw.length);
+    for (var i = 0; i < raw.length; ++i) {
+      cst_api_fill_to_wire_language_pair(raw[i], ans.ref.ptr[i]);
+    }
+    return ans;
   }
 
   @protected
@@ -425,6 +497,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   }
 
   @protected
+  void cst_api_fill_to_wire_language_pair(
+    LanguagePair apiObj,
+    wire_cst_language_pair wireObj,
+  ) {
+    wireObj.from = cst_encode_String(apiObj.from);
+    wireObj.to = cst_encode_String(apiObj.to);
+  }
+
+  @protected
   void cst_api_fill_to_wire_segment(Segment apiObj, wire_cst_segment wireObj) {
     wireObj.start = cst_encode_f_64(apiObj.start);
     wireObj.duration = cst_encode_f_64(apiObj.duration);
@@ -433,6 +514,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     wireObj.reasoning_lang = cst_encode_opt_String(apiObj.reasoningLang);
     wireObj.audio_duration = cst_encode_opt_U128(apiObj.audioDuration);
     wireObj.status = cst_encode_whisper_status(apiObj.status);
+  }
+
+  @protected
+  void cst_api_fill_to_wire_translator_result(
+    TranslatorResult apiObj,
+    wire_cst_translator_result wireObj,
+  ) {
+    cst_api_fill_to_wire_language_pair(apiObj.pair, wireObj.pair);
+    wireObj.source_text = cst_encode_String(apiObj.sourceText);
+    wireObj.translated_text = cst_encode_String(apiObj.translatedText);
   }
 
   @protected
@@ -448,6 +539,24 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     wireObj.is_multilingual = cst_encode_bool(apiObj.isMultilingual);
     wireObj.is_quantized = cst_encode_bool(apiObj.isQuantized);
   }
+
+  @protected
+  int
+  cst_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppState(
+    AppState raw,
+  );
+
+  @protected
+  int
+  cst_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppState(
+    AppState raw,
+  );
+
+  @protected
+  int
+  cst_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppState(
+    AppState raw,
+  );
 
   @protected
   bool cst_encode_bool(bool raw);
@@ -476,6 +585,27 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_AnyhowException(
     AnyhowException self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
+  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppState(
+    AppState self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
+  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppState(
+    AppState self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
+  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppState(
+    AppState self,
     SseSerializer serializer,
   );
 
@@ -531,6 +661,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_i_32(int self, SseSerializer serializer);
 
   @protected
+  void sse_encode_language_pair(LanguagePair self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_language_pair(
+    List<LanguagePair> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_prim_u_32_strict(
     Uint32List self,
     SseSerializer serializer,
@@ -571,6 +710,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_segment(Segment self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_translator_result(
+    TranslatorResult self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_u_32(int self, SseSerializer serializer);
@@ -687,6 +832,18 @@ class RustLibWire implements BaseWire {
       _wire__crate__api__whisper__create_cancellation_tokenPtr
           .asFunction<void Function(int)>();
 
+  void wire__crate__api__lingua_spark__get_models(int port_, int engine) {
+    return _wire__crate__api__lingua_spark__get_models(port_, engine);
+  }
+
+  late final _wire__crate__api__lingua_spark__get_modelsPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Int64, ffi.UintPtr)>>(
+        'frbgen_fl_caption_wire__crate__api__lingua_spark__get_models',
+      );
+  late final _wire__crate__api__lingua_spark__get_models =
+      _wire__crate__api__lingua_spark__get_modelsPtr
+          .asFunction<void Function(int, int)>();
+
   void wire__crate__api__lingua_spark__init_engine(
     int port_,
     ffi.Pointer<wire_cst_list_prim_u_8_strict> models_dir,
@@ -788,6 +945,45 @@ class RustLibWire implements BaseWire {
             )
           >();
 
+  void wire__crate__api__lingua_spark__translate(
+    int port_,
+    int engine,
+    ffi.Pointer<wire_cst_list_prim_u_8_strict> from,
+    ffi.Pointer<wire_cst_list_prim_u_8_strict> to,
+    ffi.Pointer<wire_cst_list_prim_u_8_strict> text,
+  ) {
+    return _wire__crate__api__lingua_spark__translate(
+      port_,
+      engine,
+      from,
+      to,
+      text,
+    );
+  }
+
+  late final _wire__crate__api__lingua_spark__translatePtr = _lookup<
+    ffi.NativeFunction<
+      ffi.Void Function(
+        ffi.Int64,
+        ffi.UintPtr,
+        ffi.Pointer<wire_cst_list_prim_u_8_strict>,
+        ffi.Pointer<wire_cst_list_prim_u_8_strict>,
+        ffi.Pointer<wire_cst_list_prim_u_8_strict>,
+      )
+    >
+  >('frbgen_fl_caption_wire__crate__api__lingua_spark__translate');
+  late final _wire__crate__api__lingua_spark__translate =
+      _wire__crate__api__lingua_spark__translatePtr
+          .asFunction<
+            void Function(
+              int,
+              int,
+              ffi.Pointer<wire_cst_list_prim_u_8_strict>,
+              ffi.Pointer<wire_cst_list_prim_u_8_strict>,
+              ffi.Pointer<wire_cst_list_prim_u_8_strict>,
+            )
+          >();
+
   void wire__crate__api__whisper__whisper_client_new(
     int port_,
     ffi.Pointer<wire_cst_list_prim_u_8_strict> whisper_model,
@@ -830,6 +1026,40 @@ class RustLibWire implements BaseWire {
               bool,
             )
           >();
+
+  void
+  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppState(
+    ffi.Pointer<ffi.Void> ptr,
+  ) {
+    return _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppState(
+      ptr,
+    );
+  }
+
+  late final _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppStatePtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
+        'frbgen_fl_caption_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppState',
+      );
+  late final _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppState =
+      _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppStatePtr
+          .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
+
+  void
+  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppState(
+    ffi.Pointer<ffi.Void> ptr,
+  ) {
+    return _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppState(
+      ptr,
+    );
+  }
+
+  late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppStatePtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
+        'frbgen_fl_caption_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppState',
+      );
+  late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppState =
+      _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppStatePtr
+          .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
 
   ffi.Pointer<ffi.Bool> cst_new_box_autoadd_bool(bool value) {
     return _cst_new_box_autoadd_bool(value);
@@ -900,6 +1130,19 @@ class RustLibWire implements BaseWire {
   late final _cst_new_box_autoadd_whisper_client =
       _cst_new_box_autoadd_whisper_clientPtr
           .asFunction<ffi.Pointer<wire_cst_whisper_client> Function()>();
+
+  ffi.Pointer<wire_cst_list_language_pair> cst_new_list_language_pair(int len) {
+    return _cst_new_list_language_pair(len);
+  }
+
+  late final _cst_new_list_language_pairPtr = _lookup<
+    ffi.NativeFunction<
+      ffi.Pointer<wire_cst_list_language_pair> Function(ffi.Int32)
+    >
+  >('frbgen_fl_caption_cst_new_list_language_pair');
+  late final _cst_new_list_language_pair =
+      _cst_new_list_language_pairPtr
+          .asFunction<ffi.Pointer<wire_cst_list_language_pair> Function(int)>();
 
   ffi.Pointer<wire_cst_list_prim_u_32_strict> cst_new_list_prim_u_32_strict(
     int len,
@@ -1012,6 +1255,19 @@ final class wire_cst_list_prim_u_8_loose extends ffi.Struct {
   external int len;
 }
 
+final class wire_cst_language_pair extends ffi.Struct {
+  external ffi.Pointer<wire_cst_list_prim_u_8_strict> from;
+
+  external ffi.Pointer<wire_cst_list_prim_u_8_strict> to;
+}
+
+final class wire_cst_list_language_pair extends ffi.Struct {
+  external ffi.Pointer<wire_cst_language_pair> ptr;
+
+  @ffi.Int32()
+  external int len;
+}
+
 final class wire_cst_list_prim_u_32_strict extends ffi.Struct {
   external ffi.Pointer<ffi.Uint32> ptr;
 
@@ -1061,4 +1317,12 @@ final class wire_cst_list_segment extends ffi.Struct {
 
   @ffi.Int32()
   external int len;
+}
+
+final class wire_cst_translator_result extends ffi.Struct {
+  external wire_cst_language_pair pair;
+
+  external ffi.Pointer<wire_cst_list_prim_u_8_strict> source_text;
+
+  external ffi.Pointer<wire_cst_list_prim_u_8_strict> translated_text;
 }

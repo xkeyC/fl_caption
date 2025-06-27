@@ -32,6 +32,9 @@ candle-core = { version = "0.9.1", features = ["cuda"] }
 candle-nn = { version = "0.9.1", features = ["cuda"] }
 candle-transformers = { version = "0.9.1", features = ["cuda"] }
 
+[target.'cfg(target_os = "linux")'.dependencies]
+pipewire = { version = "0.8", features = ["v0_3_44"] }
+
 [target.'cfg(target_os = "macos")'.dependencies]
 candle-core = { version = "0.9.1", features = ["metal"] }
 candle-nn = { version = "0.9.1", features = ["metal"] }

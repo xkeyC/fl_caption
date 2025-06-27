@@ -3,15 +3,12 @@ pub mod whisper;
 
 use std::time::Duration;
 
+use crate::audio_capture::{AudioCapture, AudioCaptureConfig, PlatformAudioCapture};
 use crate::whisper_caption::whisper::{Model, Segment};
 use crate::{get_device, vad};
 use candle_nn::VarBuilder;
 use candle_transformers::models::whisper::{self as m, audio, Config};
-use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
-use std::sync::mpsc as std_mpsc;
-use std::{panic, thread};
 use tokenizers::Tokenizer;
-use tokio::sync::mpsc;
 use tokio::time::Instant;
 use tokio_util::sync::CancellationToken;
 
@@ -85,170 +82,20 @@ where
     let mut mel_filters = vec![0f32; mel_bytes.len() / 4];
     <byteorder::LittleEndian as byteorder::ByteOrder>::read_f32_into(mel_bytes, &mut mel_filters);
 
-    // Set up the audio device and stream
-    let host = cpal::default_host();
-
-    let audio_device = if is_input {
-        match arg_device {
-            None => host.default_input_device(),
-            Some(device) => host
-                .input_devices()?
-                .find(|x| x.name().map_or(false, |y| y == device)),
-        }
-    } else {
-        match arg_device {
-            None => host.default_output_device(),
-            Some(device) => host
-                .output_devices()?
-                .find(|x| x.name().map_or(false, |y| y == device)),
-        }
-    }
-    .expect("failed to find the audio device");
-
-    let audio_config = if is_input {
-        audio_device
-            .default_input_config()
-            .expect("Failed to get default input config")
-    } else {
-        audio_device
-            .default_output_config()
-            .expect("Failed to get default output config")
+    // Set up audio capture using the abstracted interface
+    let audio_capture_config = AudioCaptureConfig {
+        device: arg_device,
+        is_input,
+        target_sample_rate: 16000,
+        target_channels: 1,
     };
 
-    let device_name = audio_device.name()?;
+    let audio_capture = PlatformAudioCapture::new(audio_capture_config)?;
+    let audio_info = audio_capture.get_info();
+    println!("Audio capture info: {:?}", audio_info);
 
-    println!("audio device -> {device_name:?} config -> {audio_config:?}");
-
-    let channel_count = audio_config.channels() as usize;
-    let in_sample_rate = audio_config.sample_rate().0 as usize;
-    let resample_ratio = 16000. / in_sample_rate as f64;
-
-    // 使用标准库通道来处理音频输入流和处理线程间的通信
-    let (tx, rx) = std_mpsc::channel::<Vec<f32>>();
-
-    let audio_cancel_token = cancel_token.child_token();
-    let processor_cancel_token = cancel_token.child_token();
-
-    // 启动一个线程来处理音频输入
-    let audio_thread = thread::spawn(move || {
-        let audio_cancel_token_clone = audio_cancel_token.child_token();
-        // 在标准线程中创建并管理音频流
-        let stream: cpal::Stream = if cfg!(target_os = "macos") && !is_input {
-            match audio_device.build_output_stream(
-                &audio_config.config(),
-                move |pcm: &mut [f32], _: &cpal::OutputCallbackInfo| {
-                    if audio_cancel_token.is_cancelled() {
-                        return;
-                    }
-                    let captured_pcm = merge_channels(pcm, channel_count);
-
-                    if !captured_pcm.is_empty() {
-                        // 使用 send 发送音频数据
-                        let _ = tx.send(captured_pcm);
-                    }
-                },
-                move |err| {
-                    eprintln!("an error occurred on stream: {}", err);
-                },
-                None,
-            ) {
-                Ok(s) => s,
-                Err(e) => {
-                    eprintln!("Failed to create audio stream: {}", e);
-                    return;
-                }
-            }
-        } else {
-            match audio_device.build_input_stream(
-                &audio_config.config(),
-                move |pcm: &[f32], _: &cpal::InputCallbackInfo| {
-                    if audio_cancel_token.is_cancelled() {
-                        return;
-                    }
-
-                    let pcm = merge_channels(pcm, channel_count);
-
-                    if !pcm.is_empty() {
-                        // 使用 send 发送音频数据
-                        let _ = tx.send(pcm);
-                    }
-                },
-                move |err| {
-                    eprintln!("an error occurred on stream: {}", err);
-                },
-                None,
-            ) {
-                Ok(s) => s,
-                Err(e) => {
-                    eprintln!("Failed to create audio stream: {}", e);
-                    return;
-                }
-            }
-        };
-
-        stream.play().unwrap_or_else(|e| {
-            eprintln!("Failed to start audio stream: {}", e);
-        });
-
-        // 使用取消令牌等待取消信号
-        while !audio_cancel_token_clone.is_cancelled() {
-            thread::sleep(Duration::from_millis(100));
-        }
-
-        // 确保流被正确停止
-        drop(stream);
-        println!("Audio stream stopped");
-    });
-
-    // 使用 tokio 通道用于处理推理结果
-    let (result_tx, mut result_rx) = mpsc::channel::<Vec<f32>>(100);
-
-    // 创建处理音频数据的 tokio 任务
-    let processor_task = tokio::spawn(async move {
-        // 使用 rubato 进行重采样
-        use rubato::Resampler;
-        let mut resampler: rubato::FastFixedIn<f32> = rubato::FastFixedIn::<f32>::new(
-            resample_ratio,
-            10.,
-            rubato::PolynomialDegree::Septic,
-            1024,
-            1,
-        )
-        .unwrap();
-
-        while let Ok(pcm) = rx.recv() {
-            if processor_cancel_token.is_cancelled() {
-                break;
-            }
-
-            // 立即对音频数据进行重采样
-            let mut resampled_pcm = vec![];
-            let full_chunks = pcm.len() / 1024;
-
-            // 处理完整的1024样本块
-            for chunk in 0..full_chunks {
-                let pcm_chunk = &pcm[chunk * 1024..(chunk + 1) * 1024];
-                if let Ok(res) = resampler.process(&[&pcm_chunk], None) {
-                    resampled_pcm.extend_from_slice(&res[0]);
-                }
-            }
-
-            // 如果有剩余不足1024的样本，也进行处理
-            let remaining = pcm.len() % 1024;
-            if remaining > 0 {
-                let start = full_chunks * 1024;
-                let mut last_chunk = vec![0.0f32; 1024];
-                last_chunk[..remaining].copy_from_slice(&pcm[start..]);
-
-                if let Ok(res) = resampler.process(&[&last_chunk], None) {
-                    // 只添加有效的重采样数据
-                    let valid_len = (remaining as f64 * resample_ratio).ceil() as usize;
-                    resampled_pcm.extend_from_slice(&res[0][..valid_len.min(res[0].len())]);
-                }
-            }
-            let _ = result_tx.send(resampled_pcm).await;
-        }
-    });
+    // Start audio capture
+    let rx = audio_capture.start_capture(cancel_token.child_token())?;
 
     result_callback(_make_status_response(whisper::WhisperStatus::Ready));
     println!("Whisper Ready...");
@@ -257,6 +104,7 @@ where
     let mut buffered_pcm = vec![];
     let mut history_pcm = Vec::new();
     let mut last_inference_time = Instant::now();
+    let mut last_vad_passed_time = Instant::now();
     let mut first_inference_done = false;
     let inference_interval = Duration::from_millis(inference_interval_ms.unwrap_or(2000)); // 默认2000毫秒
     let max_audio_duration: usize = whisper_max_audio_duration.unwrap_or(12) as usize; // 默认12秒
@@ -279,12 +127,23 @@ where
     };
 
     // 处理循环
+    println!("Starting audio processing loop...");
+    let mut debug_counter = 0;
     while !cancel_token.is_cancelled() {
+        debug_counter += 1;
+        if debug_counter % 500 == 0 {  // 每50秒打印一次调试信息
+            println!("Audio processing loop iteration {}, buffered_pcm.len(): {}", debug_counter, buffered_pcm.len());
+        }
+        
         // 尝试接收音频数据，设置超时以便定期检查取消状态
-        let pcm = tokio::time::timeout(Duration::from_millis(100), result_rx.recv()).await;
+        let pcm = rx.recv_timeout(Duration::from_millis(100));
 
         // 如果接收超时或通道关闭，检查是否应该取消
-        if pcm.is_err() || pcm.as_ref().unwrap().is_none() {
+        if pcm.is_err() {
+            let err = pcm.unwrap_err();
+            if debug_counter % 1000 == 0 {  // 每100秒打印一次超时信息
+                println!("Audio recv timeout or error: {:?}, cancel_token cancelled: {}", err, cancel_token.is_cancelled());
+            }
             if cancel_token.is_cancelled() {
                 break;
             }
@@ -292,9 +151,23 @@ where
         }
 
         // 处理接收到的音频数据
-        let pcm = pcm.unwrap().unwrap();
+        let pcm = pcm.unwrap();
+        
+        static mut AUDIO_RECEIVED: bool = false;
+        unsafe {
+            if !AUDIO_RECEIVED {
+                println!("First audio data received: {} samples", pcm.len());
+                AUDIO_RECEIVED = true;
+            } else if pcm.len() > 0 && debug_counter % 100 == 0 {
+                println!("Audio data: {} samples (debug every 100 iterations)", pcm.len());
+            }
+        }
 
         buffered_pcm.extend_from_slice(&pcm);
+        
+        if buffered_pcm.len() > 0 && (buffered_pcm.len() % 16000 == 0 || debug_counter % 200 == 0) {
+            println!("Total buffered_pcm length: {} samples ({:.1}s)", buffered_pcm.len(), buffered_pcm.len() as f32 / 16000.0);
+        }
 
         // 首次启动时，等待3秒数据
         if !first_inference_done {
@@ -310,8 +183,8 @@ where
             continue;
         }
 
-        // 如果推理间隔大于设定间隔的两倍，则清空历史音频 （考虑到自然停顿等）
-        if now.duration_since(last_inference_time) > inference_interval * 2 {
+        // 如果最后有效推理间隔大于设定间隔的两倍，则清空历史音频 （考虑到自然停顿等）
+        if now.duration_since(last_vad_passed_time) > inference_interval * 2 {
             println!("Clearing buffered_pcm due to long silence");
             history_pcm.clear();
         }
@@ -332,10 +205,10 @@ where
                 );
                 if vad_result.prediction > vad_filters_value.unwrap_or(0.1) {
                     buffered_pcm = vad_result.pcm_results;
+                    last_vad_passed_time = Instant::now();
                 } else {
                     buffered_pcm.clear();
-                    // 不更新旧的推理时间
-                    // last_inference_time = Instant::now();
+                    last_inference_time = Instant::now();
                     continue;
                 }
             }
@@ -443,57 +316,11 @@ where
         last_inference_time = now;
     }
 
-    tokio::select! {
-        _ = cancel_token.cancelled() => {
-            println!("Transcription cancelled");
-        }
-        _ = processor_task => {
-            println!("Processor task completed");
-        }
-    }
-
-    let _ = audio_thread.join();
-
+    println!("Transcription cancelled");
     result_callback(_make_status_response(whisper::WhisperStatus::Exit));
 
     println!("Whisper Exit");
     Ok(())
-}
-
-// 将多声道音频合并为单声道（平均法），并处理数据不完整的情况
-fn merge_channels(pcm: &[f32], channel_count: usize) -> Vec<f32> {
-    if channel_count == 1 {
-        return pcm.to_vec(); // 已经是单声道，直接返回
-    }
-
-    // 计算完整的样本组数量
-    let complete_groups = pcm.len() / channel_count;
-    // 计算最后一组中的样本数量
-    let remaining_samples = pcm.len() % channel_count;
-    // 分配结果向量的容量为完整的样本组数加上是否有剩余样本决定的额外容量
-    let result_capacity = complete_groups + if remaining_samples > 0 { 1 } else { 0 };
-    let mut mono_pcm = Vec::with_capacity(result_capacity);
-
-    // 处理完整的样本组
-    for i in 0..complete_groups {
-        let mut sample_sum = 0.0;
-        for ch in 0..channel_count {
-            sample_sum += pcm[i * channel_count + ch];
-        }
-        mono_pcm.push(sample_sum / (channel_count as f32));
-    }
-
-    // 处理可能存在的不完整样本组
-    if remaining_samples > 0 {
-        let start_idx = complete_groups * channel_count;
-        let mut sample_sum = 0.0;
-        for ch in 0..remaining_samples {
-            sample_sum += pcm[start_idx + ch];
-        }
-        mono_pcm.push(sample_sum / (remaining_samples as f32));
-    }
-
-    mono_pcm
 }
 
 fn _make_status_response(status: whisper::WhisperStatus) -> Vec<Segment> {

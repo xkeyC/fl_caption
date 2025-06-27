@@ -310,6 +310,12 @@ where
             continue;
         }
 
+        // 如果推理间隔大于设定间隔的两倍，则清空历史音频 （考虑到自然停顿等）
+        if now.duration_since(last_inference_time) > inference_interval * 2 {
+            println!("Clearing buffered_pcm due to long silence");
+            history_pcm.clear();
+        }
+
         // 记录推理开始时间
         let inference_start = Instant::now();
 
@@ -328,7 +334,8 @@ where
                     buffered_pcm = vad_result.pcm_results;
                 } else {
                     buffered_pcm.clear();
-                    last_inference_time = Instant::now();
+                    // 不更新旧的推理时间
+                    // last_inference_time = Instant::now();
                     continue;
                 }
             }

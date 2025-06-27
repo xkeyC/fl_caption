@@ -42,7 +42,7 @@ Future<void> main(List<String> args) async {
   doWhenWindowReady(() async {
     appWindow
       ..minSize = Size(640, 80)
-      ..size = Size(1320, 180)
+      ..size = Size(1320, 120)
       ..alignment = Alignment.bottomCenter
       ..show();
     await Window.setEffect(effect: WindowEffect.transparent, dark: false);
@@ -124,7 +124,37 @@ class App extends HookConsumerWidget with WindowListener {
                                       builder: (BuildContext context, WidgetRef ref, Widget? child) {
                                         final text = ref.watch(translateProviderProvider);
                                         if (text.trim().isEmpty) return SizedBox();
-                                        return Text(text, style: TextStyle(fontSize: 22), maxLines: 3);
+                                        return LayoutBuilder(
+                                          builder: (context, constraints) {
+                                            final textPainter = TextPainter(
+                                              text: TextSpan(text: text, style: TextStyle(fontSize: 22)),
+                                              textDirection: TextDirection.ltr,
+                                              maxLines: 1,
+                                            );
+                                            textPainter.layout(maxWidth: constraints.maxWidth);
+
+                                            if (textPainter.didExceedMaxLines) {
+                                              int end = text.length;
+                                              String truncated = text;
+
+                                              while (end > 0) {
+                                                truncated = '...${text.substring(text.length - end)}';
+                                                textPainter.text = TextSpan(
+                                                  text: truncated,
+                                                  style: TextStyle(fontSize: 22),
+                                                );
+                                                textPainter.layout(maxWidth: constraints.maxWidth);
+
+                                                if (!textPainter.didExceedMaxLines) break;
+                                                end--;
+                                              }
+
+                                              return Text(truncated, style: TextStyle(fontSize: 22), maxLines: 1);
+                                            }
+
+                                            return Text(text, style: TextStyle(fontSize: 22), maxLines: 1);
+                                          },
+                                        );
                                       },
                                     ),
                                   ],

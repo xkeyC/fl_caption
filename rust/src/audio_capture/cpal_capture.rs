@@ -93,21 +93,25 @@ impl AudioCapture for CpalAudioCapture {
             .expect("Failed to find audio device");
 
             let device_config = if config.is_input {
-                device.default_input_config().expect("Failed to get input config")
+                device
+                    .default_input_config()
+                    .expect("Failed to get input config")
             } else {
-                device.default_output_config().expect("Failed to get output config")
+                device
+                    .default_output_config()
+                    .expect("Failed to get output config")
             };
 
             let audio_cancel_token = cancel_token.child_token();
-            
-            let stream: cpal::Stream = if config.is_input {
-                device.build_input_stream(
+            // use input stream , maybe is a cpal bug
+            let stream: cpal::Stream = device
+                .build_input_stream(
                     &device_config.config(),
                     move |pcm: &[f32], _: &cpal::InputCallbackInfo| {
                         if audio_cancel_token.is_cancelled() {
                             return;
                         }
-                        
+
                         let mono_pcm = merge_channels(pcm, channels);
                         if !mono_pcm.is_empty() {
                             let resampled_pcm = resample_audio(&mono_pcm, resample_ratio);
@@ -119,26 +123,7 @@ impl AudioCapture for CpalAudioCapture {
                     },
                     None,
                 )
-            } else {
-                device.build_output_stream(
-                    &device_config.config(),
-                    move |pcm: &mut [f32], _: &cpal::OutputCallbackInfo| {
-                        if audio_cancel_token.is_cancelled() {
-                            return;
-                        }
-                        
-                        let captured_pcm = merge_channels(pcm, channels);
-                        if !captured_pcm.is_empty() {
-                            let resampled_pcm = resample_audio(&captured_pcm, resample_ratio);
-                            let _ = tx.send(resampled_pcm);
-                        }
-                    },
-                    move |err| {
-                        eprintln!("Audio stream error: {}", err);
-                    },
-                    None,
-                )
-            }.expect("Failed to create audio stream");
+                .expect("Failed to create audio stream");
 
             if let Err(e) = stream.play() {
                 eprintln!("Failed to start audio stream: {}", e);

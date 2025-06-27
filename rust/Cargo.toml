@@ -15,7 +15,7 @@ candle-core = { version = "0.9.1" }
 candle-nn = { version = "0.9.1" }
 candle-transformers = { version = "0.9.1" }
 candle-onnx = { version = "0.9.1" }
-tokenizers = "0.21.0"
+tokenizers = "0.21"
 serde_json = "1.0.140"
 rand = "0.9.1"
 rand_distr = "0.5.1"

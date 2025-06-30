@@ -116,7 +116,36 @@ jobs:
             libspa-0.2-dev \
             pipewire-audio-client-libraries \
             pipewire \
-            wireplumber
+            wireplumber \
+            libtinfo5 \
+            libasound2-dev \
+            libpulse-dev \
+            libjack-jackd2-dev \
+            libssl-dev \
+            libfontconfig1-dev \
+            libfreetype6-dev \
+            libxrandr-dev \
+            libxinerama-dev \
+            libxcursor-dev \
+            libxi-dev \
+            libxss-dev \
+            libglu1-mesa-dev \
+            libxmu-dev \
+            libxpm-dev \
+            libxaw7-dev \
+            libxcomposite-dev \
+            libxdamage-dev \
+            libxfixes-dev \
+            libxext-dev \
+            libx11-dev \
+            libxrender-dev \
+            libxft-dev \
+            libappindicator3-dev \
+            libayatana-appindicator3-dev \
+            libdbus-1-dev \
+            libnotify-dev \
+            libsecret-1-dev \
+            libkeybinder-3.0-dev
 
       - name: Clean up after package installation
         run: |

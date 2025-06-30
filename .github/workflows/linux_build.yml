@@ -1,0 +1,113 @@
+name: "Linux Build"
+on:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup Protoc
+        uses: arduino/setup-protoc@v3
+      
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            clang \
+            cmake \
+            ninja-build \
+            pkg-config \
+            libgtk-3-dev \
+            liblzma-dev \
+            libstdc++-12-dev
+            
+      - name: Setup CUDA Toolkit
+        uses: Jimver/cuda-toolkit@v0.2.24
+        id: cuda-toolkit
+        with:
+          cuda: '12.4.0'
+
+      - name: Display CUDA Version
+        run: |
+          echo "Installed cuda version is: ${{steps.cuda-toolkit.outputs.cuda}}"
+
+      - name: Display CUDA Install Location
+        run: |
+          echo "Cuda install location is: ${{steps.cuda-toolkit.outputs.CUDA_PATH}}"
+
+      - name: Test NVCC
+        run: nvcc -V
+
+      - name: Set CUDA Compute Capability
+        run: echo "CUDA_COMPUTE_CAP=61" >> $GITHUB_ENV
+            
+      - name: Check System Information
+        run: |
+          echo "User: $USER"
+          echo "Date: $(date '+%Y-%m-%d %H:%M:%S')"
+          echo "========== System Information =========="
+          uname -a
+          echo "GCC version:"
+          gcc --version
+          echo "Clang version:"
+          clang --version
+          echo "CMake version:"
+          cmake --version
+          
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+          cache-key: 'flutter-:os:-:channel:-:version:-:arch:-:hash:' # optional, change this to force refresh cache
+          cache-path: '${{ runner.tool_cache }}/flutter/:channel:-:version:-:arch:' # optional, change this to specify the cache path
+      - run: flutter --version
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust Version
+        run: |
+          rustup --version  
+          cargo --version
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "rust"
+          cache-all-crates: true
+
+      - name: Set up LLVM
+        uses: KyleMayes/install-llvm-action@v2
+        with:
+          version: "18"
+
+      - name: Flutter pub get
+        run: flutter pub get
+      - name: Flutter build runner
+        run: dart run build_runner build --delete-conflicting-outputs
+      - name: Rust cargo update
+        run: cargo update
+        working-directory: rust
+
+      - name: Set up Flutter rust bridge
+        run: |
+          cargo install cargo-expand 
+          cargo install 'flutter_rust_bridge_codegen'
+      - name: Flutter Rust bridge generate
+        run: flutter_rust_bridge_codegen generate
+      #      - name: flutter gen l10n
+      #        run: |
+      #          flutter pub global activate intl_utils
+      #          flutter pub global run intl_utils:generate
+   
+      - name: Flutter Build
+        run: |
+          flutter build linux -v
+
+      - name: Archive build
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux
+          path: build/linux/x64/release/bundle

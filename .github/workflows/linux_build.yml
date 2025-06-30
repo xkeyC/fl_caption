@@ -165,11 +165,20 @@ jobs:
           
           # LLVM/Clang support libraries (with error tolerance)
           sudo apt-get install -y \
-            libtinfo5 \
             libtinfo6 \
-            libncurses5-dev \
-            libncurses6-dev \
             || true
+
+      - name: Install libtinfo5 and libncurses5-dev manually
+        run: |
+          # Download and install libtinfo5
+          wget http://security.ubuntu.com/ubuntu/pool/universe/n/ncurses/libtinfo5_6.3-2ubuntu0.1_amd64.deb
+          sudo apt install -y ./libtinfo5_6.3-2ubuntu0.1_amd64.deb
+
+          # Clean up downloaded packages
+          rm -f *.deb
+          
+          # Verify installation
+          dpkg -l | grep -E "(libtinfo5|libncurses5-dev)"
 
       - name: Clean up after package installation
         run: |

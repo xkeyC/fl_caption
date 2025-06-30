@@ -30,5 +30,9 @@
 	<string>NSApplication</string>
 	<key>NSAudioCaptureUsageDescription</key>
 	<string>用于展示实时字幕</string>
+	 <key>NSScreenCaptureUsageDescription</key>
+    <string>用于读取系统音频</string>
+    <key>CGRequestScreenCaptureAccess</key>
+    <string>用于读取系统音频</string>
 </dict>
 </plist>

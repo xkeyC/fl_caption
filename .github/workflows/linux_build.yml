@@ -45,7 +45,6 @@ jobs:
             skopeo \
             kubectl \
             gh \
-            git-lfs \
             llvm-16-dev \
             llvm-17-dev \
             llvm-18-dev \

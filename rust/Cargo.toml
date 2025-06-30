@@ -39,6 +39,9 @@ pipewire = { version = "0.8", features = ["v0_3_44"] }
 candle-core = { version = "0.9.1", features = ["metal"] }
 candle-nn = { version = "0.9.1", features = ["metal"] }
 candle-transformers = { version = "0.9.1", features = ["metal"] }
+screencapturekit = "0.3.5"
+core-foundation = "0.10"
+core-media-rs = "0.3.4"
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(frb_expand)'] }

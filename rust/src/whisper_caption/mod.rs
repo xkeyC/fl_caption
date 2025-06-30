@@ -104,7 +104,7 @@ where
     let mut buffered_pcm = vec![];
     let mut history_pcm = Vec::new();
     let mut last_inference_time = Instant::now();
-    let mut last_vad_passed_time = Instant::now();
+    // let mut last_vad_passed_time = Instant::now();
     let mut first_inference_done = false;
     let inference_interval = Duration::from_millis(inference_interval_ms.unwrap_or(2000)); // 默认2000毫秒
     let max_audio_duration: usize = whisper_max_audio_duration.unwrap_or(12) as usize; // 默认12秒
@@ -184,10 +184,10 @@ where
         }
 
         // 如果最后有效推理间隔大于设定间隔的两倍，则清空历史音频 （考虑到自然停顿等）
-        if now.duration_since(last_vad_passed_time) > inference_interval * 2 {
-            println!("Clearing buffered_pcm due to long silence");
-            history_pcm.clear();
-        }
+        // if now.duration_since(last_vad_passed_time) > inference_interval * 2 {
+        //     println!("Clearing buffered_pcm due to long silence");
+        //     history_pcm.clear();
+        // }
 
         // 记录推理开始时间
         let inference_start = Instant::now();
@@ -205,7 +205,7 @@ where
                 );
                 if vad_result.prediction > vad_filters_value.unwrap_or(0.1) {
                     buffered_pcm = vad_result.pcm_results;
-                    last_vad_passed_time = Instant::now();
+                    // last_vad_passed_time = Instant::now();
                 } else {
                     buffered_pcm.clear();
                     last_inference_time = Instant::now();

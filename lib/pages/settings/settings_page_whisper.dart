@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:fl_caption/common/dialog_utils.dart';
 import 'package:fl_caption/common/whisper/models.dart';
 import 'package:fl_caption/dialogs/model_download_dialog.dart';
@@ -25,7 +27,7 @@ class SettingsWhisperPage extends HookConsumerWidget {
           onChanged: (value) {
             appSettingsData.value = appSettingsData.value?.copyWith(tryWithCuda: value);
           },
-          content: const Text("启用 CUDA 加速 (需要 NVIDIA 显卡)"),
+          content: Text(Platform.isMacOS ? "启用 Metal 加速 （需要 Apple Silicon 处理器）" : "启用 CUDA 加速 (需要 NVIDIA 显卡)"),
         ),
         const SizedBox(height: 16),
         Row(

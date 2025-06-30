@@ -21,7 +21,7 @@ A new Flutter FFI plugin project.
   s.source_files     = 'Classes/**/*'
   s.dependency 'FlutterMacOS'
   
-  s.frameworks = 'AudioToolbox', 'CoreAudio', 'AudioUnit', 'MetalPerformanceShaders'
+  s.frameworks = 'AudioToolbox', 'CoreAudio', 'AudioUnit', 'MetalPerformanceShaders','CoreMedia', 'CoreFoundation', 'CoreGraphics', 'ScreencaptureKit'
   s.libraries = 'c++'
 
   s.platform = :osx, '10.11'

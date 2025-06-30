@@ -35,6 +35,13 @@ Future<void> main(List<String> args) async {
   await windowManager.setAsFrameless();
   await windowManager.setAlwaysOnTop(true);
   await windowManager.setMaximizable(false);
+
+  if (Platform.isMacOS) {
+    Window.makeTitlebarTransparent();
+    Window.makeWindowFullyTransparent();
+    Window.enableFullSizeContentView();
+  }
+
   await Rhttp.init();
   await RustLib.init();
   Hive.init("${(await getApplicationSupportDirectory()).absolute.path}/db");

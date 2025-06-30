@@ -21,15 +21,84 @@ jobs:
           dpkg-query -Wf '${Installed-Size}\t${Package}\n' | sort -n | tail -n 100
           df -h
           echo "Removing large packages"
-          sudo apt-get remove -y '^ghc-8.*'
-          sudo apt-get remove -y '^dotnet-.*'
-          sudo apt-get remove -y '^llvm-.*'
-          sudo apt-get remove -y 'php.*'
-          sudo apt-get remove -y azure-cli google-cloud-sdk hhvm google-chrome-stable firefox powershell mono-devel
+          # Remove packages that are confirmed to exist based on the output
+          sudo apt-get remove -y --purge \
+            azure-cli \
+            google-cloud-cli \
+            google-chrome-stable \
+            firefox \
+            powershell \
+            microsoft-edge-stable \
+            temurin-8-jdk \
+            temurin-11-jdk \
+            temurin-17-jdk \
+            temurin-21-jdk \
+            mysql-server-core-8.0 \
+            mysql-client-core-8.0 \
+            postgresql-16 \
+            snapd \
+            containerd.io \
+            docker-ce \
+            docker-ce-cli \
+            podman \
+            buildah \
+            skopeo \
+            kubectl \
+            gh \
+            git-lfs \
+            llvm-16-dev \
+            llvm-17-dev \
+            llvm-18-dev \
+            llvm-16 \
+            llvm-17 \
+            llvm-18 \
+            libllvm16t64 \
+            libllvm17t64 \
+            libllvm18 \
+            libllvm19 \
+            || true
+          
+          # Remove dotnet packages
+          sudo apt-get remove -y --purge \
+            dotnet-sdk-8.0 \
+            dotnet-runtime-8.0 \
+            dotnet-targeting-pack-8.0 \
+            aspnetcore-runtime-8.0 \
+            aspnetcore-targeting-pack-8.0 \
+            netstandard-targeting-pack-2.1-8.0 \
+            || true
+          
+          # Remove additional development tools we don't need
+          sudo apt-get remove -y --purge \
+            mercurial-common \
+            ruby3.2-doc \
+            python-babel-localedata \
+            vim-runtime \
+            shellcheck \
+            clang-tidy-16 \
+            clang-tidy-17 \
+            clang-tidy-18 \
+            clang-tools-16 \
+            clang-tools-17 \
+            clang-tools-18 \
+            mecab-ipadic \
+            || true
+          
           df -h
           echo "Removing large directories"
-          # deleting 15GB
-          rm -rf /usr/share/dotnet/
+          # Remove large directories
+          sudo rm -rf /usr/share/dotnet/ || true
+          sudo rm -rf /usr/local/share/powershell || true
+          sudo rm -rf /usr/local/lib/android || true
+          sudo rm -rf /opt/ghc || true
+          sudo rm -rf /usr/local/.ghcup || true
+          sudo rm -rf /usr/share/swift || true
+          sudo rm -rf /usr/local/graalvm || true
+          sudo rm -rf /usr/local/share/boost || true
+          sudo rm -rf /usr/local/share/vcpkg || true
+          sudo rm -rf /usr/local/share/chromium || true
+          sudo rm -rf /usr/share/gradle || true
+          
           df -h
       
       - name: Install Linux dependencies

@@ -26,18 +26,24 @@ uuid = { version = "1.17.0", features = ["v4"] }
 native-dialog = "0.9.0"
 rayon = "1.10.0"
 
-[target.'cfg(any(target_os = "windows", target_os = "linux"))'.dependencies]
+[target.'cfg(any(target_os = "windows"))'.dependencies]
 candle-core = { version = "0.9.1", features = ["cuda"] }
 candle-nn = { version = "0.9.1", features = ["cuda"] }
 candle-transformers = { version = "0.9.1", features = ["cuda"] }
+ort = { version = "2.0.0-rc.10", features = ["cuda", "tensorrt", "directml", "download-binaries"] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 pipewire = { version = "0.8", features = ["v0_3_44"] }
+candle-core = { version = "0.9.1", features = ["cuda"] }
+candle-nn = { version = "0.9.1", features = ["cuda"] }
+candle-transformers = { version = "0.9.1", features = ["cuda"] }
+ort = { version = "2.0.0-rc.10", features = ["cuda", "tensorrt", "download-binaries"] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 candle-core = { version = "0.9.1", features = ["metal"] }
 candle-nn = { version = "0.9.1", features = ["metal"] }
 candle-transformers = { version = "0.9.1", features = ["metal"] }
+ort = { version = "2.0.0-rc.10", features = ["coreml", "download-binaries"] }
 screencapturekit = "0.3.5"
 core-foundation = "0.10"
 core-media-rs = "0.3.4"

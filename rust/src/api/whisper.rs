@@ -106,10 +106,7 @@ pub async fn launch_caption(
     };
 
     let r = if p.config_data.ends_with("_onnx") {
-        crate::onnx::launch_caption(p, move |segments| {
-            let _ = stream_sink.add(segments);
-        })
-        .await
+        Err(anyhow::anyhow!("Not Impl now"))
     } else {
         whisper_caption::launch_caption(p, move |segments| {
             let _ = stream_sink.add(segments);

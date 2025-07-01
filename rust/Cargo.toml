@@ -26,14 +26,17 @@ once_cell = "1.21.3"
 uuid = { version = "1.17.0", features = ["v4"] }
 native-dialog = "0.9.0"
 rayon = "1.10.0"
+sherpa-rs = { version = "0.6.6", features = ["tts", "static"] }
 
 [target.'cfg(any(target_os = "windows", target_os = "linux"))'.dependencies]
 candle-core = { version = "0.9.1", features = ["cuda"] }
 candle-nn = { version = "0.9.1", features = ["cuda"] }
 candle-transformers = { version = "0.9.1", features = ["cuda"] }
+sherpa-rs = { version = "0.6.6", features = ["cuda", "directml"] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 pipewire = { version = "0.8", features = ["v0_3_44"] }
+sherpa-rs = { version = "0.6.6", features = ["cuda"] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 candle-core = { version = "0.9.1", features = ["metal"] }

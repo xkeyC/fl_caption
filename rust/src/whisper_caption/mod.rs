@@ -12,31 +12,58 @@ use tokenizers::Tokenizer;
 use tokio::time::Instant;
 use tokio_util::sync::CancellationToken;
 
+
+pub struct LaunchCaptionParams {
+    pub model_path: String,
+    pub config_data: String,
+    pub is_quantized: bool,
+    pub tokenizer_data: Vec<u8>,
+    pub audio_device: Option<String>,
+    pub audio_device_is_input: Option<bool>,
+    pub audio_language: Option<String>,
+    pub is_multilingual: Option<bool>,
+    pub cancel_token: CancellationToken,
+    pub with_timestamps: Option<bool>,
+    pub verbose: Option<bool>,
+    pub try_with_cuda: bool,
+    pub inference_timeout: Option<Duration>,     // 推理总超时参数
+    pub max_tokens_per_segment: Option<usize>,   // 防止幻觉的每段最大token数
+    pub whisper_max_audio_duration: Option<u32>, // 音频上下文长度(秒)
+    pub inference_interval_ms: Option<u64>,      // 推理间隔时间(毫秒)
+    pub whisper_temperature: Option<f32>,        // 温度参数
+    pub vad_model_path: Option<String>,          // VAD模型路径
+    pub vad_filters_value: Option<f32>,          // VAD模型阈值
+}
+
 pub async fn launch_caption<F>(
-    model_path: String,
-    config_data: &str,
-    is_quantized: bool,
-    tokenizer_data: Vec<u8>,
-    audio_device: Option<String>,
-    audio_device_is_input: Option<bool>,
-    audio_language: Option<String>,
-    is_multilingual: Option<bool>,
-    cancel_token: CancellationToken,
-    with_timestamps: Option<bool>,
-    verbose: Option<bool>,
-    try_with_cuda: bool,
-    inference_timeout: Option<Duration>,     // 推理总超时参数
-    max_tokens_per_segment: Option<usize>,   // 防止幻觉的每段最大token数
-    whisper_max_audio_duration: Option<u32>, // 音频上下文长度(秒)
-    inference_interval_ms: Option<u64>,      // 推理间隔时间(毫秒)
-    whisper_temperature: Option<f32>,        // 温度参数
-    vad_model_path: Option<String>,          // VAD模型路径
-    vad_filters_value: Option<f32>,          // VAD模型阈值
+    params: LaunchCaptionParams,
     mut result_callback: F,
-) -> anyhow::Result<()>
+) -> anyhow::Result<()> 
 where
     F: FnMut(Vec<Segment>) + Send + 'static,
 {
+    let LaunchCaptionParams {
+        model_path,
+        config_data,
+        is_quantized,
+        tokenizer_data,
+        audio_device,
+        audio_device_is_input,
+        audio_language,
+        is_multilingual,
+        cancel_token,
+        with_timestamps,
+        verbose,
+        try_with_cuda,
+        inference_timeout,
+        max_tokens_per_segment,
+        whisper_max_audio_duration,
+        inference_interval_ms,
+        whisper_temperature,
+        vad_model_path,
+        vad_filters_value,
+    } = params;
+
     result_callback(_make_status_response(whisper::WhisperStatus::Loading));
     let device = get_device(try_with_cuda)?;
     let arg_is_multilingual = is_multilingual.unwrap_or(false);
@@ -44,7 +71,7 @@ where
     let arg_device = audio_device;
     let is_input = audio_device_is_input.unwrap_or(true);
 
-    let config: Config = serde_json::from_str(config_data)?;
+    let config: Config = serde_json::from_str(&config_data)?;
     let tokenizer = Tokenizer::from_bytes(tokenizer_data).unwrap();
 
     // check model path

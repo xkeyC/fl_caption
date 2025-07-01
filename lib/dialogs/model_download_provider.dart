@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:fl_caption/common/io/http.dart';
 import 'package:fl_caption/common/whisper/models.dart';
+import 'package:fl_caption/common/whisper/onnx_models.dart';
 import 'package:flutter/foundation.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -28,7 +29,13 @@ abstract class ModelDownloadStateData with _$ModelDownloadStateData {
 class ModelDownloadState extends _$ModelDownloadState {
   @override
   ModelDownloadStateData build(String modelName, String savePath) {
-    final modelFile = File("$savePath/$modelName");
+    final modelData = whisperModels[modelName];
+    late final File modelFile;
+    if (modelData is OnnxModelsData) {
+      modelFile = File('$savePath/onnx/${modelData.name}');
+    } else {
+      modelFile = File('$savePath/${modelData?.name ?? modelName}');
+    }
 
     final fileExists = modelFile.existsSync();
 

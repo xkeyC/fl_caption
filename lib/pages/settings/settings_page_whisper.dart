@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:fl_caption/common/dialog_utils.dart';
 import 'package:fl_caption/common/whisper/models.dart';
+import 'package:fl_caption/common/whisper/onnx_models.dart';
 import 'package:fl_caption/dialogs/model_download_dialog.dart';
 import 'package:fl_caption/dialogs/model_download_provider.dart';
 import 'package:fl_caption/pages/settings/settings_provider.dart';
@@ -126,7 +127,14 @@ class SettingsWhisperPage extends HookConsumerWidget {
                 isExpanded: true,
                 value: appSettingsData.value?.whisperModel,
                 items:
-                    whisperModels.keys.map((model) => ComboBoxItem<String>(value: model, child: Text(model))).toList(),
+                    whisperModels.values
+                        .map(
+                          (model) => ComboBoxItem<String>(
+                            value: model.name,
+                            child: Text(model is OnnxModelsData ? "[ONNX] ${model.name}" : model.name),
+                          ),
+                        )
+                        .toList(),
                 onChanged: (value) {
                   if (value != null) {
                     appSettingsData.value = appSettingsData.value?.copyWith(whisperModel: value);
@@ -161,12 +169,16 @@ class SettingsWhisperPage extends HookConsumerWidget {
             final modelName = appSettingsData.value!.whisperModel;
             final modelData = whisperModels[modelName];
             final ok = await showConfirmDialogs(context, "确认开始下载模型 $modelName？", Text("这将占用大约 ${modelData?.size} 空间"));
+            var savePath = modelDirController.text.trim();
+            if (modelData is OnnxModelsData) {
+              savePath = "$savePath/onnx/";
+            }
             if (ok) {
               if (!context.mounted) return;
               final downloadOK = await showDialog(
                 context: context,
                 builder: (BuildContext context) {
-                  return ModelDownloadDialog(model: modelData!, savePath: modelDirController.text);
+                  return ModelDownloadDialog(model: modelData!, savePath: savePath);
                 },
               );
               if (downloadOK != true) {

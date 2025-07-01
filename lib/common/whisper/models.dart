@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:fl_caption/common/whisper/onnx_models.dart';
+
 /// Models for the Whisper API
 class WhisperModelData {
   final String name;
@@ -40,7 +42,9 @@ enum WhisperModelConfigType {
   largeV3Turbo('large-v3-turbo'),
   jaAnimeV0_1('ja-anime-v0.1'),
   jaAnimeV0_3('ja-anime-v0.3'),
-  distilLargeV3_5('distil-large-v3.5');
+  distilLargeV3_5('distil-large-v3.5'),
+  onnx('onnx');
+
   final String name;
 
   const WhisperModelConfigType(this.name);
@@ -137,4 +141,5 @@ const Map<String, WhisperModelData> whisperModels = {
     downloadUrl: 'https://huggingface.co/distil-whisper/distil-large-v3.5/resolve/main/model.safetensors',
     configType: WhisperModelConfigType.distilLargeV3_5,
   ),
+  ...OnnxModelsData.onnxModels,
 };

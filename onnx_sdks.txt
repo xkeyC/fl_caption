@@ -1,0 +1,3 @@
+macos: https://github.com/k2-fsa/sherpa-onnx/releases/download/v1.11.5/sherpa-onnx-v1.11.5-osx-universal2-static.tar.bz2
+windows: https://github.com/k2-fsa/sherpa-onnx/releases/download/v1.11.5/sherpa-onnx-v1.11.5-win-x64-static.tar.bz2
+linux: https://github.com/k2-fsa/sherpa-onnx/releases/download/v1.11.5/sherpa-onnx-v1.11.5-linux-x64-static.tar.bz2

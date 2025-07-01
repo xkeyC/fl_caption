@@ -83,32 +83,39 @@ pub async fn launch_caption(
         }
     };
 
-    let r = whisper_caption::launch_caption(
-        whisper_client.whisper_model,
-        &whisper_client.whisper_config,
-        whisper_client.is_quantized,
-        whisper_client.whisper_tokenizer,
+    let p = whisper_caption::LaunchCaptionParams {
+        model_path: whisper_client.whisper_model,
+        config_data: whisper_client.whisper_config,
+        is_quantized: whisper_client.is_quantized,
+        tokenizer_data: whisper_client.whisper_tokenizer,
         audio_device,
         audio_device_is_input,
         audio_language,
-        Some(whisper_client.is_multilingual),
+        is_multilingual: Some(whisper_client.is_multilingual),
         cancel_token,
         with_timestamps,
         verbose,
-        try_with_cuda.unwrap_or(false),
-        // 使用inference_interval作为超时时间
-        inference_interval.map(|ms| Duration::from_millis(ms)),
-        whisper_default_max_decode_tokens,
-        whisper_max_audio_duration, // 传递音频上下文长度
-        inference_interval,         // 传递推理间隔时间
-        whisper_temperature,        // 传递温度参数
-        vad_model_path,             // 传递VAD模型路径
+        try_with_cuda: try_with_cuda.unwrap_or(false),
+        inference_timeout: inference_interval.map(|ms| Duration::from_millis(ms)),
+        max_tokens_per_segment: whisper_default_max_decode_tokens,
+        whisper_max_audio_duration,
+        inference_interval_ms: inference_interval,
+        whisper_temperature,
+        vad_model_path,
         vad_filters_value,
-        move |segments| {
+    };
+
+    let r = if p.config_data.ends_with("_onnx") {
+        crate::onnx::launch_caption(p, move |segments| {
             let _ = stream_sink.add(segments);
-        },
-    )
-    .await;
+        })
+        .await
+    } else {
+        whisper_caption::launch_caption(p, move |segments| {
+            let _ = stream_sink.add(segments);
+        })
+        .await
+    };
     if let Err(e) = r {
         stream_sink_clone
             .add_error(format!("Error in whisper captioning: {e}"))

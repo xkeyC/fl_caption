@@ -1,0 +1,6 @@
+[target.'cfg(target_os = "windows")']
+rustflags = [
+    "-C", "link-args=/FORCE:MULTIPLE",
+    "-C", "link-args=/NODEFAULTLIB:LIBCMT",
+    "-C", "link-args=/NODEFAULTLIB:LIBCPMT"
+]

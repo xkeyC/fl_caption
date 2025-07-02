@@ -65,7 +65,7 @@ class DartWhisper extends _$DartWhisper {
     if (model is OnnxModelsData) {
       return "${model.onnxExecMode}_onnx";
     }
-    return await rootBundle.loadString("assets/whisper/${model.name}-config.json");
+    return await rootBundle.loadString("assets/whisper/${model.configType.name}-config.json");
   }
 
   Future<Uint8List> getTokenizerByModel(WhisperModelData model) async {
@@ -74,7 +74,7 @@ class DartWhisper extends _$DartWhisper {
         return (await rootBundle.load("assets/whisper/onnx/${model.name}-tokens.txt")).buffer.asUint8List();
       }
     }
-    return (await rootBundle.load("assets/whisper/${model.name}-tokenizer.json")).buffer.asUint8List();
+    return (await rootBundle.load("assets/whisper/${model.configType.name}-tokenizer.json")).buffer.asUint8List();
   }
 }
 

@@ -34,9 +34,7 @@ candle-nn = { version = "0.9.1", features = ["cuda"] }
 candle-transformers = { version = "0.9.1", features = ["cuda"] }
 ort = { version = "2.0.0-rc.10", features = [
     "cuda",
-    "tensorrt",
     "directml",
-    "webgpu",
     "xnnpack",
     "download-binaries",
 ] }
@@ -48,8 +46,6 @@ candle-nn = { version = "0.9.1", features = ["cuda"] }
 candle-transformers = { version = "0.9.1", features = ["cuda"] }
 ort = { version = "2.0.0-rc.10", features = [
     "cuda",
-    "tensorrt",
-    "webgpu",
     "xnnpack",
     "download-binaries",
 ] }
@@ -75,14 +71,3 @@ opt-level = 3
 lto = true
 codegen-units = 1
 debug = false
-rpath = true
-
-[profile.dev]
-rpath = true
-
-
-[target.x86_64-unknown-linux-gnu]
-rustflags = ["-Clink-args=-Wl,-rpath,\\$ORIGIN"]
-
-[target.x86_64-apple-darwin]
-rustflags = ["-Clink-args=-Wl,-rpath,@loader_path"]

@@ -1,4 +1,6 @@
-use ort::execution_providers::{ExecutionProviderDispatch, XNNPACKExecutionProvider};
+use ort::execution_providers::{
+    ExecutionProvider, WebGPUExecutionProvider, XNNPACKExecutionProvider,
+};
 use ort::session::Session;
 
 mod sense_voice;
@@ -7,14 +9,12 @@ mod sense_voice;
 use ort::execution_providers::CoreMLExecutionProvider;
 
 #[cfg(any(target_os = "linux", target_os = "windows"))]
-use ort::execution_providers::{
-    CUDAExecutionProvider, TensorRTExecutionProvider, WebGPUExecutionProvider,
-};
-
-#[cfg(target_os = "windows")]
-use ort::execution_providers::DirectMLExecutionProvider;
+use ort::execution_providers::CUDAExecutionProvider;
 
 use crate::whisper_caption::{whisper::Segment, LaunchCaptionParams};
+#[cfg(target_os = "windows")]
+use ort::execution_providers::DirectMLExecutionProvider;
+use ort::session::builder::SessionBuilder;
 
 pub async fn launch_caption<F>(
     params: LaunchCaptionParams,
@@ -36,27 +36,69 @@ where
 }
 
 pub fn init_model(model_path: String, try_gpu: bool) -> anyhow::Result<Session> {
-    let session = Session::builder()?
-        .with_execution_providers(get_onnx_execution_providers(try_gpu))?
-        .commit_from_file(model_path)?;
-    Ok(session)
+    let mut session_builder = Session::builder()?;
+    _register_execution_providers(&mut session_builder, try_gpu)?;
+    Ok(session_builder.commit_from_file(model_path)?)
 }
 
-fn get_onnx_execution_providers(try_gpu: bool) -> Vec<ExecutionProviderDispatch> {
-    let mut providers = Vec::new();
+fn _register_execution_providers(
+    buillder: &mut SessionBuilder,
+    try_gpu: bool,
+) -> anyhow::Result<()> {
+    let mut is_gpu_available = false;
+    let mut is_dml_available = false;
     if try_gpu {
         #[cfg(target_os = "macos")]
-        providers.push(CoreMLExecutionProvider::default().build());
+        {
+            let core_ml = CoreMLExecutionProvider::default();
+            if core_ml.register(buillder).is_ok() {
+                println!("Registered CoreML execution provider");
+            }
+        }
+
         #[cfg(any(target_os = "linux", target_os = "windows"))]
         {
-            providers.push(TensorRTExecutionProvider::default().build());
-            providers.push(CUDAExecutionProvider::default().build());
-            providers.push(WebGPUExecutionProvider::default().build());
+            let cuda = CUDAExecutionProvider::default();
+            if cuda.register(buillder).is_ok() {
+                is_gpu_available = true;
+                println!("Registered CUDA execution provider");
+            } else {
+                eprintln!("Failed to register CUDA execution provider");
+            }
+
+            let w_gpu = WebGPUExecutionProvider::default();
+            if w_gpu.register(buillder).is_ok() {
+                is_gpu_available = true;
+                println!("Registered WebGPU execution provider");
+            } else {
+                eprintln!("Failed to register WebGPU execution provider");
+            }
         }
+
+        // or else, use Dml
         #[cfg(target_os = "windows")]
-        providers.push(DirectMLExecutionProvider::default().build());
+        {
+            if !is_gpu_available {
+                let direct_ml = DirectMLExecutionProvider::default();
+                if direct_ml.register(buillder).is_ok() {
+                    is_dml_available = true;
+                    println!("Registered DirectML execution provider");
+                } else {
+                    eprintln!("Failed to register DirectML execution provider");
+                }
+            }
+        }
     }
-    // xnnpack is a cpu execution provider
-    providers.push(XNNPACKExecutionProvider::default().build());
-    providers
+
+    // if you use dml, any other execution provider is not needed
+    if !is_dml_available {
+        let xnn_pack = XNNPACKExecutionProvider::default();
+        if xnn_pack.register(buillder).is_ok() {
+            println!("Registered XNNPACK execution provider");
+        } else {
+            eprintln!("Failed to register XNNPACK execution provider");
+        }
+    }
+
+    Ok(())
 }

@@ -1,6 +1,7 @@
 name: "macOS Build"
 on:
   workflow_dispatch:
+    inputs: {}
 jobs:
   build:
     runs-on: macos-latest

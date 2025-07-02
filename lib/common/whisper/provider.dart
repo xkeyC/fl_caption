@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:fl_caption/common/rust/whisper_caption/whisper.dart' show WhisperStatus;
@@ -71,15 +70,9 @@ class DartWhisper extends _$DartWhisper {
 
   Future<Uint8List> getTokenizerByModel(WhisperModelData model) async {
     if (model is OnnxModelsData) {
-      // ONNX models do not use a tokenizer, export token.txt and return file path
-      final tokenData = await rootBundle.loadString("assets/whisper/onnx/${model.name}-token.txt");
-      final appSupportDir = await getApplicationSupportDirectory();
-      final tokenFile = File('${appSupportDir.path}/onnx_config/${model.name}-token.txt');
-      if (!await tokenFile.exists()) {
-        await tokenFile.create(recursive: true);
+      if (model.onnxExecMode == "sense-voice") {
+        return (await rootBundle.load("assets/whisper/onnx/${model.name}-tokens.txt")).buffer.asUint8List();
       }
-      await tokenFile.writeAsString(tokenData, flush: true);
-      return utf8.encode(tokenFile.absolute.path);
     }
     return (await rootBundle.load("assets/whisper/${model.name}-tokenizer.json")).buffer.asUint8List();
   }

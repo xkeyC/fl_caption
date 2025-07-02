@@ -1689,6 +1689,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "kaldi-fbank-rust"
+version = "0.1.0"
+dependencies = [
+ "cc",
+]
+
+[[package]]
 name = "lazy_static"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2493,6 +2500,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e2aba9f5c7c479925205799216e7e5d07cc1d4fa76ea8058c60a9a30f6a4e890"
 dependencies = [
  "flate2",
+ "glob",
  "pkg-config",
  "sha2",
  "tar",
@@ -2925,7 +2933,9 @@ dependencies = [
  "core-media-rs",
  "cpal",
  "flutter_rust_bridge",
+ "kaldi-fbank-rust",
  "native-dialog",
+ "ndarray",
  "once_cell",
  "ort",
  "pipewire",

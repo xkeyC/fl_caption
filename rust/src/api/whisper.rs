@@ -1,3 +1,4 @@
+use crate::onnx_models;
 use crate::{frb_generated::StreamSink, whisper_caption};
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
@@ -106,7 +107,10 @@ pub async fn launch_caption(
     };
 
     let r = if p.config_data.ends_with("_onnx") {
-        Err(anyhow::anyhow!("Not Impl now"))
+        onnx_models::launch_caption(p, move |segments| {
+            let _ = stream_sink.add(segments);
+        })
+        .await
     } else {
         whisper_caption::launch_caption(p, move |segments| {
             let _ = stream_sink.add(segments);

@@ -73,6 +73,7 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
+    - assets/whisper/
     - assets/whisper/onnx/
     - assets/models/
   fonts:

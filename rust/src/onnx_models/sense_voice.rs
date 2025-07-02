@@ -23,10 +23,33 @@ pub struct SenseVoiceModel {
 impl SenseVoiceModel {
     pub fn from_session(session: Session) -> anyhow::Result<Self> {
         // 尝试获取自定义元数据，如果失败则使用默认值
-        let window_size = 7; // 默认 lfr_m
-        let window_shift = 6; // 默认 lfr_n
 
-        // 语言ID映射 - 使用默认值
+        // 从模型元数据中获取参数
+        let mut window_size = 7; // 默认值
+        let mut window_shift = 6; // 默认值
+        let mut with_itn = 1; // 默认值
+        let without_itn = 0;
+        
+        // 尝试从metadata获取实际参数
+        if let Ok(metadata) = session.metadata() {
+            if let Ok(Some(lfr_window_size)) = metadata.custom("lfr_window_size") {
+                if let Ok(size) = lfr_window_size.parse::<i32>() {
+                    window_size = size;
+                }
+            }
+            if let Ok(Some(lfr_window_shift)) = metadata.custom("lfr_window_shift") {
+                if let Ok(shift) = lfr_window_shift.parse::<i32>() {
+                    window_shift = shift;
+                }
+            }
+            if let Ok(Some(with_itn_str)) = metadata.custom("with_itn") {
+                if let Ok(itn) = with_itn_str.parse::<i32>() {
+                    with_itn = itn;
+                }
+            }
+        }
+
+        // 语言ID映射
         let mut lang_id = HashMap::new();
         lang_id.insert("zh".to_string(), 0);
         lang_id.insert("en".to_string(), 1);
@@ -34,12 +57,64 @@ impl SenseVoiceModel {
         lang_id.insert("ko".to_string(), 3);
         lang_id.insert("auto".to_string(), 4);
 
-        let with_itn = 1;
-        let without_itn = 0;
+        // 归一化参数 - 根据window_size动态计算维度
+        let feature_dim = 80 * window_size as usize;
+        let mut neg_mean = vec![0.0; feature_dim];
+        let mut inv_stddev = vec![1.0; feature_dim];
+        
+        // 从metadata获取归一化参数
+        if let Ok(metadata) = session.metadata() {
+            if let Ok(Some(inv_stddev_str)) = metadata.custom("inv_stddev") {
+                let values: Vec<f32> = inv_stddev_str
+                    .split(',')
+                    .filter_map(|s| s.trim().parse().ok())
+                    .collect();
+                if values.len() == feature_dim {
+                    inv_stddev = values;
+                }
+            }
+            if let Ok(Some(neg_mean_str)) = metadata.custom("neg_mean") {
+                let values: Vec<f32> = neg_mean_str
+                    .split(',')
+                    .filter_map(|s| s.trim().parse().ok())
+                    .collect();
+                if values.len() == feature_dim {
+                    neg_mean = values;
+                }
+            }
+        }
 
-        // 默认归一化参数 (80*7=560维)
-        let neg_mean = vec![0.0; 560];
-        let inv_stddev = vec![1.0; 560];
+        println!("SenseVoice model parameters loaded:");
+        println!("  - window_size (lfr_m): {}", window_size);
+        println!("  - window_shift (lfr_n): {}", window_shift);
+        println!("  - with_itn: {}, without_itn: {}", with_itn, without_itn);
+        println!(
+            "  - neg_mean length: {}, inv_stddev length: {}",
+            neg_mean.len(),
+            inv_stddev.len()
+        );
+        println!("  - language mappings: {:?}", lang_id);
+
+        // 尝试打印可用的元数据信息用于调试
+        if let Ok(metadata) = session.metadata() {
+            println!("Available metadata:");
+            println!("  - version: {:?}", metadata.version());
+            println!("  - with_itn: {:?}", metadata.custom("with_itn"));
+            println!("  - lfr_window_size: {:?}", metadata.custom("lfr_window_size"));
+            println!("  - lfr_window_shift: {:?}", metadata.custom("lfr_window_shift"));
+        }
+
+        // 打印模型的输入信息用于调试
+        println!("Model inputs:");
+        for input in session.inputs.iter() {
+            println!("  - name: {}, type: {:?}", input.name, input.input_type);
+        }
+
+        // 打印模型的输出信息用于调试
+        println!("Model outputs:");
+        for output in session.outputs.iter() {
+            println!("  - name: {}, type: {:?}", output.name, output.output_type);
+        }
 
         Ok(Self {
             session,
@@ -61,54 +136,58 @@ impl SenseVoiceModel {
         use_itn: bool,
     ) -> anyhow::Result<Array2<f32>> {
         use ort::value::Value;
-        use std::collections::HashMap;
 
         let seq_len = features.shape()[0];
 
         // 准备输入张量
         let x = features.insert_axis(Axis(0)); // [1, T, D] - 添加batch维度
 
-        // 将所有输入转换为f32类型
-        let x_length = Array1::from_vec(vec![seq_len as f32]);
+        // 根据模型输入要求，x_length, language, text_norm 需要是 i32 类型
+        let x_length = Array1::from_vec(vec![seq_len as i32]);
 
         let language_id = self
             .lang_id
             .get(language)
             .copied()
             .unwrap_or(self.lang_id.get("auto").copied().unwrap_or(4));
-        let language_tensor = Array1::from_vec(vec![language_id as f32]);
+        let language_tensor = Array1::from_vec(vec![language_id]);
 
         let text_norm_id = if use_itn {
             self.with_itn
         } else {
             self.without_itn
         };
-        let text_norm_tensor = Array1::from_vec(vec![text_norm_id as f32]);
+        let text_norm_tensor = Array1::from_vec(vec![text_norm_id]);
 
-        // 创建输入映射
-        let mut inputs = HashMap::new();
-        inputs.insert("speech".to_string(), Value::from_array(x)?);
-        inputs.insert("speech_lengths".to_string(), Value::from_array(x_length)?);
-        inputs.insert("language".to_string(), Value::from_array(language_tensor)?);
-        inputs.insert(
-            "text_norm".to_string(),
-            Value::from_array(text_norm_tensor)?,
-        );
+        // 转换为 Value 类型
+        let x_value = Value::from_array(x)?;
+        let x_length_value = Value::from_array(x_length)?;
+        let language_value = Value::from_array(language_tensor)?;
+        let text_norm_value = Value::from_array(text_norm_tensor)?;
 
-        // 执行ONNX推理
-        let outputs = self.session.run(inputs)?;
+        // 执行ONNX推理 - 使用 ort::inputs! 宏
+        let outputs = self.session.run(ort::inputs![
+            "x" => x_value,
+            "x_length" => x_length_value,
+            "language" => language_value,
+            "text_norm" => text_norm_value,
+        ])?;
 
-        // 获取第一个输出（logits）
+        // 获取输出
         let output_keys: Vec<_> = outputs.keys().collect();
         if output_keys.is_empty() {
             return Err(anyhow::anyhow!("No outputs from model"));
         }
 
-        // 尝试获取logits输出
+        println!("Available output keys: {:?}", output_keys);
+
+        // 尝试获取输出 - 常见的输出名称
         let logits_value = outputs
             .get("logits")
+            .or_else(|| outputs.get("output"))
+            .or_else(|| outputs.get("outputs"))
             .or_else(|| outputs.get(output_keys[0]))
-            .ok_or_else(|| anyhow::anyhow!("Cannot find logits output"))?;
+            .ok_or_else(|| anyhow::anyhow!("Cannot find model output"))?;
 
         // 将ONNX Value转换为ndarray
         match logits_value.try_extract_tensor::<f32>() {
@@ -172,7 +251,6 @@ fn load_tokens(tokens_path: &str) -> anyhow::Result<HashMap<usize, String>> {
     Ok(tokens)
 }
 
-#[allow(dead_code)]
 fn compute_features(
     samples: &[f32],
     sample_rate: f32,
@@ -265,7 +343,6 @@ fn apply_lfr(
     Ok(lfr_features)
 }
 
-#[allow(dead_code)]
 fn apply_normalization(
     features: &Array2<f32>,
     neg_mean: &[f32],
@@ -284,7 +361,6 @@ fn apply_normalization(
     Ok(normalized)
 }
 
-#[allow(dead_code)]
 fn decode_tokens(logits: &Array2<f32>, tokens: &HashMap<usize, String>) -> String {
     // 获取最大概率的token索引
     let indices: Vec<usize> = logits

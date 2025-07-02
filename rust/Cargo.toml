@@ -37,6 +37,7 @@ ort = { version = "2.0.0-rc.10", features = [
     "tensorrt",
     "directml",
     "webgpu",
+    "xnnpack",
     "download-binaries",
 ] }
 
@@ -49,6 +50,7 @@ ort = { version = "2.0.0-rc.10", features = [
     "cuda",
     "tensorrt",
     "webgpu",
+    "xnnpack",
     "download-binaries",
 ] }
 
@@ -58,6 +60,7 @@ candle-nn = { version = "0.9.1", features = ["metal"] }
 candle-transformers = { version = "0.9.1", features = ["metal"] }
 ort = { version = "2.0.0-rc.10", features = [
     "coreml",
+    "xnnpack",
     "download-binaries",
 ] }
 screencapturekit = "0.3.5"

@@ -1,4 +1,4 @@
-use ort::execution_providers::ExecutionProviderDispatch;
+use ort::execution_providers::{ExecutionProviderDispatch, XNNPACKExecutionProvider};
 use ort::session::Session;
 
 mod sense_voice;
@@ -18,7 +18,7 @@ use crate::whisper_caption::{whisper::Segment, LaunchCaptionParams};
 
 pub async fn launch_caption<F>(
     params: LaunchCaptionParams,
-    mut result_callback: F,
+    result_callback: F,
 ) -> anyhow::Result<()>
 where
     F: FnMut(Vec<Segment>) + Send + 'static,
@@ -37,29 +37,26 @@ where
 
 pub fn init_model(model_path: String, try_gpu: bool) -> anyhow::Result<Session> {
     let session = Session::builder()?
-        .with_execution_providers(if try_gpu {
-            get_onnx_execution_providers()
-        } else {
-            Vec::new()
-        })?
+        .with_execution_providers(get_onnx_execution_providers(try_gpu))?
         .commit_from_file(model_path)?;
-    for ele in session.inputs.iter().clone() {
-        println!("ONNX model Input: {:?}", ele);
-    }
     Ok(session)
 }
 
-fn get_onnx_execution_providers() -> Vec<ExecutionProviderDispatch> {
+fn get_onnx_execution_providers(try_gpu: bool) -> Vec<ExecutionProviderDispatch> {
     let mut providers = Vec::new();
-    #[cfg(target_os = "macos")]
-    providers.push(CoreMLExecutionProvider::default().build());
-    #[cfg(any(target_os = "linux", target_os = "windows"))]
-    {
-        providers.push(TensorRTExecutionProvider::default().build());
-        providers.push(CUDAExecutionProvider::default().build());
-        providers.push(WebGPUExecutionProvider::default().build());
+    if try_gpu {
+        #[cfg(target_os = "macos")]
+        providers.push(CoreMLExecutionProvider::default().build());
+        #[cfg(any(target_os = "linux", target_os = "windows"))]
+        {
+            providers.push(TensorRTExecutionProvider::default().build());
+            providers.push(CUDAExecutionProvider::default().build());
+            providers.push(WebGPUExecutionProvider::default().build());
+        }
+        #[cfg(target_os = "windows")]
+        providers.push(DirectMLExecutionProvider::default().build());
     }
-    #[cfg(target_os = "windows")]
-    providers.push(DirectMLExecutionProvider::default().build());
+    // xnnpack is a cpu execution provider
+    providers.push(XNNPACKExecutionProvider::default().build());
     providers
 }

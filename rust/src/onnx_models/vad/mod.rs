@@ -2,6 +2,8 @@ use anyhow::Result;
 use ndarray::{Array1, Array2, Array3, Axis};
 use ort::{inputs, session::Session, value::Value};
 
+use crate::onnx_models;
+
 struct VadModelState {
     frame_size: usize,
     sample_rate: i64,
@@ -72,7 +74,10 @@ impl VadDevice {
 
             let output_keys: Vec<_> = outputs.keys().collect();
             if output_keys.len() < 2 {
-                return Err(anyhow::anyhow!("Expected at least 2 outputs, got {}", output_keys.len()));
+                return Err(anyhow::anyhow!(
+                    "Expected at least 2 outputs, got {}",
+                    output_keys.len()
+                ));
             }
 
             let output = outputs.get(&output_keys[0]).unwrap();
@@ -112,8 +117,9 @@ impl VadDevice {
 }
 
 pub fn new_vad_model(model_path: String, _try_with_gpu: bool) -> Result<VadDevice> {
-    let session = Session::builder()?
-        .commit_from_file(model_path)?;
+    let mut builder = Session::builder()?;
+    onnx_models::register_execution_providers(&mut builder, _try_with_gpu, "vad".to_string())?;
+    let session = builder.commit_from_file(model_path)?;
 
     let sample_rate: i64 = 16000;
     let (frame_size, context_size) = (512, 64);

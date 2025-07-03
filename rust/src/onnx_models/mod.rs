@@ -39,13 +39,14 @@ where
 
 pub fn init_model(model_path: String, try_gpu: bool) -> anyhow::Result<Session> {
     let mut session_builder = Session::builder()?;
-    _register_execution_providers(&mut session_builder, try_gpu)?;
+    register_execution_providers(&mut session_builder, try_gpu, model_path.clone())?;
     Ok(session_builder.commit_from_file(model_path)?)
 }
 
-fn _register_execution_providers(
-    buillder: &mut SessionBuilder,
+pub fn register_execution_providers(
+    builder: &mut SessionBuilder,
     try_gpu: bool,
+    model_print_name: String,
 ) -> anyhow::Result<()> {
     #[allow(unused_variables)]
     #[allow(unused_mut)]
@@ -57,27 +58,39 @@ fn _register_execution_providers(
         #[cfg(target_os = "macos")]
         {
             let core_ml = CoreMLExecutionProvider::default();
-            if core_ml.register(buillder).is_ok() {
-                println!("Registered CoreML execution provider");
+            if core_ml.register(builder).is_ok() {
+                println!(
+                    "[{}] Registered CoreML execution provider",
+                    model_print_name
+                );
             }
         }
 
         #[cfg(any(target_os = "linux", target_os = "windows"))]
         {
             let cuda = CUDAExecutionProvider::default();
-            if cuda.register(buillder).is_ok() {
+            if cuda.register(builder).is_ok() {
                 is_gpu_available = true;
-                println!("Registered CUDA execution provider");
+                println!("[{}] Registered CUDA execution provider", model_print_name);
             } else {
-                eprintln!("Failed to register CUDA execution provider");
+                eprintln!(
+                    "[{}] Failed to register CUDA execution provider",
+                    model_print_name
+                );
             }
 
             let w_gpu = WebGPUExecutionProvider::default();
-            if w_gpu.register(buillder).is_ok() {
+            if w_gpu.register(builder).is_ok() {
                 is_gpu_available = true;
-                println!("Registered WebGPU execution provider");
+                println!(
+                    "[{}] Registered WebGPU execution provider",
+                    model_print_name
+                );
             } else {
-                eprintln!("Failed to register WebGPU execution provider");
+                eprintln!(
+                    "[{}] Failed to register WebGPU execution provider",
+                    model_print_name
+                );
             }
         }
 
@@ -86,11 +99,17 @@ fn _register_execution_providers(
         {
             if !is_gpu_available {
                 let direct_ml = DirectMLExecutionProvider::default();
-                if direct_ml.register(buillder).is_ok() {
+                if direct_ml.register(builder).is_ok() {
                     is_dml_available = true;
-                    println!("Registered DirectML execution provider");
+                    println!(
+                        "[{}] Registered DirectML execution provider",
+                        model_print_names
+                    );
                 } else {
-                    eprintln!("Failed to register DirectML execution provider");
+                    eprintln!(
+                        "[{}] Failed to register DirectML execution provider",
+                        model_print_name
+                    );
                 }
             }
         }
@@ -99,10 +118,16 @@ fn _register_execution_providers(
     // if you use dml, any other execution provider is not needed
     if !is_dml_available {
         let xnn_pack = XNNPACKExecutionProvider::default();
-        if xnn_pack.register(buillder).is_ok() {
-            println!("Registered XNNPACK execution provider");
+        if xnn_pack.register(builder).is_ok() {
+            println!(
+                "[{}] Registered XNNPACK execution provider",
+                model_print_name
+            );
         } else {
-            eprintln!("Failed to register XNNPACK execution provider");
+            eprintln!(
+                "[{}] Failed to register XNNPACK execution provider",
+                model_print_name
+            );
         }
     }
 

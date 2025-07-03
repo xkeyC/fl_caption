@@ -1,18 +1,17 @@
-pub mod multilingual;
 pub mod model;
+pub mod multilingual;
 
 use std::collections::HashMap;
 use std::time::Duration;
 
 use crate::audio_capture::{AudioCapture, AudioCaptureConfig, PlatformAudioCapture};
 use crate::candle_models::whisper::model::{Model, Segment};
-use crate::{candle_models, get_device};
+use crate::{get_device, onnx_models};
 use candle_nn::VarBuilder;
 use candle_transformers::models::whisper::{self as m, audio, Config};
 use tokenizers::Tokenizer;
 use tokio::time::Instant;
 use tokio_util::sync::CancellationToken;
-
 
 pub struct LaunchCaptionParams {
     pub models: HashMap<String, String>,
@@ -27,19 +26,19 @@ pub struct LaunchCaptionParams {
     pub with_timestamps: Option<bool>,
     pub verbose: Option<bool>,
     pub try_with_cuda: bool,
-    pub inference_timeout: Option<Duration>,     // 推理总超时参数
-    pub max_tokens_per_segment: Option<usize>,   // 防止幻觉的每段最大token数
+    pub inference_timeout: Option<Duration>, // 推理总超时参数
+    pub max_tokens_per_segment: Option<usize>, // 防止幻觉的每段最大token数
     pub whisper_max_audio_duration: Option<u32>, // 音频上下文长度(秒)
-    pub inference_interval_ms: Option<u64>,      // 推理间隔时间(毫秒)
-    pub whisper_temperature: Option<f32>,        // 温度参数
-    pub vad_model_path: Option<String>,          // VAD模型路径
-    pub vad_filters_value: Option<f32>,          // VAD模型阈值
+    pub inference_interval_ms: Option<u64>,  // 推理间隔时间(毫秒)
+    pub whisper_temperature: Option<f32>,    // 温度参数
+    pub vad_model_path: Option<String>,      // VAD模型路径
+    pub vad_filters_value: Option<f32>,      // VAD模型阈值
 }
 
 pub async fn launch_caption<F>(
     params: LaunchCaptionParams,
     mut result_callback: F,
-) -> anyhow::Result<()> 
+) -> anyhow::Result<()>
 where
     F: FnMut(Vec<Segment>) + Send + 'static,
 {
@@ -64,7 +63,7 @@ where
         vad_model_path,
         vad_filters_value,
     } = params;
-    
+
     let model_path: String = models.values().next().unwrap().to_string();
     result_callback(_make_status_response(model::WhisperStatus::Loading));
     let device = get_device(try_with_cuda)?;
@@ -142,9 +141,9 @@ where
     let fixed_temperature = whisper_temperature;
 
     println!("Check and loading vad model...");
-    let vad_model = if let Some(vad_model_path) = vad_model_path {
+    let mut vad_model = if let Some(vad_model_path) = vad_model_path {
         // try_with_gpu: [false] candle-onnx not support gpu
-        let model = candle_models::vad::new_vad_model(vad_model_path, false);
+        let model = onnx_models::vad::new_vad_model(vad_model_path, false);
         if let Ok(model) = model {
             Some(model)
         } else {
@@ -160,18 +159,28 @@ where
     let mut debug_counter = 0;
     while !cancel_token.is_cancelled() {
         debug_counter += 1;
-        if debug_counter % 500 == 0 {  // 每50秒打印一次调试信息
-            println!("Audio processing loop iteration {}, buffered_pcm.len(): {}", debug_counter, buffered_pcm.len());
+        if debug_counter % 500 == 0 {
+            // 每50秒打印一次调试信息
+            println!(
+                "Audio processing loop iteration {}, buffered_pcm.len(): {}",
+                debug_counter,
+                buffered_pcm.len()
+            );
         }
-        
+
         // 尝试接收音频数据，设置超时以便定期检查取消状态
         let pcm = rx.recv_timeout(Duration::from_millis(100));
 
         // 如果接收超时或通道关闭，检查是否应该取消
         if pcm.is_err() {
             let err = pcm.unwrap_err();
-            if debug_counter % 1000 == 0 {  // 每100秒打印一次超时信息
-                println!("Audio recv timeout or error: {:?}, cancel_token cancelled: {}", err, cancel_token.is_cancelled());
+            if debug_counter % 1000 == 0 {
+                // 每100秒打印一次超时信息
+                println!(
+                    "Audio recv timeout or error: {:?}, cancel_token cancelled: {}",
+                    err,
+                    cancel_token.is_cancelled()
+                );
             }
             if cancel_token.is_cancelled() {
                 break;
@@ -181,21 +190,28 @@ where
 
         // 处理接收到的音频数据
         let pcm = pcm.unwrap();
-        
+
         static mut AUDIO_RECEIVED: bool = false;
         unsafe {
             if !AUDIO_RECEIVED {
                 println!("First audio data received: {} samples", pcm.len());
                 AUDIO_RECEIVED = true;
             } else if pcm.len() > 0 && debug_counter % 100 == 0 {
-                println!("Audio data: {} samples (debug every 100 iterations)", pcm.len());
+                println!(
+                    "Audio data: {} samples (debug every 100 iterations)",
+                    pcm.len()
+                );
             }
         }
 
         buffered_pcm.extend_from_slice(&pcm);
-        
+
         if buffered_pcm.len() > 0 && (buffered_pcm.len() % 16000 == 0 || debug_counter % 200 == 0) {
-            println!("Total buffered_pcm length: {} samples ({:.1}s)", buffered_pcm.len(), buffered_pcm.len() as f32 / 16000.0);
+            println!(
+                "Total buffered_pcm length: {} samples ({:.1}s)",
+                buffered_pcm.len(),
+                buffered_pcm.len() as f32 / 16000.0
+            );
         }
 
         // 首次启动时，等待3秒数据
@@ -221,9 +237,10 @@ where
         // 记录推理开始时间
         let inference_start = Instant::now();
 
-        if let Some(vad_model) = &vad_model {
+        if let Some(vad_model) = vad_model.as_mut() {
             let resampled_pcm = buffered_pcm.clone();
-            let vad_result = vad_model.check_vad(resampled_pcm, vad_filters_value);
+            let vad_result: Result<onnx_models::vad::VadResult, anyhow::Error> =
+                vad_model.check_vad(resampled_pcm, vad_filters_value);
             if vad_result.is_err() {
                 println!("VAD error: {:?}", vad_result.err().unwrap());
             } else {

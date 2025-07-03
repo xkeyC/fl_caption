@@ -1,7 +1,8 @@
 use ort::execution_providers::{ExecutionProvider, XNNPACKExecutionProvider};
 use ort::session::Session;
 
-mod sense_voice;
+pub mod sense_voice;
+pub mod vad;
 
 #[cfg(target_os = "macos")]
 use ort::execution_providers::CoreMLExecutionProvider;

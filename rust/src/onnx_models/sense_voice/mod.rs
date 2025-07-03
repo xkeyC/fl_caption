@@ -497,7 +497,7 @@ where
     F: FnMut(Vec<Segment>) + Send + 'static,
 {
     use crate::audio_capture::{AudioCapture, AudioCaptureConfig, PlatformAudioCapture};
-    use crate::candle_models::vad;
+    use crate::onnx_models::vad;
     use std::time::Duration;
     use tokio::time::Instant;
 
@@ -551,7 +551,7 @@ where
     let language = audio_language.as_deref().unwrap_or("auto"); // SenseVoice语言设置
 
     println!("Check and loading VAD model...");
-    let vad_model = if let Some(vad_model_path) = vad_model_path {
+    let mut vad_model = if let Some(vad_model_path) = vad_model_path {
         let model = vad::new_vad_model(vad_model_path, false);
         if let Ok(model) = model {
             Some(model)
@@ -641,7 +641,7 @@ where
         let inference_start = Instant::now();
 
         // VAD检测
-        if let Some(vad_model) = &vad_model {
+        if let Some(vad_model) = vad_model.as_mut() {
             let resampled_pcm = buffered_pcm.clone();
             let vad_result = vad_model.check_vad(resampled_pcm, vad_filters_value);
             if vad_result.is_err() {

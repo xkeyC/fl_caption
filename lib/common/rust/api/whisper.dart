@@ -3,14 +3,17 @@
 
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
+import '../candle_models/whisper.dart';
 import '../frb_generated.dart';
-import '../whisper_caption/whisper.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-Future<String> createCancellationToken() => RustLib.instance.api.crateApiWhisperCreateCancellationToken();
+Future<String> createCancellationToken() =>
+    RustLib.instance.api.crateApiWhisperCreateCancellationToken();
 
-Future<void> cancelCancellationToken({required String tokenId}) =>
-    RustLib.instance.api.crateApiWhisperCancelCancellationToken(tokenId: tokenId);
+Future<void> cancelCancellationToken({required String tokenId}) => RustLib
+    .instance
+    .api
+    .crateApiWhisperCancelCancellationToken(tokenId: tokenId);
 
 Stream<List<Segment>> launchCaption({
   required WhisperClient whisperClient,
@@ -76,7 +79,11 @@ class WhisperClient {
 
   @override
   int get hashCode =>
-      models.hashCode ^ config.hashCode ^ tokenizer.hashCode ^ isMultilingual.hashCode ^ isQuantized.hashCode;
+      models.hashCode ^
+      config.hashCode ^
+      tokenizer.hashCode ^
+      isMultilingual.hashCode ^
+      isQuantized.hashCode;
 
   @override
   bool operator ==(Object other) =>

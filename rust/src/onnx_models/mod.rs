@@ -9,7 +9,7 @@ use ort::execution_providers::CoreMLExecutionProvider;
 #[cfg(any(target_os = "linux", target_os = "windows"))]
 use ort::execution_providers::CUDAExecutionProvider;
 
-use crate::whisper_caption::{whisper::Segment, LaunchCaptionParams};
+use crate::candle_models::{whisper::Segment, LaunchCaptionParams};
 #[cfg(target_os = "windows")]
 use ort::execution_providers::DirectMLExecutionProvider;
 use ort::session::builder::SessionBuilder;

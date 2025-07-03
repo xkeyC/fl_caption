@@ -1,5 +1,5 @@
 use crate::onnx_models;
-use crate::{frb_generated::StreamSink, whisper_caption};
+use crate::{frb_generated::StreamSink, candle_models};
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::sync::Mutex;
@@ -58,7 +58,7 @@ impl WhisperClient {
 
 pub async fn launch_caption(
     whisper_client: WhisperClient,
-    stream_sink: StreamSink<Vec<whisper_caption::whisper::Segment>>,
+    stream_sink: StreamSink<Vec<candle_models::whisper::Segment>>,
     audio_device: Option<String>,
     audio_device_is_input: Option<bool>,
     audio_language: Option<String>,
@@ -84,7 +84,7 @@ pub async fn launch_caption(
         }
     };
 
-    let p = whisper_caption::LaunchCaptionParams {
+    let p = candle_models::LaunchCaptionParams {
         models: whisper_client.models,
         config_data: whisper_client.config,
         is_quantized: whisper_client.is_quantized,
@@ -112,7 +112,7 @@ pub async fn launch_caption(
         })
         .await
     } else {
-        whisper_caption::launch_caption(p, move |segments| {
+        candle_models::launch_caption(p, move |segments| {
             let _ = stream_sink.add(segments);
         })
         .await

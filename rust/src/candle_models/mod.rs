@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use std::time::Duration;
 
 use crate::audio_capture::{AudioCapture, AudioCaptureConfig, PlatformAudioCapture};
-use crate::whisper_caption::whisper::{Model, Segment};
+use crate::candle_models::whisper::{Model, Segment};
 use crate::{get_device, vad};
 use candle_nn::VarBuilder;
 use candle_transformers::models::whisper::{self as m, audio, Config};

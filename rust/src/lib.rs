@@ -5,7 +5,7 @@ pub mod api;
 pub mod audio_capture;
 mod frb_generated;
 pub mod vad;
-pub mod whisper_caption;
+pub mod candle_models;
 pub mod onnx_models;
 
 pub(crate) fn get_device(try_with_gpu: bool) -> anyhow::Result<candle_core::Device> {

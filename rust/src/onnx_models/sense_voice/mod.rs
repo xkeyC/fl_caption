@@ -6,7 +6,7 @@ use std::time::Duration;
 
 mod def;
 
-use crate::whisper_caption::{
+use crate::candle_models::{
     whisper::{DecodingResult, Segment, WhisperStatus},
     LaunchCaptionParams,
 };

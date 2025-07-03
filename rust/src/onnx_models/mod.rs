@@ -3,6 +3,7 @@ use ort::session::Session;
 
 pub mod sense_voice;
 pub mod vad;
+pub mod whisper;
 
 #[cfg(target_os = "macos")]
 use ort::execution_providers::CoreMLExecutionProvider;
@@ -28,6 +29,16 @@ where
         let model_path: String = params.models.values().next().unwrap().to_string();
         let session = init_model(model_path, params.try_with_cuda)?;
         sense_voice::launch_caption(session, params, result_callback).await?
+    } else if params.config_data == "whisper_onnx" {
+        let encoder_model_path: String =
+            params.models.get("encoder.int8.onnx").unwrap().to_string();
+        let decoder_model_path: String =
+            params.models.get("decoder.int8.onnx").unwrap().to_string();
+
+        let encoder_session = init_model(encoder_model_path, params.try_with_cuda)?;
+        let decoder_session = init_model(decoder_model_path, params.try_with_cuda)?;
+
+        whisper::launch_caption(encoder_session, decoder_session, params, result_callback).await?
     } else {
         Err(anyhow::anyhow!(
             "Unsupported model configuration: {}",

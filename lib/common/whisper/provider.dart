@@ -40,7 +40,7 @@ class DartWhisper extends _$DartWhisper {
     for (final entry in modelData.downloadUrls.entries) {
       final fileName = entry.key;
       var modelDir = appSettings.modelWorkingDir;
-      if (isOnnxModel) modelDir = "$modelDir/onnx";
+      if (isOnnxModel) modelDir = "$modelDir/onnx/${modelData.name}";
       modelFiles[fileName] = "$modelDir/$fileName";
     }
 
@@ -76,9 +76,7 @@ class DartWhisper extends _$DartWhisper {
 
   Future<Uint8List> getTokenizerByModel(WhisperModelData model) async {
     if (model is OnnxModelsData) {
-      if (model.onnxExecMode == "sense-voice") {
-        return (await rootBundle.load("assets/whisper/onnx/${model.name}-tokens.txt")).buffer.asUint8List();
-      }
+      return (await rootBundle.load("assets/whisper/onnx/${model.name}-tokens.txt")).buffer.asUint8List();
     }
     return (await rootBundle.load("assets/whisper/${model.configType.name}-tokenizer.json")).buffer.asUint8List();
   }

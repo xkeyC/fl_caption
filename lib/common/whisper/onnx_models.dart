@@ -27,5 +27,19 @@ class OnnxModelsData extends WhisperModelData {
       },
       onnxExecMode: 'sense-voice',
     ),
+    // whisper-large-v3-turbo
+    "whisper-large-v3-turbo": OnnxModelsData(
+      name: 'whisper-large-v3-turbo',
+      size: '361 MB',
+      sizeInt: 361 * 1024,
+      isMultilingual: true,
+      downloadUrls: {
+        "decoder.int8.onnx":
+            "'https://huggingface.co/xkeyC/fl_caption_onnx_models/resolve/main/whisper-large-v3-turbo/decoder.int8.onnx'",
+        "encoder.int8.onnx":
+            "'https://huggingface.co/xkeyC/fl_caption_onnx_models/resolve/main/whisper-large-v3-turbo/encoder.int8.onnx'",
+      },
+      onnxExecMode: 'whisper',
+    ),
   };
 }

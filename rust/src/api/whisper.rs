@@ -58,7 +58,7 @@ impl WhisperClient {
 
 pub async fn launch_caption(
     whisper_client: WhisperClient,
-    stream_sink: StreamSink<Vec<candle_models::whisper::Segment>>,
+    stream_sink: StreamSink<Vec<candle_models::whisper::model::Segment>>,
     audio_device: Option<String>,
     audio_device_is_input: Option<bool>,
     audio_language: Option<String>,
@@ -84,7 +84,7 @@ pub async fn launch_caption(
         }
     };
 
-    let p = candle_models::LaunchCaptionParams {
+    let p = candle_models::whisper::LaunchCaptionParams {
         models: whisper_client.models,
         config_data: whisper_client.config,
         is_quantized: whisper_client.is_quantized,
@@ -112,7 +112,7 @@ pub async fn launch_caption(
         })
         .await
     } else {
-        candle_models::launch_caption(p, move |segments| {
+        candle_models::whisper::launch_caption(p, move |segments| {
             let _ = stream_sink.add(segments);
         })
         .await

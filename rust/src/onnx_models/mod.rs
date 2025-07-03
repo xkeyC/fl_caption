@@ -9,10 +9,12 @@ use ort::execution_providers::CoreMLExecutionProvider;
 #[cfg(any(target_os = "linux", target_os = "windows"))]
 use ort::execution_providers::CUDAExecutionProvider;
 
-use crate::candle_models::{whisper::Segment, LaunchCaptionParams};
 #[cfg(target_os = "windows")]
 use ort::execution_providers::DirectMLExecutionProvider;
 use ort::session::builder::SessionBuilder;
+
+use crate::candle_models::whisper::model::Segment;
+use crate::candle_models::whisper::LaunchCaptionParams;
 
 pub async fn launch_caption<F>(
     params: LaunchCaptionParams,

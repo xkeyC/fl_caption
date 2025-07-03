@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:fl_caption/common/rust/candle_models/whisper.dart';
+import 'package:fl_caption/common/rust/candle_models/whisper/model.dart' show WhisperStatus;
 import 'package:fl_caption/common/whisper/onnx_models.dart';
 import 'package:fl_caption/pages/settings/settings_provider.dart';
 import 'package:flutter/foundation.dart';

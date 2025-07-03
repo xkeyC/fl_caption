@@ -4,7 +4,6 @@ use std::panic;
 pub mod api;
 pub mod audio_capture;
 mod frb_generated;
-pub mod vad;
 pub mod candle_models;
 pub mod onnx_models;
 

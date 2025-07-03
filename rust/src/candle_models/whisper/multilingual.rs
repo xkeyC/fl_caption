@@ -1,7 +1,8 @@
-use crate::candle_models::whisper::{token_id, Model};
 use candle_core::{IndexOp, Result, Tensor, D};
 use candle_transformers::models::whisper::{self as m};
 use tokenizers::Tokenizer;
+
+use crate::candle_models::whisper::model::{token_id, Model};
 
 const LANGUAGES: [(&str, &str); 99] = [
     ("en", "english"),

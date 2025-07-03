@@ -4,12 +4,10 @@ use ort::session::Session;
 use std::collections::HashMap;
 use std::time::Duration;
 
-mod def;
+use crate::candle_models::whisper::model::{DecodingResult, Segment, WhisperStatus};
+use crate::candle_models::whisper::LaunchCaptionParams;
 
-use crate::candle_models::{
-    whisper::{DecodingResult, Segment, WhisperStatus},
-    LaunchCaptionParams,
-};
+mod def;
 
 pub struct SenseVoiceModel {
     session: Session,
@@ -499,7 +497,7 @@ where
     F: FnMut(Vec<Segment>) + Send + 'static,
 {
     use crate::audio_capture::{AudioCapture, AudioCaptureConfig, PlatformAudioCapture};
-    use crate::vad;
+    use crate::candle_models::vad;
     use std::time::Duration;
     use tokio::time::Instant;
 

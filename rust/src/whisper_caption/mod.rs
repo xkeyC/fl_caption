@@ -1,6 +1,7 @@
 pub mod multilingual;
 pub mod whisper;
 
+use std::collections::HashMap;
 use std::time::Duration;
 
 use crate::audio_capture::{AudioCapture, AudioCaptureConfig, PlatformAudioCapture};
@@ -14,7 +15,7 @@ use tokio_util::sync::CancellationToken;
 
 
 pub struct LaunchCaptionParams {
-    pub model_path: String,
+    pub models: HashMap<String, String>,
     pub config_data: String,
     pub is_quantized: bool,
     pub tokenizer_data: Vec<u8>,
@@ -43,7 +44,7 @@ where
     F: FnMut(Vec<Segment>) + Send + 'static,
 {
     let LaunchCaptionParams {
-        model_path,
+        models,
         config_data,
         is_quantized,
         tokenizer_data,
@@ -63,7 +64,8 @@ where
         vad_model_path,
         vad_filters_value,
     } = params;
-
+    
+    let model_path: String = models.values().next().unwrap().to_string();
     result_callback(_make_status_response(whisper::WhisperStatus::Loading));
     let device = get_device(try_with_cuda)?;
     let arg_is_multilingual = is_multilingual.unwrap_or(false);

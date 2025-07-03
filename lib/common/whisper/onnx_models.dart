@@ -8,7 +8,7 @@ class OnnxModelsData extends WhisperModelData {
     required super.size,
     required super.sizeInt,
     required super.isMultilingual,
-    required super.downloadUrl,
+    required super.downloadUrls,
     super.isQuantized = true,
     super.configType = WhisperModelConfigType.onnx,
     required this.onnxExecMode,
@@ -21,8 +21,10 @@ class OnnxModelsData extends WhisperModelData {
       size: '239 MB',
       sizeInt: 239 * 1024,
       isMultilingual: true,
-      downloadUrl:
-          'https://huggingface.co/xkeyC/fl_caption_onnx_models/resolve/main/sense-voice-2024-07-17/model.int8.onnx',
+      downloadUrls: {
+        "Sense-Voice-2024-07-17":
+            "'https://huggingface.co/xkeyC/fl_caption_onnx_models/resolve/main/sense-voice-2024-07-17/model.int8.onnx'",
+      },
       onnxExecMode: 'sense-voice',
     ),
   };

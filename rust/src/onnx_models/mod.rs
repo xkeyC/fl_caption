@@ -1,6 +1,4 @@
-use ort::execution_providers::{
-    ExecutionProvider, XNNPACKExecutionProvider,
-};
+use ort::execution_providers::{ExecutionProvider, XNNPACKExecutionProvider};
 use ort::session::Session;
 
 mod sense_voice;
@@ -23,8 +21,9 @@ pub async fn launch_caption<F>(
 where
     F: FnMut(Vec<Segment>) + Send + 'static,
 {
-    let session = init_model(params.model_path.clone(), params.try_with_cuda)?;
     if params.config_data == "sense-voice_onnx" {
+        let model_path: String = params.models.values().next().unwrap().to_string();
+        let session = init_model(model_path, params.try_with_cuda)?;
         sense_voice::launch_caption(session, params, result_callback).await?
     } else {
         Err(anyhow::anyhow!(
@@ -49,7 +48,7 @@ fn _register_execution_providers(
     #[allow(unused_mut)]
     let mut is_gpu_available = false;
     #[allow(unused_variables)]
-      #[allow(unused_mut)]
+    #[allow(unused_mut)]
     let mut is_dml_available = false;
     if try_gpu {
         #[cfg(target_os = "macos")]

@@ -34,26 +34,32 @@ class DartWhisper extends _$DartWhisper {
     if (modelData == null) {
       throw "Model Configuration Error: Model ${appSettings.whisperModel} not found in whisperModels";
     }
+    final Map<String, String> modelFiles = {};
     final isOnnxModel = modelData is OnnxModelsData;
-    late File modelFile;
-    if (isOnnxModel) {
-      modelFile = File('${appSettings.modelWorkingDir}/onnx/${appSettings.whisperModel}');
-    } else {
-      modelFile = File('${appSettings.modelWorkingDir}/${appSettings.whisperModel}');
+
+    for (final entry in modelData.downloadUrls.entries) {
+      final fileName = entry.key;
+      var modelDir = appSettings.modelWorkingDir;
+      if (isOnnxModel) modelDir = "$modelDir/onnx";
+      modelFiles[fileName] = "$modelDir/$fileName";
     }
 
-    if (!await modelFile.exists()) {
-      errorType = DartWhisperClientError.modelNotFound;
+    // check files existence
+    for (final entry in modelFiles.entries) {
+      if (!await File(entry.value).exists()) {
+        errorType = DartWhisperClientError.modelNotFound;
+      }
     }
+
     final modelName = appSettings.whisperModel;
-    debugPrint("[DartWhisper] modelName: $modelName modelFile: ${modelFile.absolute.path} errorType: $errorType");
+    debugPrint("[DartWhisper] modelName: $modelName modelFile: ${modelFiles[modelName]} errorType: $errorType");
     final config = await getConfigByModel(modelData);
     final tokenizer = await getTokenizerByModel(modelData);
     debugPrint("[DartWhisper] creating WhisperClient ...");
     final whisper = rs.WhisperClient(
-      whisperModel: modelFile.absolute.path,
-      whisperConfig: config,
-      whisperTokenizer: tokenizer,
+      models: modelFiles,
+      config: config,
+      tokenizer: tokenizer,
       isMultilingual: modelData.isMultilingual,
       isQuantized: modelData.isQuantized,
     );

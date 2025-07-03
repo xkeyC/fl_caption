@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:fl_caption/common/io/http.dart';
 import 'package:fl_caption/common/whisper/models.dart';
-import 'package:fl_caption/common/whisper/onnx_models.dart';
 import 'package:flutter/foundation.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -17,8 +16,10 @@ abstract class ModelDownloadStateData with _$ModelDownloadStateData {
   factory ModelDownloadStateData({
     required String modelName,
     required String modelPath,
-    required double progress,
+    required double currentProgress,
+    required int currentTotal,
     required bool isReady,
+    @Default(0) currentDownloadFileIndex,
     String? errorText,
   }) = _ModelDownloadStateData;
 
@@ -29,15 +30,17 @@ abstract class ModelDownloadStateData with _$ModelDownloadStateData {
 class ModelDownloadState extends _$ModelDownloadState {
   @override
   ModelDownloadStateData build(String modelName, String savePath) {
-    final modelData = whisperModels[modelName];
-    late final File modelFile;
-    if (modelData is OnnxModelsData) {
-      modelFile = File('$savePath/onnx/${modelData.name}');
-    } else {
-      modelFile = File('$savePath/${modelData?.name ?? modelName}');
-    }
-
-    final fileExists = modelFile.existsSync();
+    state = ModelDownloadStateData(
+      modelName: modelName,
+      modelPath: savePath,
+      currentProgress: 0,
+      currentTotal: 0,
+      isReady: false,
+    );
+    final allExist = modelFileNames.every((fileName) {
+      final filePath = "${modelDirectory.absolute.path}/$fileName";
+      return File(filePath).existsSync();
+    });
 
     ref.onDispose(() {
       _downloadCancelToken?.cancel();
@@ -47,9 +50,35 @@ class ModelDownloadState extends _$ModelDownloadState {
     return ModelDownloadStateData(
       modelName: modelName,
       modelPath: savePath,
-      progress: fileExists ? 100 : 0,
-      isReady: fileExists,
+      currentProgress: allExist ? 100 : 0,
+      currentTotal: 0,
+      isReady: allExist,
     );
+  }
+
+  bool get isMultipleFiles {
+    final modelData = whisperModels[state.modelName];
+    return (modelData?.downloadUrls.length ?? 0) > 1;
+  }
+
+  Directory get modelDirectory {
+    final modelData = whisperModels[state.modelName];
+    final isOnnxModel = modelData?.configType == WhisperModelConfigType.onnx;
+    if (isMultipleFiles) {
+      if (isOnnxModel) {
+        return Directory("${state.modelPath}/onnx/${state.modelName}");
+      }
+      return Directory("${state.modelPath}/${state.modelName}");
+    }
+    if (isOnnxModel) {
+      return Directory("${state.modelPath}/onnx");
+    }
+    return Directory(state.modelPath);
+  }
+
+  List<String> get modelFileNames {
+    final modelData = whisperModels[state.modelName];
+    return modelData?.downloadUrls.keys.toList() ?? <String>[];
   }
 
   CancelToken? _downloadCancelToken;
@@ -59,38 +88,60 @@ class ModelDownloadState extends _$ModelDownloadState {
       state = state.copyWith(errorText: null);
     }
     if (state.isReady) return true;
-    final dir = Directory(state.modelPath);
+
+    final downloadUrlsMap = whisperModels[state.modelName]?.getDownloadUrls();
+    if (downloadUrlsMap == null || downloadUrlsMap.isEmpty) {
+      state = state.copyWith(errorText: "下载链接未找到", isReady: false, currentProgress: 0);
+      return false;
+    }
+    var modelPath = modelDirectory.absolute.path;
+    final dir = Directory(modelPath);
     if (!await dir.exists()) {
       await dir.create(recursive: true);
     }
-    final modelFile = File("${state.modelPath}/${state.modelName}.downloading");
     final dio = await RDio.createRDioClient();
-    final downloadUrl = whisperModels[state.modelName]?.getDownloadUrl() ?? "";
+
     _downloadCancelToken = CancelToken();
-    try {
-      final response = await dio.download(
-        downloadUrl,
-        modelFile.path,
-        cancelToken: _downloadCancelToken,
-        onReceiveProgress: (received, total) {
-          if (total != -1) {
-            state = state.copyWith(progress: (received / total * 100).toDouble());
-          }
-        },
-      );
-      _downloadCancelToken = null;
-      if (response.statusCode == 200) {
-        await modelFile.rename("${state.modelPath}/${state.modelName}");
-        state = state.copyWith(isReady: true, progress: 100);
-        debugPrint("Model ${state.modelName} downloaded successfully to ${state.modelPath}");
-        return true;
-      } else {
-        state = state.copyWith(errorText: "下载失败: ${response.statusCode}", isReady: false, progress: 0);
+    for (final downloadItem in downloadUrlsMap.entries) {
+      final fileName = downloadItem.key;
+      final fileUrl = downloadItem.value;
+      final modelFile = File("$modelPath/$fileName");
+      if (await modelFile.exists()) {
+        debugPrint("Model file ${modelFile.path} already exists, skipping download.");
+        state = state.copyWith(currentDownloadFileIndex: state.currentDownloadFileIndex + 1);
+        continue;
       }
-    } catch (e) {
-      state = state.copyWith(errorText: "下载失败: $e", isReady: false, progress: 0);
+      final modelFileDownloading = File("${modelFile.path}.downloading");
+      try {
+        state = state.copyWith(currentProgress: 0, currentTotal: 0, errorText: null);
+        final response = await dio.download(
+          fileUrl,
+          modelFileDownloading.absolute.path,
+          cancelToken: _downloadCancelToken,
+          onReceiveProgress: (received, total) {
+            if (total != -1) {
+              state = state.copyWith(currentProgress: (received / total * 100).toDouble(), currentTotal: total);
+            }
+          },
+        );
+        _downloadCancelToken = null;
+        if (response.statusCode == 200) {
+          await modelFileDownloading.rename(modelFile.absolute.path);
+          state = state.copyWith(isReady: true, currentProgress: 100);
+          debugPrint("Model ${state.modelName} downloaded successfully to ${state.modelPath}");
+        } else {
+          state = state.copyWith(errorText: "下载失败: ${response.statusCode}", isReady: false, currentProgress: 0);
+          return false;
+        }
+      } catch (e) {
+        state = state.copyWith(errorText: "下载失败: $e", isReady: false, currentProgress: 0);
+        return false;
+      }
+      state = state.copyWith(currentDownloadFileIndex: state.currentDownloadFileIndex + 1);
+      debugPrint("Model file ${modelFile.path} downloaded successfully.");
     }
-    return false;
+
+    return true;
   }
 
   Future<void> cancelDownload() async {

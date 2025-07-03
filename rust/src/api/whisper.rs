@@ -31,25 +31,25 @@ pub fn cancel_cancellation_token(token_id: String) {
 }
 
 pub struct WhisperClient {
-    pub whisper_model: String,
-    pub whisper_config: String,
-    pub whisper_tokenizer: Vec<u8>,
+    pub models: HashMap<String, String>,
+    pub config: String,
+    pub tokenizer: Vec<u8>,
     pub is_multilingual: bool,
     pub is_quantized: bool,
 }
 
 impl WhisperClient {
     pub fn new(
-        whisper_model: String,
-        whisper_config: String,
-        whisper_tokenizer: Vec<u8>,
+        models: HashMap<String, String>,
+        config: String,
+        tokenizer: Vec<u8>,
         is_multilingual: bool,
         is_quantized: bool,
     ) -> Self {
         Self {
-            whisper_model,
-            whisper_config,
-            whisper_tokenizer,
+            models,
+            config,
+            tokenizer,
             is_multilingual,
             is_quantized,
         }
@@ -85,10 +85,10 @@ pub async fn launch_caption(
     };
 
     let p = whisper_caption::LaunchCaptionParams {
-        model_path: whisper_client.whisper_model,
-        config_data: whisper_client.whisper_config,
+        models: whisper_client.models,
+        config_data: whisper_client.config,
         is_quantized: whisper_client.is_quantized,
-        tokenizer_data: whisper_client.whisper_tokenizer,
+        tokenizer_data: whisper_client.tokenizer,
         audio_device,
         audio_device_is_input,
         audio_language,

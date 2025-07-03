@@ -4,167 +4,12 @@ use ort::session::Session;
 use std::collections::HashMap;
 use std::time::Duration;
 
+mod def;
+
 use crate::whisper_caption::{
     whisper::{DecodingResult, Segment, WhisperStatus},
     LaunchCaptionParams,
 };
-
-// SenseVoice 特殊标记枚举
-#[derive(Debug, Clone, PartialEq)]
-pub enum SenseVoiceLanguage {
-    Chinese,    // <|zh|>
-    English,    // <|en|>
-    Cantonese,  // <|yue|>
-    Japanese,   // <|ja|>
-    Korean,     // <|ko|>
-    NoSpeech,   // <|nospeech|>
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum SenseVoiceEmotion {
-    Happy,      // <|HAPPY|>
-    Sad,        // <|SAD|>
-    Angry,      // <|ANGRY|>
-    Neutral,    // <|NEUTRAL|>
-    Fearful,    // <|FEARFUL|>
-    Disgusted,  // <|DISGUSTED|>
-    Surprised,  // <|SURPRISED|>
-    Unknown,    // <|EMO_UNKNOWN|>
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum SenseVoiceEvent {
-    Speech,         // <|Speech|>
-    BGM,           // <|BGM|>
-    Applause,      // <|Applause|>
-    Laughter,      // <|Laughter|>
-    Cry,           // <|Cry|>
-    Sneeze,        // <|Sneeze|>
-    Breath,        // <|Breath|>
-    Cough,         // <|Cough|>
-    Sing,          // <|Sing|>
-    SpeechNoise,   // <|Speech_Noise|>
-    GBG,           // <|GBG|>
-    EventUnknown,  // <|Event_UNK|>
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum SenseVoiceTextNorm {
-    WithITN,    // <|withitn|>
-    WithoutITN, // <|woitn|>
-}
-
-// 解析后的SenseVoice输出结构
-#[derive(Debug, Clone)]
-pub struct SenseVoiceOutput {
-    pub language: Option<SenseVoiceLanguage>,
-    pub emotion: Option<SenseVoiceEmotion>,
-    pub event: Option<SenseVoiceEvent>,
-    pub text_norm: Option<SenseVoiceTextNorm>,
-    pub text: String,
-    pub emoji: String,
-}
-
-impl SenseVoiceLanguage {
-    fn from_token(token: &str) -> Option<Self> {
-        match token {
-            "<|zh|>" => Some(Self::Chinese),
-            "<|en|>" => Some(Self::English),
-            "<|yue|>" => Some(Self::Cantonese),
-            "<|ja|>" => Some(Self::Japanese),
-            "<|ko|>" => Some(Self::Korean),
-            "<|nospeech|>" => Some(Self::NoSpeech),
-            _ => None,
-        }
-    }
-
-    fn to_emoji(&self) -> &'static str {
-        match self {
-            Self::Chinese => "",
-            Self::English => "",
-            Self::Cantonese => "",
-            Self::Japanese => "",
-            Self::Korean => "",
-            Self::NoSpeech => "",
-        }
-    }
-}
-
-impl SenseVoiceEmotion {
-    fn from_token(token: &str) -> Option<Self> {
-        match token {
-            "<|HAPPY|>" => Some(Self::Happy),
-            "<|SAD|>" => Some(Self::Sad),
-            "<|ANGRY|>" => Some(Self::Angry),
-            "<|NEUTRAL|>" => Some(Self::Neutral),
-            "<|FEARFUL|>" => Some(Self::Fearful),
-            "<|DISGUSTED|>" => Some(Self::Disgusted),
-            "<|SURPRISED|>" => Some(Self::Surprised),
-            "<|EMO_UNKNOWN|>" => Some(Self::Unknown),
-            _ => None,
-        }
-    }
-
-    fn to_emoji(&self) -> &'static str {
-        match self {
-            Self::Happy => "😊",
-            Self::Sad => "😔",
-            Self::Angry => "😡",
-            Self::Neutral => "",
-            Self::Fearful => "😰",
-            Self::Disgusted => "🤢",
-            Self::Surprised => "😮",
-            Self::Unknown => "",
-        }
-    }
-}
-
-impl SenseVoiceEvent {
-    fn from_token(token: &str) -> Option<Self> {
-        match token {
-            "<|Speech|>" => Some(Self::Speech),
-            "<|BGM|>" => Some(Self::BGM),
-            "<|Applause|>" => Some(Self::Applause),
-            "<|Laughter|>" => Some(Self::Laughter),
-            "<|Cry|>" => Some(Self::Cry),
-            "<|Sneeze|>" => Some(Self::Sneeze),
-            "<|Breath|>" => Some(Self::Breath),
-            "<|Cough|>" => Some(Self::Cough),
-            "<|Sing|>" => Some(Self::Sing),
-            "<|Speech_Noise|>" => Some(Self::SpeechNoise),
-            "<|GBG|>" => Some(Self::GBG),
-            "<|Event_UNK|>" => Some(Self::EventUnknown),
-            _ => None,
-        }
-    }
-
-    fn to_emoji(&self) -> &'static str {
-        match self {
-            Self::Speech => "",
-            Self::BGM => "🎼",
-            Self::Applause => "👏",
-            Self::Laughter => "😀",
-            Self::Cry => "😭",
-            Self::Sneeze => "🤧",
-            Self::Breath => "",
-            Self::Cough => "😷",
-            Self::Sing => "",
-            Self::SpeechNoise => "",
-            Self::GBG => "",
-            Self::EventUnknown => "",
-        }
-    }
-}
-
-impl SenseVoiceTextNorm {
-    fn from_token(token: &str) -> Option<Self> {
-        match token {
-            "<|withitn|>" => Some(Self::WithITN),
-            "<|woitn|>" => Some(Self::WithoutITN),
-            _ => None,
-        }
-    }
-}
 
 pub struct SenseVoiceModel {
     session: Session,
@@ -186,7 +31,7 @@ impl SenseVoiceModel {
         let mut window_shift = 6; // 默认值
         let mut with_itn = 1; // 默认值
         let without_itn = 0;
-        
+
         // 尝试从metadata获取实际参数
         if let Ok(metadata) = session.metadata() {
             if let Ok(Some(lfr_window_size)) = metadata.custom("lfr_window_size") {
@@ -218,7 +63,7 @@ impl SenseVoiceModel {
         let feature_dim = 80 * window_size as usize;
         let mut neg_mean = vec![0.0; feature_dim];
         let mut inv_stddev = vec![1.0; feature_dim];
-        
+
         // 从metadata获取归一化参数
         if let Ok(metadata) = session.metadata() {
             if let Ok(Some(inv_stddev_str)) = metadata.custom("inv_stddev") {
@@ -257,8 +102,14 @@ impl SenseVoiceModel {
             println!("Available metadata:");
             println!("  - version: {:?}", metadata.version());
             println!("  - with_itn: {:?}", metadata.custom("with_itn"));
-            println!("  - lfr_window_size: {:?}", metadata.custom("lfr_window_size"));
-            println!("  - lfr_window_shift: {:?}", metadata.custom("lfr_window_shift"));
+            println!(
+                "  - lfr_window_size: {:?}",
+                metadata.custom("lfr_window_size")
+            );
+            println!(
+                "  - lfr_window_shift: {:?}",
+                metadata.custom("lfr_window_shift")
+            );
         }
 
         // 打印模型的输入信息用于调试
@@ -517,7 +368,10 @@ fn apply_normalization(
     Ok(normalized)
 }
 
-fn parse_sensevoice_output(logits: &Array2<f32>, tokens: &HashMap<usize, String>) -> SenseVoiceOutput {
+fn parse_sensevoice_output(
+    logits: &Array2<f32>,
+    tokens: &HashMap<usize, String>,
+) -> def::SenseVoiceOutput {
     // 获取最大概率的token索引
     let indices: Vec<usize> = logits
         .rows()
@@ -554,7 +408,7 @@ fn parse_sensevoice_output(logits: &Array2<f32>, tokens: &HashMap<usize, String>
 
     // 将所有token连接成一个字符串进行初步处理
     let full_text = token_strings.join("");
-    
+
     // 解析特殊标记
     let mut language = None;
     let mut emotion = None;
@@ -564,12 +418,11 @@ fn parse_sensevoice_output(logits: &Array2<f32>, tokens: &HashMap<usize, String>
     let mut emoji_parts = Vec::new();
 
     // 处理特殊的组合标记
-    let processed_text = full_text
-        .replace("<|nospeech|><|Event_UNK|>", "❓"); // 特殊组合标记
-    
+    let processed_text = full_text.replace("<|nospeech|><|Event_UNK|>", "❓"); // 特殊组合标记
+
     // 使用正则表达式或简单的字符串匹配来提取特殊标记和普通文本
     let mut remaining_text = processed_text.as_str();
-    
+
     // 按顺序处理各种标记
     while let Some(start) = remaining_text.find("<|") {
         // 添加标记前的文本
@@ -579,36 +432,36 @@ fn parse_sensevoice_output(logits: &Array2<f32>, tokens: &HashMap<usize, String>
                 text_parts.push(before_text.to_string());
             }
         }
-        
+
         // 查找标记结束
         if let Some(end) = remaining_text[start..].find("|>") {
             let tag_end = start + end + 2;
             let tag = &remaining_text[start..tag_end];
-            
+
             // 解析标记
-            if let Some(lang) = SenseVoiceLanguage::from_token(tag) {
+            if let Some(lang) = def::SenseVoiceLanguage::from_token(tag) {
                 language = Some(lang.clone());
                 let emoji = lang.to_emoji();
                 if !emoji.is_empty() {
                     emoji_parts.push(emoji.to_string());
                 }
-            } else if let Some(emo) = SenseVoiceEmotion::from_token(tag) {
+            } else if let Some(emo) = def::SenseVoiceEmotion::from_token(tag) {
                 emotion = Some(emo.clone());
                 let emoji = emo.to_emoji();
                 if !emoji.is_empty() {
                     emoji_parts.push(emoji.to_string());
                 }
-            } else if let Some(evt) = SenseVoiceEvent::from_token(tag) {
+            } else if let Some(evt) = def::SenseVoiceEvent::from_token(tag) {
                 event = Some(evt.clone());
                 let emoji = evt.to_emoji();
                 if !emoji.is_empty() {
                     emoji_parts.push(emoji.to_string());
                 }
-            } else if let Some(norm) = SenseVoiceTextNorm::from_token(tag) {
+            } else if let Some(norm) = def::SenseVoiceTextNorm::from_token(tag) {
                 text_norm = Some(norm);
             }
             // 其他未识别的标记被忽略
-            
+
             remaining_text = &remaining_text[tag_end..];
         } else {
             // 如果没有找到结束标记，将剩余部分作为文本
@@ -616,22 +469,18 @@ fn parse_sensevoice_output(logits: &Array2<f32>, tokens: &HashMap<usize, String>
             break;
         }
     }
-    
+
     // 添加剩余的文本
     if !remaining_text.is_empty() && !remaining_text.trim().is_empty() {
         text_parts.push(remaining_text.to_string());
     }
 
     // 合并文本并清理
-    let text = text_parts
-        .join("")
-        .replace("▁", " ")
-        .trim()
-        .to_string();
+    let text = text_parts.join("").replace("▁", " ").trim().to_string();
 
     let emoji = emoji_parts.join("");
 
-    SenseVoiceOutput {
+    def::SenseVoiceOutput {
         language,
         emotion,
         event,
@@ -906,7 +755,7 @@ fn run_sensevoice_inference(
 
     // 解析SenseVoice输出
     let parsed_output = parse_sensevoice_output(&logits, tokens);
-    
+
     // 打印调试信息
     println!("SenseVoice parsed output:");
     println!("  Language: {:?}", parsed_output.language);
@@ -922,7 +771,7 @@ fn run_sensevoice_inference(
         start: 0.0,
         duration,
         dr: DecodingResult {
-            tokens: vec![], // SenseVoice暂不返回token序列
+            tokens: vec![],           // SenseVoice暂不返回token序列
             text: parsed_output.text, // 只返回纯文本，不包含特殊标记
             avg_logprob: 0.0,
             no_speech_prob: 0.0,

@@ -16,7 +16,7 @@ abstract class ModelDownloadStateData with _$ModelDownloadStateData {
   factory ModelDownloadStateData({
     required String modelName,
     required String modelPath,
-    required double currentProgress,
+    required int currentProgress,
     required int currentTotal,
     required bool isReady,
     @Default(0) currentDownloadFileIndex,
@@ -50,7 +50,7 @@ class ModelDownloadState extends _$ModelDownloadState {
     return ModelDownloadStateData(
       modelName: modelName,
       modelPath: savePath,
-      currentProgress: allExist ? 100 : 0,
+      currentProgress: 0,
       currentTotal: 0,
       isReady: allExist,
     );
@@ -66,14 +66,14 @@ class ModelDownloadState extends _$ModelDownloadState {
     final isOnnxModel = modelData?.configType == WhisperModelConfigType.onnx;
     if (isMultipleFiles) {
       if (isOnnxModel) {
-        return Directory("${state.modelPath}/onnx/${state.modelName}");
+        return Directory("$savePath/onnx/${state.modelName}");
       }
-      return Directory("${state.modelPath}/${state.modelName}");
+      return Directory("$savePath/${state.modelName}");
     }
     if (isOnnxModel) {
-      return Directory("${state.modelPath}/onnx");
+      return Directory("$savePath/onnx");
     }
-    return Directory(state.modelPath);
+    return Directory(savePath);
   }
 
   List<String> get modelFileNames {
@@ -95,6 +95,7 @@ class ModelDownloadState extends _$ModelDownloadState {
       return false;
     }
     var modelPath = modelDirectory.absolute.path;
+    debugPrint("modelPath === $modelPath");
     final dir = Directory(modelPath);
     if (!await dir.exists()) {
       await dir.create(recursive: true);
@@ -120,7 +121,7 @@ class ModelDownloadState extends _$ModelDownloadState {
           cancelToken: _downloadCancelToken,
           onReceiveProgress: (received, total) {
             if (total != -1) {
-              state = state.copyWith(currentProgress: (received / total * 100).toDouble(), currentTotal: total);
+              state = state.copyWith(currentProgress: received, currentTotal: total);
             }
           },
         );

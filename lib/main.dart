@@ -254,7 +254,7 @@ class App extends HookConsumerWidget with WindowListener {
       final window = await DesktopMultiWindow.createWindow(jsonEncode({'window_type': 'settings'}));
       window.setTitle("Settings");
       window
-        ..setFrame(const Offset(0, 0) & const Size(1700, 1200))
+        ..setFrame(const Offset(0, 0) & const Size(1800, 1200))
         ..center();
       await window.show();
       DesktopMultiWindow.invokeMethod(window.windowId, 'main_window_id_broadcast');

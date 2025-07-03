@@ -41,7 +41,7 @@ class _ModelDownloadDialogState extends ConsumerState<ModelDownloadDialog> {
   }
 
   void _startEstimationTimer() {
-    double lastProgress = 0;
+    int lastProgress = 0;
 
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       final downloadState = ref.read(modelDownloadStateProvider(widget.model.name, widget.savePath));
@@ -71,7 +71,7 @@ class _ModelDownloadDialogState extends ConsumerState<ModelDownloadDialog> {
         setState(() {
           _estimatedTimeLeft = Duration.zero;
           _downloadSpeed = 0;
-          lastProgress = downloadState.currentProgress.toDouble();
+          lastProgress = downloadState.currentProgress;
         });
       }
     });
@@ -103,7 +103,7 @@ class _ModelDownloadDialogState extends ConsumerState<ModelDownloadDialog> {
 
     return ContentDialog(
       title: Text(
-        '(${downloadState.currentDownloadFileIndex}/$filesCount) 正在下载 ${widget.model.name}',
+        '(${downloadState.currentDownloadFileIndex + 1}/$filesCount) 正在下载 ${widget.model.name}',
         style: FluentTheme.of(context).typography.subtitle,
       ),
       content: Column(
@@ -126,13 +126,13 @@ class _ModelDownloadDialogState extends ConsumerState<ModelDownloadDialog> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               if (downloadState.currentTotal == 0)
-                const Text('-')
+                const Text('')
               else
                 Text('${(downloadState.currentProgress / downloadState.currentTotal * 100).toStringAsFixed(1)}%'),
               if (downloadState.currentTotal == 0 ||
                   _downloadSpeed <= 0 ||
                   downloadState.currentProgress >= downloadState.currentTotal)
-                const Text('-')
+                const Text('')
               else
                 Text(_formatSpeed(_downloadSpeed)),
             ],

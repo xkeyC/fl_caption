@@ -28,18 +28,12 @@ class SettingsWhisperPage extends HookConsumerWidget {
           onChanged: (value) {
             appSettingsData.value = appSettingsData.value?.copyWith(tryWithCuda: value);
           },
-          content: Text(Platform.isMacOS ? "启用 Metal 加速 （需要 Apple Silicon 处理器）" : "启用 CUDA 加速 (需要 NVIDIA 显卡)"),
+          content: Text(Platform.isMacOS ? "启用 Metal 加速 （需要 Apple Silicon 处理器）" : "启用 GPU 加速"),
         ),
         const SizedBox(height: 16),
-        Row(
-          children: [
-            // Model folder settings section
-            Flexible(flex: 3, child: _buildModelFolderSection(modelDirController)),
-            const SizedBox(width: 16),
-            // Model selection section
-            Flexible(flex: 1, child: _buildModelSelectionSection(appSettingsData, ref, modelDirController)),
-          ],
-        ),
+        _buildModelFolderSection(modelDirController),
+        const SizedBox(height: 16),
+        _buildModelSelectionSection(appSettingsData, ref, modelDirController),
         const SizedBox(height: 16),
         ToggleSwitch(
           checked: appSettingsData.value?.withVAD ?? true,
@@ -170,9 +164,6 @@ class SettingsWhisperPage extends HookConsumerWidget {
             final modelData = whisperModels[modelName];
             final ok = await showConfirmDialogs(context, "确认开始下载模型 $modelName？", Text("这将占用大约 ${modelData?.size} 空间"));
             var savePath = modelDirController.text.trim();
-            if (modelData is OnnxModelsData) {
-              savePath = "$savePath/onnx/";
-            }
             if (ok) {
               if (!context.mounted) return;
               final downloadOK = await showDialog(

@@ -37,11 +37,15 @@ class DartWhisper extends _$DartWhisper {
     final Map<String, String> modelFiles = {};
     final isOnnxModel = modelData is OnnxModelsData;
 
-    for (final entry in modelData.downloadUrls.entries) {
-      final fileName = entry.key;
-      var modelDir = appSettings.modelWorkingDir;
-      if (isOnnxModel) modelDir = "$modelDir/onnx/${modelData.name}";
-      modelFiles[fileName] = "$modelDir/$fileName";
+    if (modelData.downloadUrls.length > 1) {
+      for (final entry in modelData.downloadUrls.entries) {
+        final fileName = entry.key;
+        var modelDir = appSettings.modelWorkingDir;
+        if (isOnnxModel) modelDir = "$modelDir/onnx/${modelData.name}";
+        modelFiles[fileName] = "$modelDir/$fileName";
+      }
+    } else {
+      modelFiles[modelData.name] = "${appSettings.modelWorkingDir}/onnx/${modelData.name}";
     }
 
     // check files existence

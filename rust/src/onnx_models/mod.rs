@@ -89,20 +89,6 @@ pub fn register_execution_providers(
                     model_print_name
                 );
             }
-
-            let w_gpu = WebGPUExecutionProvider::default();
-            if w_gpu.register(builder).is_ok() {
-                is_gpu_available = true;
-                println!(
-                    "[{}] Registered WebGPU execution provider",
-                    model_print_name
-                );
-            } else {
-                eprintln!(
-                    "[{}] Failed to register WebGPU execution provider",
-                    model_print_name
-                );
-            }
         }
 
         // or else, use Dml
@@ -114,7 +100,7 @@ pub fn register_execution_providers(
                     is_dml_available = true;
                     println!(
                         "[{}] Registered DirectML execution provider",
-                        model_print_names
+                        model_print_name
                     );
                 } else {
                     eprintln!(

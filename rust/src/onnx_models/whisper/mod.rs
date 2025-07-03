@@ -66,6 +66,26 @@ impl OnnxWhisperModel {
             token_table,
         };
 
+        println!("encoder Model inputs:");
+        for input in model.encoder.inputs.iter() {
+            println!("  - name: {}, type: {:?}", input.name, input.input_type);
+        }
+
+        println!("encoder Model outputs:");
+        for output in model.encoder.outputs.iter() {
+            println!("  - name: {}, type: {:?}", output.name, output.output_type);
+        }
+
+        println!("decoder Model inputs:");
+        for input in model.decoder.inputs.iter() {
+            println!("  - name: {}, type: {:?}", input.name, input.input_type);
+        }
+
+        println!("decoder Model outputs:");
+        for output in model.decoder.outputs.iter() {
+            println!("  - name: {}, type: {:?}", output.name, output.output_type);
+        }
+
         // read metadata and update the values
         if let Ok(meta) = model.encoder.metadata() {
             if let Ok(Some(n_text_layer_str)) = meta.custom("n_text_layer") {
@@ -256,8 +276,8 @@ impl OnnxWhisperModel {
 
         let outputs = self.decoder.run(ort::inputs![
             "tokens" => tokens_value,
-            "n_layer_self_k_cache" => k_cache_value,
-            "n_layer_self_v_cache" => v_cache_value,
+            "in_n_layer_self_k_cache" => k_cache_value,
+            "in_n_layer_self_v_cache" => v_cache_value,
             "n_layer_cross_k" => cross_k_value,
             "n_layer_cross_v" => cross_v_value,
             "offset" => offset_value,
@@ -337,6 +357,7 @@ impl OnnxWhisperModel {
 
     pub fn get_self_cache(&self) -> (Array4<f32>, Array4<f32>) {
         let batch_size = 1;
+        // Initialize cache with proper shape - use n_text_ctx for sequence dimension
         let n_layer_self_k_cache = Array4::zeros((
             self.n_text_layer as usize,
             batch_size,
@@ -741,17 +762,40 @@ fn run_onnx_whisper_inference(
         *language_detected = true;
     }
 
-    // 按照 Python 代码的实现逻辑：
-    // tokens = torch.tensor([model.sot_sequence], dtype=torch.int64)
-    // offset = torch.zeros(1, dtype=torch.int64)
     let (mut n_layer_self_k_cache, mut n_layer_self_v_cache) = model.get_self_cache();
 
     println!("Using sot_sequence: {:?}", model.sot_sequence);
+    println!(
+        "Initial cache shapes - K: {:?}, V: {:?}",
+        n_layer_self_k_cache.shape(),
+        n_layer_self_v_cache.shape()
+    );
+    println!(
+        "Cross cache shapes - K: {:?}, V: {:?}",
+        n_layer_cross_k.shape(),
+        n_layer_cross_v.shape()
+    );
+
     let tokens = Array2::from_shape_vec(
         (1, model.sot_sequence.len()),
         model.sot_sequence.iter().map(|&x| x as i64).collect(),
     )?;
     let mut offset = Array1::from_vec(vec![0i64]);
+
+    println!(
+        "Initial tokens shape: {:?}, offset: {:?}",
+        tokens.shape(),
+        offset
+    );
+
+    // Check if initial sequence would exceed context
+    if model.sot_sequence.len() as i64 > model.n_text_ctx as i64 {
+        return Err(anyhow::anyhow!(
+            "SOT sequence length {} exceeds context limit {}",
+            model.sot_sequence.len(),
+            model.n_text_ctx
+        ));
+    }
 
     let (logits, new_k_cache, new_v_cache) = model.run_decoder(
         &tokens,
@@ -761,6 +805,16 @@ fn run_onnx_whisper_inference(
         &n_layer_cross_v,
         &offset,
     )?;
+
+    println!(
+        "After first decoder run - logits shape: {:?}",
+        logits.shape()
+    );
+    println!(
+        "New cache shapes - K: {:?}, V: {:?}",
+        new_k_cache.shape(),
+        new_v_cache.shape()
+    );
 
     n_layer_self_k_cache = new_k_cache;
     n_layer_self_v_cache = new_v_cache;
@@ -783,8 +837,16 @@ fn run_onnx_whisper_inference(
     let mut results = Vec::new();
 
     // for i in range(model.n_text_ctx):
-    for _ in 0..model.n_text_ctx {
+    let max_steps = (model.n_text_ctx as i64 - offset[0]).max(0) as usize;
+    for i in 0..max_steps {
         if max_token_id == model.eot {
+            println!("Reached EOT token at step {}", i);
+            break;
+        }
+
+        // Check if we've reached the context limit
+        if offset[0] >= model.n_text_ctx as i64 {
+            println!("Reached context limit at step {}, offset: {}", i, offset[0]);
             break;
         }
 
@@ -793,6 +855,14 @@ fn run_onnx_whisper_inference(
 
         // tokens = torch.tensor([[results[-1]]])
         let tokens = Array2::from_shape_vec((1, 1), vec![max_token_id as i64])?;
+
+        if i % 50 == 0 || i < 5 {
+            // Reduce debug output
+            println!(
+                "Step {}: token_id={}, offset: {}",
+                i, max_token_id, offset[0]
+            );
+        }
 
         let (logits, new_k_cache, new_v_cache) = model.run_decoder(
             &tokens,

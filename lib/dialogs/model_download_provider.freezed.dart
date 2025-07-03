@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ModelDownloadStateData implements DiagnosticableTreeMixin {
 
- String get modelName; String get modelPath; double get currentProgress; int get currentTotal; bool get isReady; dynamic get currentDownloadFileIndex; String? get errorText;
+ String get modelName; String get modelPath; int get currentProgress; int get currentTotal; bool get isReady; dynamic get currentDownloadFileIndex; String? get errorText;
 /// Create a copy of ModelDownloadStateData
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -55,7 +55,7 @@ abstract mixin class $ModelDownloadStateDataCopyWith<$Res>  {
   factory $ModelDownloadStateDataCopyWith(ModelDownloadStateData value, $Res Function(ModelDownloadStateData) _then) = _$ModelDownloadStateDataCopyWithImpl;
 @useResult
 $Res call({
- String modelName, String modelPath, double currentProgress, int currentTotal, bool isReady, dynamic currentDownloadFileIndex, String? errorText
+ String modelName, String modelPath, int currentProgress, int currentTotal, bool isReady, dynamic currentDownloadFileIndex, String? errorText
 });
 
 
@@ -77,7 +77,7 @@ class _$ModelDownloadStateDataCopyWithImpl<$Res>
 modelName: null == modelName ? _self.modelName : modelName // ignore: cast_nullable_to_non_nullable
 as String,modelPath: null == modelPath ? _self.modelPath : modelPath // ignore: cast_nullable_to_non_nullable
 as String,currentProgress: null == currentProgress ? _self.currentProgress : currentProgress // ignore: cast_nullable_to_non_nullable
-as double,currentTotal: null == currentTotal ? _self.currentTotal : currentTotal // ignore: cast_nullable_to_non_nullable
+as int,currentTotal: null == currentTotal ? _self.currentTotal : currentTotal // ignore: cast_nullable_to_non_nullable
 as int,isReady: null == isReady ? _self.isReady : isReady // ignore: cast_nullable_to_non_nullable
 as bool,currentDownloadFileIndex: freezed == currentDownloadFileIndex ? _self.currentDownloadFileIndex : currentDownloadFileIndex // ignore: cast_nullable_to_non_nullable
 as dynamic,errorText: freezed == errorText ? _self.errorText : errorText // ignore: cast_nullable_to_non_nullable
@@ -97,7 +97,7 @@ class _ModelDownloadStateData with DiagnosticableTreeMixin implements ModelDownl
 
 @override final  String modelName;
 @override final  String modelPath;
-@override final  double currentProgress;
+@override final  int currentProgress;
 @override final  int currentTotal;
 @override final  bool isReady;
 @override@JsonKey() final  dynamic currentDownloadFileIndex;
@@ -142,7 +142,7 @@ abstract mixin class _$ModelDownloadStateDataCopyWith<$Res> implements $ModelDow
   factory _$ModelDownloadStateDataCopyWith(_ModelDownloadStateData value, $Res Function(_ModelDownloadStateData) _then) = __$ModelDownloadStateDataCopyWithImpl;
 @override @useResult
 $Res call({
- String modelName, String modelPath, double currentProgress, int currentTotal, bool isReady, dynamic currentDownloadFileIndex, String? errorText
+ String modelName, String modelPath, int currentProgress, int currentTotal, bool isReady, dynamic currentDownloadFileIndex, String? errorText
 });
 
 
@@ -164,7 +164,7 @@ class __$ModelDownloadStateDataCopyWithImpl<$Res>
 modelName: null == modelName ? _self.modelName : modelName // ignore: cast_nullable_to_non_nullable
 as String,modelPath: null == modelPath ? _self.modelPath : modelPath // ignore: cast_nullable_to_non_nullable
 as String,currentProgress: null == currentProgress ? _self.currentProgress : currentProgress // ignore: cast_nullable_to_non_nullable
-as double,currentTotal: null == currentTotal ? _self.currentTotal : currentTotal // ignore: cast_nullable_to_non_nullable
+as int,currentTotal: null == currentTotal ? _self.currentTotal : currentTotal // ignore: cast_nullable_to_non_nullable
 as int,isReady: null == isReady ? _self.isReady : isReady // ignore: cast_nullable_to_non_nullable
 as bool,currentDownloadFileIndex: freezed == currentDownloadFileIndex ? _self.currentDownloadFileIndex : currentDownloadFileIndex // ignore: cast_nullable_to_non_nullable
 as dynamic,errorText: freezed == errorText ? _self.errorText : errorText // ignore: cast_nullable_to_non_nullable

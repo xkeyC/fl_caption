@@ -150,8 +150,57 @@ jobs:
           rustup run stable cargo build --manifest-path $manifestPath -p "rust_lib_fl_caption" --release --target "x86_64-pc-windows-msvc" --target-dir $targetDir
           flutter build windows -v
 
-      - name: Archive build
+      - name: Prepare Release Packages
+        shell: pwsh
+        run: |
+          # Copy DLL files from cargokit_build to Release folder
+          $sourceDllPath = "build\windows\x64\plugins\rust_lib_fl_caption\cargokit_build\x86_64-pc-windows-msvc\release\examples"
+          $releaseDir = "build\windows\x64\runner\Release"
+          
+          if (Test-Path $sourceDllPath) {
+            Write-Host "Copying DLL files from $sourceDllPath to $releaseDir"
+            Get-ChildItem -Path $sourceDllPath -Filter "*.dll" | ForEach-Object {
+              Copy-Item $_.FullName -Destination $releaseDir -Force
+              Write-Host "Copied: $($_.Name)"
+            }
+          } else {
+            Write-Host "Warning: Source DLL path not found: $sourceDllPath"
+          }
+          
+          # Create Release_without_cuda directory structure
+          $withoutCudaDir = "build\windows\x64\runner\Release_without_cuda\fl_caption"
+          New-Item -ItemType Directory -Path $withoutCudaDir -Force
+          
+          # Copy Release to Release_without_cuda/fl_caption
+          Write-Host "Copying Release to $withoutCudaDir"
+          Copy-Item -Path "$releaseDir\*" -Destination $withoutCudaDir -Recurse -Force
+          
+          # Remove CUDA DLLs from without_cuda version
+          $cudaDlls = @("onnxruntime_providers_cuda.dll", "onnxruntime_providers_tensorrt.dll")
+          foreach ($dll in $cudaDlls) {
+            $dllPath = Join-Path $withoutCudaDir $dll
+            if (Test-Path $dllPath) {
+              Remove-Item $dllPath -Force
+              Write-Host "Removed CUDA DLL: $dll"
+            }
+          }
+          
+          # Create Release_with_cuda directory structure
+          $withCudaDir = "build\windows\x64\runner\Release_with_cuda\fl_caption"
+          New-Item -ItemType Directory -Path $withCudaDir -Force
+          
+          # Copy Release to Release_with_cuda/fl_caption
+          Write-Host "Copying Release to $withCudaDir"
+          Copy-Item -Path "$releaseDir\*" -Destination $withCudaDir -Recurse -Force
+
+      - name: Archive build without CUDA
         uses: actions/upload-artifact@v4
         with:
-          name: windows
-          path: build/windows/x64/runner/Release
+          name: fl_caption
+          path: build/windows/x64/runner/Release_without_cuda
+
+      - name: Archive build with CUDA
+        uses: actions/upload-artifact@v4
+        with:
+          name: fl_caption(cuda)
+          path: build/windows/x64/runner/Release_with_cuda

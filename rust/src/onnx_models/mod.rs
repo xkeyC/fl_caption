@@ -1,5 +1,5 @@
 use ort::execution_providers::{
-    ExecutionProvider, WebGPUExecutionProvider, XNNPACKExecutionProvider,
+    ExecutionProvider, XNNPACKExecutionProvider,
 };
 use ort::session::Session;
 
@@ -45,7 +45,11 @@ fn _register_execution_providers(
     buillder: &mut SessionBuilder,
     try_gpu: bool,
 ) -> anyhow::Result<()> {
+    #[allow(unused_variables)]
+    #[allow(unused_mut)]
     let mut is_gpu_available = false;
+    #[allow(unused_variables)]
+      #[allow(unused_mut)]
     let mut is_dml_available = false;
     if try_gpu {
         #[cfg(target_os = "macos")]

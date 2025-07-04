@@ -38,7 +38,7 @@ where
         .map_err(|e| anyhow::anyhow!("Failed to parse config: {}", e))?;
 
     // 初始化ONNX Whisper模型
-    let mut whisper_model = ORTModelForWhisper::new(&models, tokenizer, config, try_with_cuda,None)
+    let mut whisper_model = ORTModelForWhisper::new(&models, tokenizer, config, try_with_cuda)
         .map_err(|e| anyhow::anyhow!("Failed to initialize ONNX Whisper model: {}", e))?;
 
     // 设置音频捕获配置

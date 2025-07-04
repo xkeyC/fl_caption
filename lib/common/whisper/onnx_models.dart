@@ -34,10 +34,23 @@ class OnnxModelsData extends WhisperModelData {
       sizeInt: 751 * 1024,
       isMultilingual: true,
       downloadUrls: {
-        "decoder_with_past_model_q4.onnx":
-            "https://huggingface.co/onnx-community/whisper-large-v3-turbo/resolve/main/onnx/decoder_with_past_model_q4.onnx",
+        "decoder_model_q4.onnx":
+            "https://huggingface.co/onnx-community/whisper-large-v3-turbo/resolve/main/onnx/decoder_model_q4.onnx",
         "encoder_model_q4.onnx":
             "https://huggingface.co/onnx-community/whisper-large-v3-turbo/resolve/main/onnx/encoder_model_q4.onnx",
+      },
+      onnxExecMode: 'whisper',
+    ),
+    "whisper-base": OnnxModelsData(
+      name: 'whisper-base',
+      size: '140 MB',
+      sizeInt: 140 * 1024,
+      isMultilingual: true,
+      downloadUrls: {
+        "decoder_model_q4.onnx":
+            "https://huggingface.co/onnx-community/whisper-base/resolve/main/onnx/decoder_model_q4.onnx",
+        "encoder_model_q4.onnx":
+            "https://huggingface.co/onnx-community/whisper-base/resolve/main/onnx/encoder_model_q4.onnx",
       },
       onnxExecMode: 'whisper',
     ),

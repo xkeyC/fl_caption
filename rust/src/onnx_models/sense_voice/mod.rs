@@ -489,7 +489,6 @@ fn parse_sensevoice_output(
 }
 
 pub async fn launch_caption<F>(
-    session: Session,
     params: LaunchCaptionParams,
     mut result_callback: F,
 ) -> anyhow::Result<()>
@@ -502,6 +501,7 @@ where
     use tokio::time::Instant;
 
     let LaunchCaptionParams {
+        models,
         audio_device,
         audio_device_is_input,
         audio_language,
@@ -515,6 +515,8 @@ where
         ..
     } = params;
 
+    let model_path = super::find_model_path(&models, None).unwrap();
+    let session = super::init_model(model_path, params.try_with_cuda)?;
     // 初始化SenseVoice模型
     result_callback(_make_status_response(WhisperStatus::Loading));
     let mut model = SenseVoiceModel::from_session(session)?;

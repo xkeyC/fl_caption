@@ -1,5 +1,6 @@
 use ort::execution_providers::{ExecutionProvider, XNNPACKExecutionProvider};
 use ort::session::Session;
+use std::collections::HashMap;
 
 pub mod sense_voice;
 pub mod vad;
@@ -26,24 +27,14 @@ where
     F: FnMut(Vec<Segment>) + Send + 'static,
 {
     if params.config_data == "sense-voice_onnx" {
-        let model_path: String = params.models.values().next().unwrap().to_string();
-        let session = init_model(model_path, params.try_with_cuda)?;
-        sense_voice::launch_caption(session, params, result_callback).await?
+        sense_voice::launch_caption(params, result_callback).await?
     } else if params.config_data == "whisper_onnx" {
-        let encoder_model_path: String =
-            params.models.get("encoder.int8.onnx").unwrap().to_string();
-        let decoder_model_path: String =
-            params.models.get("decoder.int8.onnx").unwrap().to_string();
-
-        let encoder_session = init_model(encoder_model_path, params.try_with_cuda)?;
-        let decoder_session = init_model(decoder_model_path, params.try_with_cuda)?;
-
-        whisper::launch_caption(encoder_session, decoder_session, params, result_callback).await?
+        // whisper::launch_caption(params, result_callback).await?
     } else {
         Err(anyhow::anyhow!(
             "Unsupported model configuration: {}",
             params.config_data
-        ))?;
+        ))?
     }
     Ok(())
 }
@@ -129,4 +120,20 @@ pub fn register_execution_providers(
     }
 
     Ok(())
+}
+
+pub fn find_model_path(
+    model_map: &HashMap<String, String>,
+    keyword: Option<&str>,
+) -> Option<String> {
+    for (key, path) in model_map {
+        let keyword_match = match keyword {
+            Some(kw) => key.contains(kw),
+            None => true,
+        };
+        if keyword_match && path.ends_with(".onnx") {
+            return Some(path.clone());
+        }
+    }
+    None
 }

@@ -497,6 +497,7 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     wireObj.tokenizer = cst_encode_list_prim_u_8_strict(apiObj.tokenizer);
     wireObj.is_multilingual = cst_encode_bool(apiObj.isMultilingual);
     wireObj.is_quantized = cst_encode_bool(apiObj.isQuantized);
+    wireObj.model_type = cst_encode_String(apiObj.modelType);
   }
 
   @protected
@@ -845,6 +846,7 @@ class RustLibWire implements BaseWire {
     ffi.Pointer<wire_cst_list_prim_u_8_loose> tokenizer,
     bool is_multilingual,
     bool is_quantized,
+    ffi.Pointer<wire_cst_list_prim_u_8_strict> model_type,
   ) {
     return _wire__crate__api__whisper__whisper_client_new(
       port_,
@@ -853,6 +855,7 @@ class RustLibWire implements BaseWire {
       tokenizer,
       is_multilingual,
       is_quantized,
+      model_type,
     );
   }
 
@@ -865,6 +868,7 @@ class RustLibWire implements BaseWire {
         ffi.Pointer<wire_cst_list_prim_u_8_loose>,
         ffi.Bool,
         ffi.Bool,
+        ffi.Pointer<wire_cst_list_prim_u_8_strict>,
       )
     >
   >('frbgen_fl_caption_wire__crate__api__whisper__whisper_client_new');
@@ -878,6 +882,7 @@ class RustLibWire implements BaseWire {
               ffi.Pointer<wire_cst_list_prim_u_8_loose>,
               bool,
               bool,
+              ffi.Pointer<wire_cst_list_prim_u_8_strict>,
             )
           >();
 
@@ -1082,6 +1087,8 @@ final class wire_cst_whisper_client extends ffi.Struct {
 
   @ffi.Bool()
   external bool is_quantized;
+
+  external ffi.Pointer<wire_cst_list_prim_u_8_strict> model_type;
 }
 
 final class wire_cst_list_prim_u_8_loose extends ffi.Struct {

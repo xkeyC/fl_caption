@@ -16,6 +16,7 @@ use tokio_util::sync::CancellationToken;
 pub struct LaunchCaptionParams {
     pub models: HashMap<String, String>,
     pub config_data: String,
+    pub model_type: String,
     pub is_quantized: bool,
     pub tokenizer_data: Vec<u8>,
     pub audio_device: Option<String>,
@@ -62,6 +63,7 @@ where
         whisper_temperature,
         vad_model_path,
         vad_filters_value,
+        ..
     } = params;
 
     let model_path: String = models.values().next().unwrap().to_string();
@@ -102,13 +104,9 @@ where
         verbose.unwrap_or(false),
     )?;
 
-    let mel_bytes = match config.num_mel_bins {
-        80 => include_bytes!("assets/whisper/melfilters.bytes").as_slice(),
-        128 => include_bytes!("assets/whisper/melfilters128.bytes").as_slice(),
-        nmel => anyhow::bail!("unexpected num_mel_bins {nmel}"),
-    };
+    let mel_bytes = get_mel_bytes(config.num_mel_bins)?;
     let mut mel_filters = vec![0f32; mel_bytes.len() / 4];
-    <byteorder::LittleEndian as byteorder::ByteOrder>::read_f32_into(mel_bytes, &mut mel_filters);
+    <byteorder::LittleEndian as byteorder::ByteOrder>::read_f32_into(&mel_bytes, &mut mel_filters);
 
     // Set up audio capture using the abstracted interface
     let audio_capture_config = AudioCaptureConfig {
@@ -386,4 +384,13 @@ fn _make_status_response(status: model::WhisperStatus) -> Vec<Segment> {
         audio_duration: None,
         status,
     }]
+}
+
+pub fn get_mel_bytes(num_mel_bins: usize) -> anyhow::Result<Vec<u8>> {
+    let mel_bytes = match num_mel_bins {
+        80 => include_bytes!("assets/whisper/melfilters.bytes").as_slice(),
+        128 => include_bytes!("assets/whisper/melfilters128.bytes").as_slice(),
+        nmel => anyhow::bail!("unexpected num_mel_bins {nmel}"),
+    };
+    Ok(mel_bytes.to_vec())
 }

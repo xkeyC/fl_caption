@@ -196,6 +196,7 @@ fn wire__crate__api__whisper__whisper_client_new_impl(
     tokenizer: impl CstDecode<Vec<u8>>,
     is_multilingual: impl CstDecode<bool>,
     is_quantized: impl CstDecode<bool>,
+    model_type: impl CstDecode<String>,
 ) {
     FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::DcoCodec, _, _>(
         flutter_rust_bridge::for_generated::TaskInfo {
@@ -209,6 +210,7 @@ fn wire__crate__api__whisper__whisper_client_new_impl(
             let api_tokenizer = tokenizer.cst_decode();
             let api_is_multilingual = is_multilingual.cst_decode();
             let api_is_quantized = is_quantized.cst_decode();
+            let api_model_type = model_type.cst_decode();
             move |context| {
                 transform_result_dco::<_, _, ()>((move || {
                     let output_ok = Result::<_, ()>::Ok(crate::api::whisper::WhisperClient::new(
@@ -217,6 +219,7 @@ fn wire__crate__api__whisper__whisper_client_new_impl(
                         api_tokenizer,
                         api_is_multilingual,
                         api_is_quantized,
+                        api_model_type,
                     ))?;
                     Ok(output_ok)
                 })())
@@ -582,12 +585,14 @@ impl SseDecode for crate::api::whisper::WhisperClient {
         let mut var_tokenizer = <Vec<u8>>::sse_decode(deserializer);
         let mut var_isMultilingual = <bool>::sse_decode(deserializer);
         let mut var_isQuantized = <bool>::sse_decode(deserializer);
+        let mut var_modelType = <String>::sse_decode(deserializer);
         return crate::api::whisper::WhisperClient {
             models: var_models,
             config: var_config,
             tokenizer: var_tokenizer,
             is_multilingual: var_isMultilingual,
             is_quantized: var_isQuantized,
+            model_type: var_modelType,
         };
     }
 }
@@ -694,6 +699,7 @@ impl flutter_rust_bridge::IntoDart for crate::api::whisper::WhisperClient {
             self.tokenizer.into_into_dart().into_dart(),
             self.is_multilingual.into_into_dart().into_dart(),
             self.is_quantized.into_into_dart().into_dart(),
+            self.model_type.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -989,6 +995,7 @@ impl SseEncode for crate::api::whisper::WhisperClient {
         <Vec<u8>>::sse_encode(self.tokenizer, serializer);
         <bool>::sse_encode(self.is_multilingual, serializer);
         <bool>::sse_encode(self.is_quantized, serializer);
+        <String>::sse_encode(self.model_type, serializer);
     }
 }
 
@@ -1206,6 +1213,7 @@ mod io {
                 tokenizer: self.tokenizer.cst_decode(),
                 is_multilingual: self.is_multilingual.cst_decode(),
                 is_quantized: self.is_quantized.cst_decode(),
+                model_type: self.model_type.cst_decode(),
             }
         }
     }
@@ -1265,6 +1273,7 @@ mod io {
                 tokenizer: core::ptr::null_mut(),
                 is_multilingual: Default::default(),
                 is_quantized: Default::default(),
+                model_type: core::ptr::null_mut(),
             }
         }
     }
@@ -1344,6 +1353,7 @@ mod io {
         tokenizer: *mut wire_cst_list_prim_u_8_loose,
         is_multilingual: bool,
         is_quantized: bool,
+        model_type: *mut wire_cst_list_prim_u_8_strict,
     ) {
         wire__crate__api__whisper__whisper_client_new_impl(
             port_,
@@ -1352,6 +1362,7 @@ mod io {
             tokenizer,
             is_multilingual,
             is_quantized,
+            model_type,
         )
     }
 
@@ -1514,6 +1525,7 @@ mod io {
         tokenizer: *mut wire_cst_list_prim_u_8_strict,
         is_multilingual: bool,
         is_quantized: bool,
+        model_type: *mut wire_cst_list_prim_u_8_strict,
     }
 }
 #[cfg(not(target_family = "wasm"))]

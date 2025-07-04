@@ -1,5 +1,5 @@
 use crate::onnx_models;
-use crate::{frb_generated::StreamSink, candle_models};
+use crate::{candle_models, frb_generated::StreamSink};
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::sync::Mutex;
@@ -36,6 +36,7 @@ pub struct WhisperClient {
     pub tokenizer: Vec<u8>,
     pub is_multilingual: bool,
     pub is_quantized: bool,
+    pub model_type: String,
 }
 
 impl WhisperClient {
@@ -45,6 +46,7 @@ impl WhisperClient {
         tokenizer: Vec<u8>,
         is_multilingual: bool,
         is_quantized: bool,
+        model_type: String,
     ) -> Self {
         Self {
             models,
@@ -52,6 +54,7 @@ impl WhisperClient {
             tokenizer,
             is_multilingual,
             is_quantized,
+            model_type,
         }
     }
 }
@@ -87,6 +90,7 @@ pub async fn launch_caption(
     let p = candle_models::whisper::LaunchCaptionParams {
         models: whisper_client.models,
         config_data: whisper_client.config,
+        model_type: whisper_client.model_type,
         is_quantized: whisper_client.is_quantized,
         tokenizer_data: whisper_client.tokenizer,
         audio_device,
@@ -106,7 +110,7 @@ pub async fn launch_caption(
         vad_filters_value,
     };
 
-    let r = if p.config_data.ends_with("_onnx") {
+    let r = if p.model_type.ends_with("_onnx") {
         onnx_models::launch_caption(p, move |segments| {
             let _ = stream_sink.add(segments);
         })

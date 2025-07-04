@@ -26,14 +26,14 @@ pub async fn launch_caption<F>(
 where
     F: FnMut(Vec<Segment>) + Send + 'static,
 {
-    if params.config_data == "sense-voice_onnx" {
+    if params.model_type == "sense-voice_onnx" {
         sense_voice::launch_caption(params, result_callback).await?
-    } else if params.config_data == "whisper_onnx" {
-        // whisper::launch_caption(params, result_callback).await?
+    } else if params.model_type == "whisper_onnx" {
+        whisper::launch_caption(params, result_callback).await?
     } else {
         Err(anyhow::anyhow!(
             "Unsupported model configuration: {}",
-            params.config_data
+            params.model_type
         ))?
     }
     Ok(())
@@ -59,10 +59,17 @@ pub fn register_execution_providers(
     if try_gpu {
         #[cfg(target_os = "macos")]
         {
-            let core_ml = CoreMLExecutionProvider::default();
+            use ort::execution_providers::coreml::CoreMLComputeUnits;
+            let mut core_ml = CoreMLExecutionProvider::default();
+            core_ml = core_ml.with_compute_units(CoreMLComputeUnits::All);
             if core_ml.register(builder).is_ok() {
                 println!(
                     "[{}] Registered CoreML execution provider",
+                    model_print_name
+                );
+            }else {
+                eprintln!(
+                    "[{}] Failed to register CoreML execution provider",
                     model_print_name
                 );
             }

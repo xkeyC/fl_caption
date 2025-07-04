@@ -59,6 +59,7 @@ class DartWhisper extends _$DartWhisper {
     debugPrint("[DartWhisper] modelName: $modelName modelFile: ${modelFiles[modelName]} errorType: $errorType");
     final config = await getConfigByModel(modelData);
     final tokenizer = await getTokenizerByModel(modelData);
+    final modelType = getModelType(modelData);
     debugPrint("[DartWhisper] creating WhisperClient ...");
     final whisper = rs.WhisperClient(
       models: modelFiles,
@@ -66,6 +67,7 @@ class DartWhisper extends _$DartWhisper {
       tokenizer: tokenizer,
       isMultilingual: modelData.isMultilingual,
       isQuantized: modelData.isQuantized,
+      modelType: modelType,
     );
     debugPrint("[DartWhisper] WhisperClient created: $whisper");
     return DartWhisperClient(client: whisper, errorType: errorType);
@@ -73,16 +75,30 @@ class DartWhisper extends _$DartWhisper {
 
   Future<String> getConfigByModel(WhisperModelData model) async {
     if (model is OnnxModelsData) {
-      return "${model.onnxExecMode}_onnx";
+      if (model.onnxExecMode == "sense-voice") {
+        return "";
+      }
+      return await rootBundle.loadString("assets/whisper/onnx/${model.name}-config.json");
     }
     return await rootBundle.loadString("assets/whisper/${model.configType.name}-config.json");
   }
 
   Future<Uint8List> getTokenizerByModel(WhisperModelData model) async {
     if (model is OnnxModelsData) {
-      return (await rootBundle.load("assets/whisper/onnx/${model.name}-tokens.txt")).buffer.asUint8List();
+      if (model.onnxExecMode == "sense-voice") {
+        return (await rootBundle.load("assets/whisper/onnx/${model.name}-tokens.txt")).buffer.asUint8List();
+      } else {
+        return (await rootBundle.load("assets/whisper/onnx/${model.name}-tokenizer.json")).buffer.asUint8List();
+      }
     }
     return (await rootBundle.load("assets/whisper/${model.configType.name}-tokenizer.json")).buffer.asUint8List();
+  }
+
+  String getModelType(WhisperModelData model) {
+    if (model is OnnxModelsData) {
+      return "${model.onnxExecMode}_onnx";
+    }
+    return "whisper";
   }
 }
 

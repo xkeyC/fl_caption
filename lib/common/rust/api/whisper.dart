@@ -53,6 +53,7 @@ class WhisperClient {
   final Uint8List tokenizer;
   final bool isMultilingual;
   final bool isQuantized;
+  final String modelType;
 
   const WhisperClient({
     required this.models,
@@ -60,6 +61,7 @@ class WhisperClient {
     required this.tokenizer,
     required this.isMultilingual,
     required this.isQuantized,
+    required this.modelType,
   });
 
   // HINT: Make it `#[frb(sync)]` to let it become the default constructor of Dart class.
@@ -69,12 +71,14 @@ class WhisperClient {
     required List<int> tokenizer,
     required bool isMultilingual,
     required bool isQuantized,
+    required String modelType,
   }) => RustLib.instance.api.crateApiWhisperWhisperClientNew(
     models: models,
     config: config,
     tokenizer: tokenizer,
     isMultilingual: isMultilingual,
     isQuantized: isQuantized,
+    modelType: modelType,
   );
 
   @override
@@ -83,7 +87,8 @@ class WhisperClient {
       config.hashCode ^
       tokenizer.hashCode ^
       isMultilingual.hashCode ^
-      isQuantized.hashCode;
+      isQuantized.hashCode ^
+      modelType.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -94,5 +99,6 @@ class WhisperClient {
           config == other.config &&
           tokenizer == other.tokenizer &&
           isMultilingual == other.isMultilingual &&
-          isQuantized == other.isQuantized;
+          isQuantized == other.isQuantized &&
+          modelType == other.modelType;
 }

@@ -30,14 +30,14 @@ class OnnxModelsData extends WhisperModelData {
     // whisper-large-v3-turbo
     "whisper-large-v3-turbo": OnnxModelsData(
       name: 'whisper-large-v3-turbo',
-      size: '987 MB',
-      sizeInt: 987 * 1024,
+      size: '751 MB',
+      sizeInt: 751 * 1024,
       isMultilingual: true,
       downloadUrls: {
-        "decoder.int8.onnx":
-            "https://huggingface.co/xkeyC/fl_caption_onnx_models/resolve/main/whisper-large-v3-turbo/decoder.int8.onnx",
-        "encoder.int8.onnx":
-            "https://huggingface.co/xkeyC/fl_caption_onnx_models/resolve/main/whisper-large-v3-turbo/encoder.int8.onnx",
+        "decoder_with_past_model_q4.onnx":
+            "https://huggingface.co/onnx-community/whisper-large-v3-turbo/resolve/main/onnx/decoder_with_past_model_q4.onnx",
+        "encoder_model_q4.onnx":
+            "https://huggingface.co/onnx-community/whisper-large-v3-turbo/resolve/main/onnx/encoder_model_q4.onnx",
       },
       onnxExecMode: 'whisper',
     ),

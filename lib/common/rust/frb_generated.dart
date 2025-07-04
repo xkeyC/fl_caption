@@ -108,6 +108,7 @@ abstract class RustLibApi extends BaseApi {
     required List<int> tokenizer,
     required bool isMultilingual,
     required bool isQuantized,
+    required String modelType,
   });
 }
 
@@ -318,6 +319,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     required List<int> tokenizer,
     required bool isMultilingual,
     required bool isQuantized,
+    required String modelType,
   }) {
     return handler.executeNormal(
       NormalTask(
@@ -327,6 +329,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           var arg2 = cst_encode_list_prim_u_8_loose(tokenizer);
           var arg3 = cst_encode_bool(isMultilingual);
           var arg4 = cst_encode_bool(isQuantized);
+          var arg5 = cst_encode_String(modelType);
           return wire.wire__crate__api__whisper__whisper_client_new(
             port_,
             arg0,
@@ -334,6 +337,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             arg2,
             arg3,
             arg4,
+            arg5,
           );
         },
         codec: DcoCodec(
@@ -341,7 +345,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           decodeErrorData: null,
         ),
         constMeta: kCrateApiWhisperWhisperClientNewConstMeta,
-        argValues: [models, config, tokenizer, isMultilingual, isQuantized],
+        argValues: [
+          models,
+          config,
+          tokenizer,
+          isMultilingual,
+          isQuantized,
+          modelType,
+        ],
         apiImpl: this,
       ),
     );
@@ -356,6 +367,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           "tokenizer",
           "isMultilingual",
           "isQuantized",
+          "modelType",
         ],
       );
 
@@ -604,14 +616,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   WhisperClient dco_decode_whisper_client(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 5)
-      throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
+    if (arr.length != 6)
+      throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
     return WhisperClient(
       models: dco_decode_Map_String_String_None(arr[0]),
       config: dco_decode_String(arr[1]),
       tokenizer: dco_decode_list_prim_u_8_strict(arr[2]),
       isMultilingual: dco_decode_bool(arr[3]),
       isQuantized: dco_decode_bool(arr[4]),
+      modelType: dco_decode_String(arr[5]),
     );
   }
 
@@ -932,12 +945,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_tokenizer = sse_decode_list_prim_u_8_strict(deserializer);
     var var_isMultilingual = sse_decode_bool(deserializer);
     var var_isQuantized = sse_decode_bool(deserializer);
+    var var_modelType = sse_decode_String(deserializer);
     return WhisperClient(
       models: var_models,
       config: var_config,
       tokenizer: var_tokenizer,
       isMultilingual: var_isMultilingual,
       isQuantized: var_isQuantized,
+      modelType: var_modelType,
     );
   }
 
@@ -1308,6 +1323,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_list_prim_u_8_strict(self.tokenizer, serializer);
     sse_encode_bool(self.isMultilingual, serializer);
     sse_encode_bool(self.isQuantized, serializer);
+    sse_encode_String(self.modelType, serializer);
   }
 
   @protected

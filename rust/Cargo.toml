@@ -25,18 +25,14 @@ uuid = { version = "1.17.0", features = ["v4"] }
 native-dialog = "0.9.0"
 rayon = "1.10.0"
 ndarray = "0.16.0"
-ndarray-npy = "0.9.1"
-base64 = "0.22"
 kaldi-fbank-rust = { git = "https://github.com/xkeyC/kaldi-fbank-rust.git", branch = "master" }
-rustfft = "6.4.0"
-hound = "3.5.1"
-tiktoken-rs = "0.7.0"
 
 [target.'cfg(any(target_os = "windows"))'.dependencies]
 candle-core = { version = "0.9.1", features = ["cuda"] }
 candle-nn = { version = "0.9.1", features = ["cuda"] }
 candle-transformers = { version = "0.9.1", features = ["cuda"] }
 ort = { version = "2.0.0-rc.10", features = [
+    "tensorrt",
     "cuda",
     "directml",
     "xnnpack",
@@ -50,6 +46,7 @@ candle-core = { version = "0.9.1", features = ["cuda"] }
 candle-nn = { version = "0.9.1", features = ["cuda"] }
 candle-transformers = { version = "0.9.1", features = ["cuda"] }
 ort = { version = "2.0.0-rc.10", features = [
+    "tensorrt",
     "cuda",
     "xnnpack",
     "download-binaries",

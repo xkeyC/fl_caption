@@ -41,11 +41,20 @@ class DartWhisper extends _$DartWhisper {
       for (final entry in modelData.downloadUrls.entries) {
         final fileName = entry.key;
         var modelDir = appSettings.modelWorkingDir;
-        if (isOnnxModel) modelDir = "$modelDir/onnx/${modelData.name}";
-        modelFiles[fileName] = "$modelDir/$fileName";
+        if (isOnnxModel) {
+          modelDir = "$modelDir/onnx/${modelData.name}/$fileName";
+        } else {
+          modelFiles[fileName] = "$modelDir/${modelData.name}/$fileName";
+        }
       }
     } else {
-      modelFiles[modelData.name] = "${appSettings.modelWorkingDir}/onnx/${modelData.name}";
+      final fileName = modelData.downloadUrls.keys.first;
+      var modelDir = appSettings.modelWorkingDir;
+      if (isOnnxModel) {
+        modelFiles[fileName] = "$modelDir/onnx/$fileName";
+      } else {
+        modelFiles[fileName] = "$modelDir/$fileName";
+      }
     }
 
     // check files existence
@@ -75,7 +84,7 @@ class DartWhisper extends _$DartWhisper {
 
   Future<String> getConfigByModel(WhisperModelData model) async {
     if (model is OnnxModelsData) {
-      if (model.onnxExecMode == "sense-voice") {
+      if (const ["sense-voice", "whisper-olive"].contains(model.onnxExecMode)) {
         return "";
       }
       return await rootBundle.loadString("assets/whisper/onnx/${model.name}-config.json");
@@ -85,7 +94,9 @@ class DartWhisper extends _$DartWhisper {
 
   Future<Uint8List> getTokenizerByModel(WhisperModelData model) async {
     if (model is OnnxModelsData) {
-      if (model.onnxExecMode == "sense-voice") {
+      if (const ["whisper-olive"].contains(model.onnxExecMode)) {
+        return Uint8List(0);
+      } else if (model.onnxExecMode == "sense-voice") {
         return (await rootBundle.load("assets/whisper/onnx/${model.name}-tokens.txt")).buffer.asUint8List();
       } else {
         return (await rootBundle.load("assets/whisper/onnx/${model.name}-tokenizer.json")).buffer.asUint8List();

@@ -1,330 +1,280 @@
-use anyhow::Result;
-use candle_transformers::models::whisper::{audio, Config};
-use ndarray::{s, Array2, Array3};
-use ort::{session::Session, value::Value};
-use std::collections::HashMap;
-use tokenizers::Tokenizer;
+use ndarray::{Array, Array1, Axis};
+use ort::session::Session;
+use std::time::Instant;
 
-use crate::onnx_models::{find_model_path, init_model};
+use crate::candle_models::whisper::model::{DecodingResult, Segment, WhisperStatus};
 
-/// Whisper ONNX模型输出结构
-#[derive(Debug, Clone)]
-pub struct Seq2SeqLMOutput {
-    pub logits: Array3<f32>, // [batch_size, sequence_length, vocab_size]
-}
-
-/// Encoder输出结构
-#[derive(Debug, Clone)]
-pub struct BaseModelOutput {
-    pub last_hidden_state: Array3<f32>, // [batch_size, sequence_length, hidden_size]
-}
-
-/// ONNX Whisper编码器
-pub struct ORTEncoderForSpeech {
+pub struct WhisperModel {
     session: Session,
+    // 推理参数
+    max_length: i32,
+    min_length: i32,
+    num_beams: i32,
+    num_return_sequences: i32,
+    length_penalty: f32,
+    repetition_penalty: f32,
+    // num_mel_bins: i32,
+    // n_frames: i32,
+    decoder_start_token_id: i32,
+    predict_timestamps: bool,
 }
 
-impl ORTEncoderForSpeech {
-    pub fn new(model_path: &str, try_gpu: bool) -> Result<Self> {
-        let session = init_model(model_path.to_string(), try_gpu)?;
-        Ok(Self { session })
-    }
-
-    /// 前向推理
-    pub fn forward(&mut self, input_features: &Array3<f32>) -> Result<BaseModelOutput> {
-        // 准备输入
-        let input_value = Value::from_array(input_features.clone())?;
-
-        // 运行推理
-        let outputs = self.session.run(ort::inputs![
-            "input_features" => input_value
-        ])?;
-
-        // 获取输出
-        let last_hidden_state_value = outputs
-            .get("last_hidden_state")
-            .ok_or_else(|| anyhow::anyhow!("Missing last_hidden_state output"))?;
-
-        // 提取张量数据
-        let (shape, data) = last_hidden_state_value.try_extract_tensor::<f32>()?;
-
-        // 验证形状
-        if shape.len() != 3 {
-            return Err(anyhow::anyhow!("Expected 3D tensor, got {}D", shape.len()));
+impl WhisperModel {
+    pub fn from_session(session: Session) -> anyhow::Result<Self> {
+        println!("Whisper Model inputs:");
+        for input in session.inputs.iter() {
+            println!("  - name: {}, type: {:?}", input.name, input.input_type);
+        }
+        println!("Whisper Model outputs:");
+        for output in session.outputs.iter() {
+            println!("  - name: {}, type: {:?}", output.name, output.output_type);
         }
 
-        let (batch_size, seq_len, hidden_size) =
-            (shape[0] as usize, shape[1] as usize, shape[2] as usize);
+        // const values
+        // https://github.com/microsoft/Olive/blob/d4d424f9b370e736e79b17487c037d5aad766315/examples/whisper/code/whisper_dataset.py#L11
+        const SAMPLE_RATE: i32 = 16000;
+        const HOP_LENGTH: i32 = 160;
+        const CHUNK_LENGTH: i32 = 30;
+        const N_SAMPLES: i32 = CHUNK_LENGTH * SAMPLE_RATE;
+        const N_FRAMES: i32 = N_SAMPLES / HOP_LENGTH;
 
-        // 创建ndarray
-        let mut last_hidden_state = Array3::zeros((batch_size, seq_len, hidden_size));
-        for b in 0..batch_size {
-            for s in 0..seq_len {
-                for h in 0..hidden_size {
-                    let idx = b * seq_len * hidden_size + s * hidden_size + h;
-                    if idx < data.len() {
-                        last_hidden_state[[b, s, h]] = data[idx];
-                    }
-                }
-            }
-        }
+        // disable timestamps
+        let predict_timestamps = false;
 
-        Ok(BaseModelOutput { last_hidden_state })
-    }
-}
+        // value from metadata
+        let get_metadata_value = |key: &str, default: &str| -> String {
+            session
+                .metadata()
+                .ok()
+                .and_then(|metadata| metadata.custom(key).ok().flatten())
+                .unwrap_or_else(|| default.to_string())
+        };
 
-/// ONNX Whisper解码器
-pub struct ORTDecoderForSeq2Seq {
-    session: Session,
-}
+        let max_length = get_metadata_value("max_length", "200")
+            .parse::<i32>()
+            .unwrap_or(200);
+        let min_length = get_metadata_value("min_length", "0")
+            .parse::<i32>()
+            .unwrap_or(0);
+        let num_beams = get_metadata_value("num_beams", "2")
+            .parse::<i32>()
+            .unwrap_or(2);
+        let num_mel_bins = get_metadata_value("num_mel_bins", "80")
+            .parse::<i32>()
+            .unwrap_or(80);
+        let num_return_sequences = get_metadata_value("num_return_sequences", "1")
+            .parse::<i32>()
+            .unwrap_or(1);
+        let length_penalty = get_metadata_value("length_penalty", "1.0")
+            .parse::<f32>()
+            .unwrap_or(1.0);
+        let repetition_penalty = get_metadata_value("repetition_penalty", "1.0")
+            .parse::<f32>()
+            .unwrap_or(1.0);
+        let decoder_start_token_id = get_metadata_value("decoder_start_token_id", "50258")
+            .parse::<i32>()
+            .unwrap_or(50258);
 
-impl ORTDecoderForSeq2Seq {
-    pub fn new(decoder_path: &str, try_gpu: bool, _config: &Config) -> Result<Self> {
-        let session = init_model(decoder_path.to_string(), try_gpu)?;
-        Ok(Self { session })
-    }
-
-    /// 前向推理
-    pub fn forward(
-        &mut self,
-        input_ids: &Array2<i64>,
-        encoder_hidden_states: &Array3<f32>,
-    ) -> Result<Seq2SeqLMOutput> {
-        // 运行推理
-        let outputs = self.session.run(ort::inputs![
-            "input_ids" => Value::from_array(input_ids.clone())?,
-            "encoder_hidden_states" => Value::from_array(encoder_hidden_states.clone())?
-        ])?;
-
-        // 获取logits
-        let logits_value = outputs
-            .get("logits")
-            .ok_or_else(|| anyhow::anyhow!("Missing logits output"))?;
-
-        let (logits_shape, logits_data) = logits_value.try_extract_tensor::<f32>()?;
-
-        if logits_shape.len() != 3 {
-            return Err(anyhow::anyhow!(
-                "Expected 3D logits tensor, got {}D",
-                logits_shape.len()
-            ));
-        }
-
-        let (batch_size, seq_len, vocab_size) = (
-            logits_shape[0] as usize,
-            logits_shape[1] as usize,
-            logits_shape[2] as usize,
-        );
-
-        // 验证 logits 数据长度
-        let expected_logits_len = batch_size * seq_len * vocab_size;
-        if logits_data.len() != expected_logits_len {
-            return Err(anyhow::anyhow!(
-                "Logits data length mismatch: expected {}, got {}",
-                expected_logits_len,
-                logits_data.len()
-            ));
-        }
-
-        // 使用 from_shape_vec 更高效地创建 logits 数组
-        let logits =
-            Array3::from_shape_vec((batch_size, seq_len, vocab_size), logits_data.to_vec())
-                .map_err(|e| anyhow::anyhow!("Failed to reshape logits tensor: {}", e))?;
-
-        Ok(Seq2SeqLMOutput { logits })
-    }
-}
-
-/// ONNX Whisper主模型
-pub struct ORTModelForWhisper {
-    encoder: ORTEncoderForSpeech,
-    decoder: ORTDecoderForSeq2Seq,
-    tokenizer: Tokenizer,
-    config: Config,
-    decoder_start_token_id: i64,
-    eos_token_id: i64,
-}
-
-impl ORTModelForWhisper {
-    pub fn new(
-        models: &HashMap<String, String>,
-        tokenizer: Tokenizer,
-        config: Config,
-        try_gpu: bool,
-    ) -> Result<Self> {
-        // 查找模型路径
-        let encoder_path = find_model_path(models, Some("encoder"))
-            .ok_or_else(|| anyhow::anyhow!("Encoder model not found"))?;
-
-        let decoder_path = find_model_path(models, Some("decoder"))
-            .ok_or_else(|| anyhow::anyhow!("Decoder model not found"))?;
-
-        // 创建编码器和解码器
-        let encoder = ORTEncoderForSpeech::new(&encoder_path, try_gpu)?;
-        let decoder = ORTDecoderForSeq2Seq::new(&decoder_path, try_gpu, &config)?;
-
-        // print all input output names
-        let encoder_input_names = encoder.session.inputs.iter().clone();
-        let encoder_output_names = encoder.session.outputs.iter().clone();
-        println!("Encoder input names: {:?}", encoder_input_names);
-        println!("Encoder output names: {:?}", encoder_output_names);
-        let decoder_input_names = decoder.session.inputs.iter().clone();
-        let decoder_output_names = decoder.session.outputs.iter().clone();
-        println!("Decoder input names: {:?}", decoder_input_names);
-        println!("Decoder output names: {:?}", decoder_output_names);
+        println!("Whisper model parameters loaded:");
+        println!("  - max_length: {}", max_length);
+        println!("  - min_length: {}", min_length);
+        println!("  - num_beams: {}", num_beams);
+        println!("  - num_return_sequences: {}", num_return_sequences);
+        println!("  - length_penalty: {}", length_penalty);
+        println!("  - repetition_penalty: {}", repetition_penalty);
+        println!("  - num_mel_bins: {}", num_mel_bins);
+        println!("  - n_frames: {}", N_FRAMES);
+        println!("  - decoder_start_token_id: {}", decoder_start_token_id);
+        println!("  - predict_timestamps: {}", predict_timestamps);
 
         Ok(Self {
-            encoder,
-            decoder,
-            tokenizer,
-            config,
-            decoder_start_token_id: 50258,
-            eos_token_id: 50257,
+            session,
+            max_length,
+            min_length,
+            num_beams,
+            num_return_sequences,
+            length_penalty,
+            repetition_penalty,
+            // num_mel_bins,
+            // n_frames: N_FRAMES,
+            decoder_start_token_id,
+            predict_timestamps,
         })
     }
 
-    /// 前向推理
-    pub fn forward(
+    pub fn inference(
         &mut self,
-        input_features: &Array3<f32>,
-        decoder_input_ids: &Array2<i64>,
-    ) -> Result<Seq2SeqLMOutput> {
-        // 编码器推理
-        let encoder_outputs = self.encoder.forward(input_features)?;
+        audio_data: &[f32],
+        language: Option<&str>,
+        task: Option<&str>, // "transcribe" 或 "translate"
+    ) -> anyhow::Result<String> {
+        use ort::value::Value;
 
-        // 解码器推理
-        self.decoder.forward(
-            decoder_input_ids,
-            &encoder_outputs.last_hidden_state,
-        )
-    }
+        // 将音频数据转换为WAV格式
+        let audio_bytes = self.convert_audio_to_wav(audio_data);
+        let audio = Array1::from_iter(audio_bytes.iter().copied());
+        let audio = audio.into_owned().insert_axis(Axis(0));
 
-    pub fn generate(
-        &mut self,
-        encoder_hidden_states: &Array3<f32>,
-        max_new_tokens: usize,
-        temperature: f32,
-    ) -> Result<Vec<i64>> {
-        let batch_size = encoder_hidden_states.shape()[0];
-        let mut generated_tokens = Vec::new();
+        // 使用模型属性中的参数
+        let max_length = Array::from_shape_vec((1,), vec![self.max_length])?;
+        let min_length = Array::from_shape_vec((1,), vec![self.min_length])?;
+        let num_beams = Array::from_shape_vec((1,), vec![self.num_beams])?;
+        let num_return_sequences = Array::from_shape_vec((1,), vec![self.num_return_sequences])?;
+        let length_penalty = Array::from_shape_vec((1,), vec![self.length_penalty])?;
+        let repetition_penalty = Array::from_shape_vec((1,), vec![self.repetition_penalty])?;
 
-        // 构建初始序列，从 start token 开始
-        let mut current_sequence = vec![self.decoder_start_token_id];
+        // 构建 decoder_input_ids
+        let language_token = self.language_to_token(language.unwrap_or("en"));
 
-        for _ in 0..max_new_tokens {
-            // 构建当前输入序列
-            let decoder_input_ids = Array2::from_shape_vec(
-                (batch_size, current_sequence.len()),
-                current_sequence.repeat(batch_size),
-            )?;
+        let task_token = match task.unwrap_or("transcribe") {
+            "translate" => 50358, // translate token
+            _ => 50359,           // transcribe token (default)
+        };
 
-            // 解码器推理
-            let outputs = self.decoder.forward(&decoder_input_ids, encoder_hidden_states)?;
+        let timestamp_token = if self.predict_timestamps {
+            50364 // 启用时间戳
+        } else {
+            50363 // 不使用时间戳
+        };
 
-            // 获取最后一个位置的 logits
-            let logits = &outputs.logits;
-            let last_logits = logits.slice(s![0, -1, ..]).to_owned();
+        // 构建强制解码器ID：[start_token, language_token, task_token, timestamp_token]
+        let decoder_input_ids = Array::from_shape_vec(
+            (1, 4),
+            vec![
+                self.decoder_start_token_id,
+                language_token as i32,
+                task_token,
+                timestamp_token,
+            ],
+        )?;
 
-            // 应用温度
-            let scaled_logits = if temperature != 1.0 {
-                last_logits.mapv(|x| x / temperature)
-            } else {
-                last_logits
-            };
+        // 转换为 Value
+        let audio_value = Value::from_array(audio)?;
+        let max_length_value = Value::from_array(max_length)?;
+        let min_length_value = Value::from_array(min_length)?;
+        let num_beams_value = Value::from_array(num_beams)?;
+        let num_return_sequences_value = Value::from_array(num_return_sequences)?;
+        let length_penalty_value = Value::from_array(length_penalty)?;
+        let repetition_penalty_value = Value::from_array(repetition_penalty)?;
+        let decoder_input_ids_value = Value::from_array(decoder_input_ids)?;
 
-            // 简单的贪心解码（选择概率最高的token）
-            let next_token = scaled_logits
-                .iter()
-                .enumerate()
-                .max_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap())
-                .map(|(i, _)| i as i64)
-                .unwrap();
+        let start = Instant::now();
 
-            // 检查是否结束
-            if next_token == self.eos_token_id {
-                break;
-            }
+        // 使用 ort::inputs! 宏来正确构建输入
+        let outputs = self.session.run(ort::inputs![
+            "audio_stream" => audio_value,
+            "max_length" => max_length_value,
+            "min_length" => min_length_value,
+            "num_beams" => num_beams_value,
+            "num_return_sequences" => num_return_sequences_value,
+            "length_penalty" => length_penalty_value,
+            "repetition_penalty" => repetition_penalty_value,
+            "decoder_input_ids" => decoder_input_ids_value,
+        ])?;
 
-            generated_tokens.push(next_token);
-            current_sequence.push(next_token);
-        }
+        let inference_duration = start.elapsed();
+        println!(
+            "Whisper inference took {} seconds",
+            inference_duration.as_secs_f32()
+        );
 
-        Ok(generated_tokens)
-    }
+        // 获取输出
+        let output_keys: Vec<_> = outputs.keys().collect();
+        println!("Available output keys: {:?}", output_keys);
 
-    /// 获取tokenizer的引用
-    pub fn tokenizer(&self) -> &Tokenizer {
-        &self.tokenizer
-    }
+        // 尝试获取字符串输出
+        if let Some(str_output) = outputs.get("str") {
+            println!("Found 'str' output, type: {:?}", str_output.dtype());
+            println!("Output shape: {:?}", str_output.shape());
 
-    /// 将token ID解码为文本
-    pub fn decode_tokens(&self, tokens: &[i64]) -> Result<String> {
-        let token_ids: Vec<u32> = tokens.iter().map(|&x| x as u32).collect();
-        Ok(self
-            .tokenizer
-            .decode(&token_ids, true)
-            .map_err(|e| anyhow::anyhow!("Tokenizer decode error: {}", e))?)
-    }
-
-    /// 获取音频特征
-    pub fn get_audio_features(&mut self, mel: Array2<f32>) -> Result<Array3<f32>> {
-        // 添加batch维度 [mel_bins, time_steps] -> [1, mel_bins, time_steps]
-        let mel_with_batch = mel.insert_axis(ndarray::Axis(0));
-
-        // 使用编码器进行前向推理
-        let encoder_output = self.encoder.forward(&mel_with_batch)?;
-
-        Ok(encoder_output.last_hidden_state)
-    }
-
-    /// 从音频数据生成mel特征 (使用candle的pcm_to_mel)
-    pub fn audio_to_mel_features(
-        audio: &[f32],
-        _sample_rate: usize,
-        mel_filters: &[f32],
-        config: &Config,
-    ) -> Result<Array2<f32>> {
-        let mel = audio::pcm_to_mel(config, audio, mel_filters);
-        let mel_len = mel.len();
-        let n_mels = config.num_mel_bins;
-        let n_frames = mel_len / n_mels;
-        let mut mel_features = Array2::zeros((n_mels, n_frames));
-        for i in 0..n_mels {
-            for j in 0..n_frames {
-                let idx = i * n_frames + j;
-                if idx < mel.len() {
-                    mel_features[[i, j]] = mel[idx];
+            // 使用 try_extract_string_array 提取字符串数组
+            match str_output.try_extract_string_array() {
+                Ok(string_array) => {
+                    // 获取数组中的第一个字符串
+                    if let Some(text) = string_array.iter().next() {
+                        Ok(text.clone())
+                    } else {
+                        Ok("Empty string array".to_string())
+                    }
+                }
+                Err(e) => {
+                    println!("Failed to extract string array: {:?}", e);
+                    Ok("Failed to extract string from model output".to_string())
                 }
             }
+        } else {
+            Err(anyhow::anyhow!("No 'str' output found from model"))
         }
-        Ok(mel_features)
     }
 
-    /// 端到端的音频转录方法
-    pub fn transcribe_audio(
-        &mut self,
-        audio: &[f32],
-        sample_rate: usize,
-        max_new_tokens: Option<usize>,
-        temperature: Option<f32>,
-    ) -> Result<String> {
-        let mel_filters = get_mel_filters(self.config.num_mel_bins)?;
-        let mel_features =
-            Self::audio_to_mel_features(audio, sample_rate, &mel_filters, &self.config)?;
-        let encoder_features = self.get_audio_features(mel_features)?;
-        let tokens = self.generate(
-            &encoder_features,
-            max_new_tokens.unwrap_or(256),
-            temperature.unwrap_or(0.0),
-        )?;
-        self.decode_tokens(&tokens)
+    fn language_to_token(&self, language: &str) -> u32 {
+        super::multilingual::get_token_id(language).unwrap_or(50259)
+    }
+
+    fn convert_audio_to_wav(&self, audio_data: &[f32]) -> Vec<u8> {
+        let pcm_data: Vec<u8> = audio_data
+            .iter()
+            .flat_map(|&sample| {
+                let sample_i16 = (sample.clamp(-1.0, 1.0) * 32767.0) as i16;
+                sample_i16.to_le_bytes()
+            })
+            .collect();
+
+        // WAV header
+        let sample_rate = 16000u32;
+        let num_channels = 1u16;
+        let bits_per_sample = 16u16;
+        let byte_rate = sample_rate * num_channels as u32 * bits_per_sample as u32 / 8;
+        let block_align = num_channels * bits_per_sample / 8;
+        let data_size = pcm_data.len() as u32;
+        let file_size = 36 + data_size;
+
+        let mut audio_bytes = Vec::new();
+
+        // RIFF header
+        audio_bytes.extend_from_slice(b"RIFF");
+        audio_bytes.extend_from_slice(&file_size.to_le_bytes());
+        audio_bytes.extend_from_slice(b"WAVE");
+
+        // fmt chunk
+        audio_bytes.extend_from_slice(b"fmt ");
+        audio_bytes.extend_from_slice(&16u32.to_le_bytes()); // fmt chunk size
+        audio_bytes.extend_from_slice(&1u16.to_le_bytes()); // audio format (PCM)
+        audio_bytes.extend_from_slice(&num_channels.to_le_bytes());
+        audio_bytes.extend_from_slice(&sample_rate.to_le_bytes());
+        audio_bytes.extend_from_slice(&byte_rate.to_le_bytes());
+        audio_bytes.extend_from_slice(&block_align.to_le_bytes());
+        audio_bytes.extend_from_slice(&bits_per_sample.to_le_bytes());
+
+        // data chunk
+        audio_bytes.extend_from_slice(b"data");
+        audio_bytes.extend_from_slice(&data_size.to_le_bytes());
+        audio_bytes.extend_from_slice(&pcm_data);
+
+        audio_bytes
     }
 }
 
-pub fn get_mel_filters(num_mel_bins: usize) -> Result<Vec<f32>> {
-    let mel_bytes = crate::candle_models::whisper::get_mel_bytes(num_mel_bins)?;
-    let mut mel_filters = vec![0f32; mel_bytes.len() / 4];
-    use byteorder::{ByteOrder, LittleEndian};
-    LittleEndian::read_f32_into(&mel_bytes, &mut mel_filters);
-    Ok(mel_filters)
+pub fn create_whisper_segment(
+    text: String,
+    audio_duration_secs: f64,
+    inference_duration_ms: u128,
+    language: Option<String>,
+) -> Segment {
+    Segment {
+        start: 0.0,
+        duration: audio_duration_secs,
+        dr: DecodingResult {
+            tokens: vec![],
+            text,
+            avg_logprob: 0.0,
+            no_speech_prob: 0.0,
+            temperature: 0.0,
+            compression_ratio: 1.0,
+        },
+        reasoning_duration: Some(inference_duration_ms),
+        reasoning_lang: language,
+        audio_duration: Some((audio_duration_secs * 1000.0) as u128),
+        status: WhisperStatus::Working,
+    }
 }

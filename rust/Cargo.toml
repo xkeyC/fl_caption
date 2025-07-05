@@ -6,6 +6,16 @@ edition = "2021"
 [lib]
 crate-type = ["cdylib", "staticlib"]
 
+[features]
+default = ["nvidia"] # enable nvidia default
+nvidia = [
+    "candle-core/cuda",
+    "candle-nn/cuda",
+    "candle-transformers/cuda",
+    "ort/cuda",
+    "ort/tensorrt",
+]
+
 [dependencies]
 flutter_rust_bridge = "=2.10.0"
 tokio = { version = "1.45.1", features = ["full"] }
@@ -28,12 +38,7 @@ ndarray = "0.16.0"
 kaldi-fbank-rust = { git = "https://github.com/xkeyC/kaldi-fbank-rust.git", branch = "master" }
 
 [target.'cfg(any(target_os = "windows"))'.dependencies]
-candle-core = { version = "0.9.1", features = ["cuda"] }
-candle-nn = { version = "0.9.1", features = ["cuda"] }
-candle-transformers = { version = "0.9.1", features = ["cuda"] }
 ort = { version = "2.0.0-rc.10", features = [
-    "tensorrt",
-    "cuda",
     "directml",
     "xnnpack",
     #"load-dynamic"
@@ -42,15 +47,7 @@ ort = { version = "2.0.0-rc.10", features = [
 
 [target.'cfg(target_os = "linux")'.dependencies]
 pipewire = { version = "0.8", features = ["v0_3_44"] }
-candle-core = { version = "0.9.1", features = ["cuda"] }
-candle-nn = { version = "0.9.1", features = ["cuda"] }
-candle-transformers = { version = "0.9.1", features = ["cuda"] }
-ort = { version = "2.0.0-rc.10", features = [
-    "tensorrt",
-    "cuda",
-    "xnnpack",
-    "download-binaries",
-] }
+ort = { version = "2.0.0-rc.10", features = ["xnnpack", "download-binaries"] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 candle-core = { version = "0.9.1", features = ["metal"] }

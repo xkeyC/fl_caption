@@ -18,15 +18,15 @@ jobs:
         env:
           INPUT_CUDA_VERSION: 12.4.0
       - name: Setup Developer Command Prompt
-        uses: ilammy/msvc-dev-cmd@v1     
-        
+        uses: ilammy/msvc-dev-cmd@v1
+
       - name: Find cl.exe Path
         shell: pwsh
         run: |
           Write-Host "User: $env:USERNAME"
           Write-Host "Date: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
           Write-Host "========== Finding cl.exe locations =========="
-          
+
           # Check if cl.exe is available in PATH
           try {
               $clCommand = Get-Command cl.exe -ErrorAction Stop
@@ -73,11 +73,11 @@ jobs:
                   Write-Host "cl.exe not found in Visual Studio directories!" -ForegroundColor Red
               }
           }
-          
+
           # List environment variables related to Visual Studio and CUDA
           Write-Host "========== Environment Variables =========="
           Get-ChildItem env: | Where-Object { $_.Name -match "VS|MSVC|CUDA|NVCC" } | Format-Table -AutoSize
-      
+
       - name: Test CUDA Build Environment
         shell: cmd
         run: |
@@ -92,16 +92,16 @@ jobs:
           ) else (
             echo WARNING: NVCC_CCBIN is not defined
           )
-          
+
           where cl.exe 2>nul && echo cl.exe is in PATH || echo cl.exe is NOT in PATH
-          
+
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: 'stable'
+          channel: "stable"
           cache: true
-          cache-key: 'flutter-:os:-:channel:-:version:-:arch:-:hash:' # optional, change this to force refresh cache
-          cache-path: '${{ runner.tool_cache }}/flutter/:channel:-:version:-:arch:' # optional, change this to specify the cache path
+          cache-key: "flutter-:os:-:channel:-:version:-:arch:-:hash:" # optional, change this to force refresh cache
+          cache-path: "${{ runner.tool_cache }}/flutter/:channel:-:version:-:arch:" # optional, change this to specify the cache path
       - run: flutter --version
 
       - name: Set up Rust
@@ -140,76 +140,29 @@ jobs:
       #        run: |
       #          flutter pub global activate intl_utils
       #          flutter pub global run intl_utils:generate
-   
-      - name: Flutter Build
-        shell: pwsh
-        run: |
-          $repoRoot = $pwd.Path -replace '\\', '/'
-          $manifestPath = "$repoRoot/rust/Cargo.toml"
-          $targetDir = "$repoRoot/build/windows/x64/plugins/rust_lib_fl_caption/cargokit_build"
-          rustup run stable cargo build --manifest-path $manifestPath -p "rust_lib_fl_caption" --release --target "x86_64-pc-windows-msvc" --target-dir $targetDir
-          flutter build windows -v
 
-      - name: Prepare Release Packages
+      - name: Build With Nvidia
+        shell: pwsh
+        run: scripts/build_windows.ps1 -EnableNvidia "true"
+        env:
+          ENABLE_NVIDIA: "true"
+
+      - name: Archive build with CUDA
+        uses: actions/upload-artifact@v4
+        with:
+          name: fl_caption(NVIDIA)
+          path: build/windows/x64/runner/Release_with_cuda
+
+      - name: Build Without Nvidia
         shell: pwsh
         run: |
-          # Copy DLL files from cargokit_build to Release folder
-          $sourceDllPath = "build\windows\x64\plugins\rust_lib_fl_caption\cargokit_build\x86_64-pc-windows-msvc\release\examples"
-          $releaseDir = "build\windows\x64\runner\Release"
-          
-          if (Test-Path $sourceDllPath) {
-            Write-Host "Copying DLL files from $sourceDllPath to $releaseDir"
-            Get-ChildItem -Path $sourceDllPath -Filter "*.dll" | ForEach-Object {
-              Copy-Item $_.FullName -Destination $releaseDir -Force
-              Write-Host "Copied: $($_.Name)"
-            }
-          } else {
-            Write-Host "Warning: Source DLL path not found: $sourceDllPath"
-          }
-          
-          # Copy ortextensions.dll from packages\libortextensions\windows_x64
-          $ortextensionsDllPath = "packages\libortextensions\windows_x64\ortextensions.dll"
-          if (Test-Path $ortextensionsDllPath) {
-            Copy-Item $ortextensionsDllPath -Destination $releaseDir -Force
-            Write-Host "Copied ortextensions.dll to $releaseDir"
-          } else {
-            Write-Host "Warning: ortextensions.dll not found at $ortextensionsDllPath"
-          }
-          
-          # Create Release_without_cuda directory structure
-          $withoutCudaDir = "build\windows\x64\runner\Release_without_cuda\fl_caption"
-          New-Item -ItemType Directory -Path $withoutCudaDir -Force
-          
-          # Copy Release to Release_without_cuda/fl_caption
-          Write-Host "Copying Release to $withoutCudaDir"
-          Copy-Item -Path "$releaseDir\*" -Destination $withoutCudaDir -Recurse -Force
-          
-          # Remove CUDA DLLs from without_cuda version
-          $cudaDlls = @("onnxruntime_providers_cuda.dll", "onnxruntime_providers_tensorrt.dll")
-          foreach ($dll in $cudaDlls) {
-            $dllPath = Join-Path $withoutCudaDir $dll
-            if (Test-Path $dllPath) {
-              Remove-Item $dllPath -Force
-              Write-Host "Removed CUDA DLL: $dll"
-            }
-          }
-          
-          # Create Release_with_cuda directory structure
-          $withCudaDir = "build\windows\x64\runner\Release_with_cuda\fl_caption"
-          New-Item -ItemType Directory -Path $withCudaDir -Force
-          
-          # Copy Release to Release_with_cuda/fl_caption
-          Write-Host "Copying Release to $withCudaDir"
-          Copy-Item -Path "$releaseDir\*" -Destination $withCudaDir -Recurse -Force
+          Remove-Item -Path "build" -Recurse -Force -ErrorAction SilentlyContinue
+          scripts/build_windows.ps1 -EnableNvidia "false"
+        env:
+          ENABLE_NVIDIA: "false"
 
       - name: Archive build without CUDA
         uses: actions/upload-artifact@v4
         with:
           name: fl_caption
           path: build/windows/x64/runner/Release_without_cuda
-
-      - name: Archive build with CUDA
-        uses: actions/upload-artifact@v4
-        with:
-          name: fl_caption(cuda)
-          path: build/windows/x64/runner/Release_with_cuda

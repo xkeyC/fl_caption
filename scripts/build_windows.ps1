@@ -1,12 +1,33 @@
 param(
-    [string]$EnableNvidia = "true"  # 控制是否启用 NVIDIA 功能，默认启用
+    [string]$EnableNvidia = $null  # 控制是否启用 NVIDIA 功能
 )
+
+# 如果没有通过参数传递，则尝试从环境变量读取
+if ([string]::IsNullOrEmpty($EnableNvidia)) {
+    $EnableNvidia = $env:ENABLE_NVIDIA
+    if ([string]::IsNullOrEmpty($EnableNvidia)) {
+        $EnableNvidia = "true"  # 默认启用
+        Write-Host "No NVIDIA setting provided, defaulting to enabled" -ForegroundColor Yellow
+    } else {
+        Write-Host "Using NVIDIA setting from environment variable: $EnableNvidia" -ForegroundColor Cyan
+    }
+} else {
+    Write-Host "Using NVIDIA setting from parameter: $EnableNvidia" -ForegroundColor Cyan
+}
 
 Write-Host "Starting Windows build process..." -ForegroundColor Green
 Write-Host "NVIDIA Support: $EnableNvidia" -ForegroundColor Cyan
 
 # 获取项目根目录
 $projectRoot = Split-Path -Parent $PSScriptRoot
+
+# 显示调试信息
+Write-Host "========== Build Configuration ==========" -ForegroundColor Magenta
+Write-Host "Parameter EnableNvidia: $($args[0] ?? 'Not provided')" -ForegroundColor Gray
+Write-Host "Environment ENABLE_NVIDIA: $($env:ENABLE_NVIDIA ?? 'Not set')" -ForegroundColor Gray
+Write-Host "Final EnableNvidia value: $EnableNvidia" -ForegroundColor Gray
+Write-Host "Project Root: $projectRoot" -ForegroundColor Gray
+Write-Host "==========================================" -ForegroundColor Magenta
 
 function Update-CargoToml {
     param(
@@ -155,3 +176,4 @@ try {
     Write-Error "Build process failed: $($_.Exception.Message)"
     exit 1
 }
+test_env_vars

@@ -147,7 +147,7 @@ jobs:
         env:
           ENABLE_NVIDIA: "true"
 
-      - name: Archive build with CUDA
+      - name: Archive build with Nvidia
         uses: actions/upload-artifact@v4
         with:
           name: fl_caption(NVIDIA)
@@ -161,7 +161,7 @@ jobs:
         env:
           ENABLE_NVIDIA: "false"
 
-      - name: Archive build without CUDA
+      - name: Archive build without Nvidia
         uses: actions/upload-artifact@v4
         with:
           name: fl_caption

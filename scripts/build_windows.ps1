@@ -69,6 +69,20 @@ function Build-Flutter {
     $repoRoot = $projectRoot -replace '\\', '/'
     $manifestPath = "$repoRoot/rust/Cargo.toml"
     $targetDir = "$repoRoot/build/windows/x64/plugins/rust_lib_fl_caption/cargokit_build"
+
+    # 确保 cargokit_build 目录存在
+    $targetDirWindows = $targetDir -replace '/', '\'
+    if (-not (Test-Path $targetDirWindows)) {
+        Write-Host "Creating cargokit_build directory: $targetDirWindows" -ForegroundColor Yellow
+        New-Item -ItemType Directory -Path $targetDirWindows -Force | Out-Null
+    }
+
+    # 确保 native assets 目录存在
+    $nativeAssetsDir = "$projectRoot/build/native_assets/windows"
+    if (-not (Test-Path $nativeAssetsDir)) {
+        Write-Host "Creating native assets directory: $nativeAssetsDir" -ForegroundColor Yellow
+        New-Item -ItemType Directory -Path $nativeAssetsDir -Force | Out-Null
+    }
     
     # 构建 Rust 库
     Write-Host "Building Rust library..." -ForegroundColor Yellow

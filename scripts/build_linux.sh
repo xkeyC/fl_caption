@@ -66,6 +66,19 @@ build_flutter() {
     local manifest_path="$repo_root/rust/Cargo.toml"
     local target_dir="$repo_root/build/linux/x64/plugins/rust_lib_fl_caption/cargokit_build"
     
+    # 确保 cargokit_build 目录存在
+    if [[ ! -d "$target_dir" ]]; then
+        echo -e "\033[33mCreating cargokit_build directory: $target_dir\033[0m"
+        mkdir -p "$target_dir"
+    fi
+    
+    # 确保 native assets 目录存在
+    local native_assets_dir="$repo_root/build/native_assets/linux"
+    if [[ ! -d "$native_assets_dir" ]]; then
+        echo -e "\033[33mCreating native assets directory: $native_assets_dir\033[0m"
+        mkdir -p "$native_assets_dir"
+    fi
+    
     # Build Rust library
     echo -e "\033[33mBuilding Rust library...\033[0m"
     cargo build --manifest-path "$manifest_path" -p "rust_lib_fl_caption" --release --target "x86_64-unknown-linux-gnu" --target-dir "$target_dir"

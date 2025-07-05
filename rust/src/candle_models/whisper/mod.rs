@@ -1,50 +1,80 @@
+pub mod model;
 pub mod multilingual;
-pub mod whisper;
 
+use std::collections::HashMap;
 use std::time::Duration;
 
 use crate::audio_capture::{AudioCapture, AudioCaptureConfig, PlatformAudioCapture};
-use crate::whisper_caption::whisper::{Model, Segment};
-use crate::{get_device, vad};
+use crate::candle_models::whisper::model::{Model, Segment};
+use crate::{get_device, onnx_models};
 use candle_nn::VarBuilder;
 use candle_transformers::models::whisper::{self as m, audio, Config};
 use tokenizers::Tokenizer;
 use tokio::time::Instant;
 use tokio_util::sync::CancellationToken;
 
+pub struct LaunchCaptionParams {
+    pub models: HashMap<String, String>,
+    pub config_data: String,
+    pub model_type: String,
+    pub is_quantized: bool,
+    pub tokenizer_data: Vec<u8>,
+    pub audio_device: Option<String>,
+    pub audio_device_is_input: Option<bool>,
+    pub audio_language: Option<String>,
+    pub is_multilingual: Option<bool>,
+    pub cancel_token: CancellationToken,
+    pub with_timestamps: Option<bool>,
+    pub verbose: Option<bool>,
+    pub try_with_cuda: bool,
+    pub inference_timeout: Option<Duration>, // 推理总超时参数
+    pub max_tokens_per_segment: Option<usize>, // 防止幻觉的每段最大token数
+    pub whisper_max_audio_duration: Option<u32>, // 音频上下文长度(秒)
+    pub inference_interval_ms: Option<u64>,  // 推理间隔时间(毫秒)
+    pub whisper_temperature: Option<f32>,    // 温度参数
+    pub vad_model_path: Option<String>,      // VAD模型路径
+    pub vad_filters_value: Option<f32>,      // VAD模型阈值
+}
+
 pub async fn launch_caption<F>(
-    model_path: String,
-    config_data: &str,
-    is_quantized: bool,
-    tokenizer_data: Vec<u8>,
-    audio_device: Option<String>,
-    audio_device_is_input: Option<bool>,
-    audio_language: Option<String>,
-    is_multilingual: Option<bool>,
-    cancel_token: CancellationToken,
-    with_timestamps: Option<bool>,
-    verbose: Option<bool>,
-    try_with_cuda: bool,
-    inference_timeout: Option<Duration>,     // 推理总超时参数
-    max_tokens_per_segment: Option<usize>,   // 防止幻觉的每段最大token数
-    whisper_max_audio_duration: Option<u32>, // 音频上下文长度(秒)
-    inference_interval_ms: Option<u64>,      // 推理间隔时间(毫秒)
-    whisper_temperature: Option<f32>,        // 温度参数
-    vad_model_path: Option<String>,          // VAD模型路径
-    vad_filters_value: Option<f32>,          // VAD模型阈值
+    params: LaunchCaptionParams,
     mut result_callback: F,
 ) -> anyhow::Result<()>
 where
     F: FnMut(Vec<Segment>) + Send + 'static,
 {
-    result_callback(_make_status_response(whisper::WhisperStatus::Loading));
+    let LaunchCaptionParams {
+        models,
+        config_data,
+        is_quantized,
+        tokenizer_data,
+        audio_device,
+        audio_device_is_input,
+        audio_language,
+        is_multilingual,
+        cancel_token,
+        with_timestamps,
+        verbose,
+        try_with_cuda,
+        inference_timeout,
+        max_tokens_per_segment,
+        whisper_max_audio_duration,
+        inference_interval_ms,
+        whisper_temperature,
+        vad_model_path,
+        vad_filters_value,
+        ..
+    } = params;
+
+    let model_path: String = models.values().next().unwrap().to_string();
+    result_callback(_make_status_response(model::WhisperStatus::Loading));
     let device = get_device(try_with_cuda)?;
     let arg_is_multilingual = is_multilingual.unwrap_or(false);
     let arg_language = audio_language;
     let arg_device = audio_device;
     let is_input = audio_device_is_input.unwrap_or(true);
 
-    let config: Config = serde_json::from_str(config_data)?;
+    let config: Config = serde_json::from_str(&config_data)?;
     let tokenizer = Tokenizer::from_bytes(tokenizer_data).unwrap();
 
     // check model path
@@ -63,24 +93,20 @@ where
         Model::Normal(m::model::Whisper::load(&vb, config.clone())?)
     };
     let seed = 299792458;
-    let mut decoder = whisper::Decoder::new(
+    let mut decoder = model::Decoder::new(
         model,
         tokenizer.clone(),
         seed,
         &device,
         /* language_token */ None,
-        Some(whisper::Task::Transcribe),
+        Some(model::Task::Transcribe),
         with_timestamps.unwrap_or(false),
         verbose.unwrap_or(false),
     )?;
 
-    let mel_bytes = match config.num_mel_bins {
-        80 => include_bytes!("../../assets/whisper/melfilters.bytes").as_slice(),
-        128 => include_bytes!("../../assets/whisper/melfilters128.bytes").as_slice(),
-        nmel => anyhow::bail!("unexpected num_mel_bins {nmel}"),
-    };
+    let mel_bytes = get_mel_bytes(config.num_mel_bins)?;
     let mut mel_filters = vec![0f32; mel_bytes.len() / 4];
-    <byteorder::LittleEndian as byteorder::ByteOrder>::read_f32_into(mel_bytes, &mut mel_filters);
+    <byteorder::LittleEndian as byteorder::ByteOrder>::read_f32_into(&mel_bytes, &mut mel_filters);
 
     // Set up audio capture using the abstracted interface
     let audio_capture_config = AudioCaptureConfig {
@@ -97,7 +123,7 @@ where
     // Start audio capture
     let rx = audio_capture.start_capture(cancel_token.child_token())?;
 
-    result_callback(_make_status_response(whisper::WhisperStatus::Ready));
+    result_callback(_make_status_response(model::WhisperStatus::Ready));
     println!("Whisper Ready...");
 
     // 处理任务在当前函数中运行
@@ -113,9 +139,9 @@ where
     let fixed_temperature = whisper_temperature;
 
     println!("Check and loading vad model...");
-    let vad_model = if let Some(vad_model_path) = vad_model_path {
+    let mut vad_model = if let Some(vad_model_path) = vad_model_path {
         // try_with_gpu: [false] candle-onnx not support gpu
-        let model = vad::new_vad_model(vad_model_path, false);
+        let model = onnx_models::vad::new_vad_model(vad_model_path, false);
         if let Ok(model) = model {
             Some(model)
         } else {
@@ -131,18 +157,28 @@ where
     let mut debug_counter = 0;
     while !cancel_token.is_cancelled() {
         debug_counter += 1;
-        if debug_counter % 500 == 0 {  // 每50秒打印一次调试信息
-            println!("Audio processing loop iteration {}, buffered_pcm.len(): {}", debug_counter, buffered_pcm.len());
+        if debug_counter % 500 == 0 {
+            // 每50秒打印一次调试信息
+            println!(
+                "Audio processing loop iteration {}, buffered_pcm.len(): {}",
+                debug_counter,
+                buffered_pcm.len()
+            );
         }
-        
+
         // 尝试接收音频数据，设置超时以便定期检查取消状态
         let pcm = rx.recv_timeout(Duration::from_millis(100));
 
         // 如果接收超时或通道关闭，检查是否应该取消
         if pcm.is_err() {
             let err = pcm.unwrap_err();
-            if debug_counter % 1000 == 0 {  // 每100秒打印一次超时信息
-                println!("Audio recv timeout or error: {:?}, cancel_token cancelled: {}", err, cancel_token.is_cancelled());
+            if debug_counter % 1000 == 0 {
+                // 每100秒打印一次超时信息
+                println!(
+                    "Audio recv timeout or error: {:?}, cancel_token cancelled: {}",
+                    err,
+                    cancel_token.is_cancelled()
+                );
             }
             if cancel_token.is_cancelled() {
                 break;
@@ -152,21 +188,28 @@ where
 
         // 处理接收到的音频数据
         let pcm = pcm.unwrap();
-        
+
         static mut AUDIO_RECEIVED: bool = false;
         unsafe {
             if !AUDIO_RECEIVED {
                 println!("First audio data received: {} samples", pcm.len());
                 AUDIO_RECEIVED = true;
             } else if pcm.len() > 0 && debug_counter % 100 == 0 {
-                println!("Audio data: {} samples (debug every 100 iterations)", pcm.len());
+                println!(
+                    "Audio data: {} samples (debug every 100 iterations)",
+                    pcm.len()
+                );
             }
         }
 
         buffered_pcm.extend_from_slice(&pcm);
-        
+
         if buffered_pcm.len() > 0 && (buffered_pcm.len() % 16000 == 0 || debug_counter % 200 == 0) {
-            println!("Total buffered_pcm length: {} samples ({:.1}s)", buffered_pcm.len(), buffered_pcm.len() as f32 / 16000.0);
+            println!(
+                "Total buffered_pcm length: {} samples ({:.1}s)",
+                buffered_pcm.len(),
+                buffered_pcm.len() as f32 / 16000.0
+            );
         }
 
         // 首次启动时，等待3秒数据
@@ -192,9 +235,10 @@ where
         // 记录推理开始时间
         let inference_start = Instant::now();
 
-        if let Some(vad_model) = &vad_model {
+        if let Some(vad_model) = vad_model.as_mut() {
             let resampled_pcm = buffered_pcm.clone();
-            let vad_result = vad_model.check_vad(resampled_pcm, vad_filters_value);
+            let vad_result: Result<onnx_models::vad::VadResult, anyhow::Error> =
+                vad_model.check_vad(resampled_pcm, vad_filters_value);
             if vad_result.is_err() {
                 println!("VAD error: {:?}", vad_result.err().unwrap());
             } else {
@@ -270,7 +314,7 @@ where
                 )?),
                 (false, None) => None,
                 (true, Some(language)) => {
-                    match whisper::token_id(&tokenizer, &format!("<|{language}|>")) {
+                    match model::token_id(&tokenizer, &format!("<|{language}|>")) {
                         Ok(token_id) => Some(token_id),
                         Err(_) => anyhow::bail!("language {language} is not supported"),
                     }
@@ -282,7 +326,7 @@ where
             decoder.set_language_token(language_token);
             language_token_set = true;
             language_token_name = match language_token {
-                Some(token) => whisper::get_token_name_by_id(&tokenizer, token),
+                Some(token) => model::get_token_name_by_id(&tokenizer, token),
                 None => None,
             };
             println!(
@@ -317,17 +361,17 @@ where
     }
 
     println!("Transcription cancelled");
-    result_callback(_make_status_response(whisper::WhisperStatus::Exit));
+    result_callback(_make_status_response(model::WhisperStatus::Exit));
 
     println!("Whisper Exit");
     Ok(())
 }
 
-fn _make_status_response(status: whisper::WhisperStatus) -> Vec<Segment> {
+fn _make_status_response(status: model::WhisperStatus) -> Vec<Segment> {
     vec![Segment {
         start: 0.0,
         duration: 0.0,
-        dr: whisper::DecodingResult {
+        dr: model::DecodingResult {
             tokens: vec![],
             text: "".to_string(),
             avg_logprob: 0.0,
@@ -340,4 +384,13 @@ fn _make_status_response(status: whisper::WhisperStatus) -> Vec<Segment> {
         audio_duration: None,
         status,
     }]
+}
+
+pub fn get_mel_bytes(num_mel_bins: usize) -> anyhow::Result<Vec<u8>> {
+    let mel_bytes = match num_mel_bins {
+        80 => include_bytes!("assets/whisper/melfilters.bytes").as_slice(),
+        128 => include_bytes!("assets/whisper/melfilters128.bytes").as_slice(),
+        nmel => anyhow::bail!("unexpected num_mel_bins {nmel}"),
+    };
+    Ok(mel_bytes.to_vec())
 }

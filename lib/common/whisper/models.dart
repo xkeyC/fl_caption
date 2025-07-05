@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:fl_caption/common/whisper/onnx_models.dart';
+
 /// Models for the Whisper API
 class WhisperModelData {
   final String name;
@@ -9,7 +11,9 @@ class WhisperModelData {
   final int sizeInt;
   final bool isMultilingual;
   final bool isQuantized;
-  final String downloadUrl;
+
+  /// fileName,url Map
+  final Map<String, String> downloadUrls;
   final WhisperModelConfigType configType;
 
   const WhisperModelData({
@@ -18,17 +22,19 @@ class WhisperModelData {
     required this.sizeInt,
     required this.isMultilingual,
     required this.isQuantized,
-    required this.downloadUrl,
+    required this.downloadUrls,
     required this.configType,
   });
 
-  String getDownloadUrl() {
-    // check HF_ENDPOINT environment variable
+  /// Returns the downloadUrls map, replacing the base URL if HF_ENDPOINT is set.
+  Map<String, String> getDownloadUrls() {
     final hfEndpoint = Platform.environment['HF_ENDPOINT'];
     if (hfEndpoint != null && hfEndpoint.isNotEmpty) {
-      return downloadUrl.replaceFirst('https://huggingface.co', hfEndpoint);
+      return downloadUrls.map(
+        (fileName, url) => MapEntry(fileName, url.replaceFirst('https://huggingface.co', hfEndpoint)),
+      );
     }
-    return downloadUrl;
+    return downloadUrls;
   }
 }
 
@@ -40,7 +46,9 @@ enum WhisperModelConfigType {
   largeV3Turbo('large-v3-turbo'),
   jaAnimeV0_1('ja-anime-v0.1'),
   jaAnimeV0_3('ja-anime-v0.3'),
-  distilLargeV3_5('distil-large-v3.5');
+  distilLargeV3_5('distil-large-v3.5'),
+  onnx('onnx');
+
   final String name;
 
   const WhisperModelConfigType(this.name);
@@ -53,7 +61,7 @@ const Map<String, WhisperModelData> whisperModels = {
     sizeInt: 290 * 1024,
     isMultilingual: true,
     isQuantized: false,
-    downloadUrl: 'https://huggingface.co/openai/whisper-base/resolve/main/model.safetensors',
+    downloadUrls: {"base": "'https://huggingface.co/openai/whisper-base/resolve/main/model.safetensors'"},
     configType: WhisperModelConfigType.base,
   ),
   "medium_q4k": WhisperModelData(
@@ -62,7 +70,7 @@ const Map<String, WhisperModelData> whisperModels = {
     sizeInt: 444 * 1024,
     isMultilingual: true,
     isQuantized: true,
-    downloadUrl: 'https://huggingface.co/OllmOne/whisper-medium-GGUF/resolve/main/model-q4k.gguf',
+    downloadUrls: {"medium_q4k": 'https://huggingface.co/OllmOne/whisper-medium-GGUF/resolve/main/model-q4k.gguf'},
     configType: WhisperModelConfigType.medium,
   ),
   "large-v2": WhisperModelData(
@@ -71,7 +79,7 @@ const Map<String, WhisperModelData> whisperModels = {
     sizeInt: 5750 * 1024,
     isMultilingual: true,
     isQuantized: false,
-    downloadUrl: 'https://huggingface.co/openai/whisper-large-v2/resolve/main/model.safetensors',
+    downloadUrls: {"large-v2": 'https://huggingface.co/openai/whisper-large-v2/resolve/main/model.safetensors'},
     configType: WhisperModelConfigType.largeV2,
   ),
   "large-v2_q4_k": WhisperModelData(
@@ -80,7 +88,7 @@ const Map<String, WhisperModelData> whisperModels = {
     sizeInt: 890 * 1024,
     isMultilingual: true,
     isQuantized: true,
-    downloadUrl: 'https://huggingface.co/xkeyC/whisper-large-v2-gguf/resolve/main/model_q4_k.gguf',
+    downloadUrls: {"large-v2_q4_k": 'https://huggingface.co/xkeyC/whisper-large-v2-gguf/resolve/main/model_q4_k.gguf'},
     configType: WhisperModelConfigType.largeV2,
   ),
   "large-v3_q4k": WhisperModelData(
@@ -89,7 +97,7 @@ const Map<String, WhisperModelData> whisperModels = {
     sizeInt: 891 * 1024,
     isMultilingual: true,
     isQuantized: true,
-    downloadUrl: 'https://huggingface.co/OllmOne/whisper-large-v3-GGUF/resolve/main/model-q4k.gguf',
+    downloadUrls: {"large-v3_q4k": 'https://huggingface.co/OllmOne/whisper-large-v3-GGUF/resolve/main/model-q4k.gguf'},
     configType: WhisperModelConfigType.largeV3,
   ),
   "large-v3-turbo": WhisperModelData(
@@ -98,7 +106,9 @@ const Map<String, WhisperModelData> whisperModels = {
     sizeInt: 1620 * 1024,
     isMultilingual: true,
     isQuantized: false,
-    downloadUrl: 'https://huggingface.co/openai/whisper-large-v3-turbo/resolve/main/model.safetensors',
+    downloadUrls: {
+      "large-v3-turbo": 'https://huggingface.co/openai/whisper-large-v3-turbo/resolve/main/model.safetensors',
+    },
     configType: WhisperModelConfigType.largeV3Turbo,
   ),
   "large-v3-turbo_q4_k": WhisperModelData(
@@ -107,7 +117,9 @@ const Map<String, WhisperModelData> whisperModels = {
     sizeInt: 476 * 1024,
     isMultilingual: true,
     isQuantized: true,
-    downloadUrl: 'https://huggingface.co/xkeyC/whisper-large-v3-turbo-gguf/resolve/main/model_q4_k.gguf',
+    downloadUrls: {
+      "large-v3-turbo_q4_k": 'https://huggingface.co/xkeyC/whisper-large-v3-turbo-gguf/resolve/main/model_q4_k.gguf',
+    },
     configType: WhisperModelConfigType.largeV3Turbo,
   ),
   "ja-anime-v0.1": WhisperModelData(
@@ -116,7 +128,9 @@ const Map<String, WhisperModelData> whisperModels = {
     sizeInt: 1620 * 1024,
     isMultilingual: false,
     isQuantized: false,
-    downloadUrl: 'https://huggingface.co/efwkjn/whisper-ja-anime-v0.1/resolve/main/model.safetensors',
+    downloadUrls: {
+      "ja-anime-v0.1": 'https://huggingface.co/efwkjn/whisper-ja-anime-v0.1/resolve/main/model.safetensors',
+    },
     configType: WhisperModelConfigType.jaAnimeV0_1,
   ),
   "ja-anime-v0.3": WhisperModelData(
@@ -125,7 +139,9 @@ const Map<String, WhisperModelData> whisperModels = {
     sizeInt: 3070 * 1024,
     isMultilingual: false,
     isQuantized: false,
-    downloadUrl: 'https://huggingface.co/efwkjn/whisper-ja-anime-v0.3/resolve/main/model.safetensors',
+    downloadUrls: {
+      "ja-anime-v0.3": 'https://huggingface.co/efwkjn/whisper-ja-anime-v0.3/resolve/main/model.safetensors',
+    },
     configType: WhisperModelConfigType.jaAnimeV0_3,
   ),
   "distil-large-v3.5": WhisperModelData(
@@ -134,7 +150,10 @@ const Map<String, WhisperModelData> whisperModels = {
     sizeInt: 3030 * 1024,
     isMultilingual: false,
     isQuantized: false,
-    downloadUrl: 'https://huggingface.co/distil-whisper/distil-large-v3.5/resolve/main/model.safetensors',
+    downloadUrls: {
+      "distil-large-v3.5": 'https://huggingface.co/distil-whisper/distil-large-v3.5/resolve/main/model.safetensors',
+    },
     configType: WhisperModelConfigType.distilLargeV3_5,
   ),
+  ...OnnxModelsData.onnxModels,
 };

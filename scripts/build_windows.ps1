@@ -190,4 +190,3 @@ try {
     Write-Error "Build process failed: $($_.Exception.Message)"
     exit 1
 }
-test_env_vars

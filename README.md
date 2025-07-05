@@ -31,10 +31,10 @@ QQ群：1037016702
     ![image.png](https://s2.loli.net/2025/03/16/dZiXMquhF1YDj2U.png)
 
 ## 鸣谢
-本项目参考了多个开源项目来实现音频推理，感谢以下项目：
+本项目参考了多个开源项目来实现音频推理，在此表示感谢：
 
 - [candle](https://github.com/huggingface/candle)
 - [ort](https://github.com/pykeio/ort)
 - [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx)
 - [sensevoice-rs](https://github.com/darkautism/sensevoice-rs)
-- [rusty-whisper](https://github.com/igor-yusupov/rusty-whisper)
+- [Olive](https://github.com/microsoft/Olive)

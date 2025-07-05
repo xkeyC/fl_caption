@@ -23,19 +23,30 @@ class OnnxModelsData extends WhisperModelData {
       isMultilingual: true,
       downloadUrls: {
         "Sense-Voice-2024-07-17_model.int8.onnx":
-            "'https://huggingface.co/xkeyC/fl_caption_onnx_models/resolve/main/sense-voice-2024-07-17/model.int8.onnx'",
+            "https://huggingface.co/xkeyC/fl_caption_onnx_models/resolve/main/sense-voice-2024-07-17/model.int8.onnx",
       },
       onnxExecMode: 'sense-voice',
     ),
     // whisper-large-v3-turbo
-    "whisper-large-v3-turbo": OnnxModelsData(
-      name: 'whisper-large-v3-turbo',
-      size: '1.45 GB',
-      sizeInt: 1450 * 1024,
+    "whisper-large-v3-turbo-CUDA": OnnxModelsData(
+      name: 'whisper-large-v3-turbo-CUDA',
+      size: '1.63 GB',
+      sizeInt: 1630 * 1024,
       isMultilingual: true,
       downloadUrls: {
         "whisper-large-v3-turbo_model_gpu_fp16.onnx":
             "https://huggingface.co/xkeyC/whisper-large-v3-turbo-gguf/resolve/main/model_gpu_fp16.onnx",
+      },
+      onnxExecMode: 'whisper-olive',
+    ),
+    "whisper-large-v3-turbo": OnnxModelsData(
+      name: 'whisper-large-v3-turbo',
+      size: '1.35 GB',
+      sizeInt: 1350 * 1024,
+      isMultilingual: true,
+      downloadUrls: {
+        "whisper-large-v3-turbo_model_cpu_int8.onnx":
+            "https://huggingface.co/xkeyC/whisper-large-v3-turbo-gguf/resolve/main/model_cpu_int8.onnx",
       },
       onnxExecMode: 'whisper-olive',
     ),

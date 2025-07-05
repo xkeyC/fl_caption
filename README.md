@@ -1,4 +1,8 @@
+
 # FL Caption
+![fl_caption_resize](https://github.com/user-attachments/assets/1662d23c-0d58-413e-b57f-d16b92452f36)
+
+
 [![Windows Build](https://github.com/xkeyC/fl_caption/actions/workflows/windows_build.yml/badge.svg)](https://github.com/xkeyC/fl_caption/actions/workflows/windows_build.yml)
 [![Linux Build](https://github.com/xkeyC/fl_caption/actions/workflows/linux_build.yml/badge.svg)](https://github.com/xkeyC/fl_caption/actions/workflows/linux_build.yml)
 [![macOS Build](https://github.com/xkeyC/fl_caption/actions/workflows/macos_build.yml/badge.svg)](https://github.com/xkeyC/fl_caption/actions/workflows/macos_build.yml)
@@ -29,3 +33,4 @@ QQ群：1037016702
 2. 启动后卡在 Wait for Whisper：如果开启了 CUDA 加速，请检安装 CUDA Toolkit （下载链接：https://developer.nvidia.com/cuda-downloads?target_os=Windows ） 。 若不是 CUDA 的问题，请开一个 issue 并说明硬件规格。
     > 提示：安装时仅选择 Development 和 Runtime -> Libraries 可优化安装速度与文件体积。
     ![image.png](https://s2.loli.net/2025/03/16/dZiXMquhF1YDj2U.png)
+

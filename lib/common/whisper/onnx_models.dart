@@ -39,16 +39,5 @@ class OnnxModelsData extends WhisperModelData {
       },
       onnxExecMode: 'whisper-olive',
     ),
-    "whisper-large-v3-turbo": OnnxModelsData(
-      name: 'whisper-large-v3-turbo',
-      size: '1.35 GB',
-      sizeInt: 1350 * 1024,
-      isMultilingual: true,
-      downloadUrls: {
-        "whisper-large-v3-turbo_model_cpu_int8.onnx":
-            "https://huggingface.co/xkeyC/whisper-large-v3-turbo-gguf/resolve/main/model_cpu_int8.onnx",
-      },
-      onnxExecMode: 'whisper-olive',
-    ),
   };
 }

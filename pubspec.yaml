@@ -41,7 +41,7 @@ dependencies:
   rhttp: ^0.12.0
 
   # Async lock
-  synchronized: ^3.3.1
+  synchronized: ^3.4.0
 
   # UI components
   super_sliver_list: ^0.4.1

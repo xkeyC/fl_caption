@@ -1,6 +1,7 @@
 name: "Linux Build"
 on:
   workflow_dispatch:
+    inputs: {}
 jobs:
   build:
     runs-on: ubuntu-latest

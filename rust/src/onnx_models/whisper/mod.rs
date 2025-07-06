@@ -206,7 +206,7 @@ where
         let pcm = combined_pcm;
 
         // Whisper推理
-        match model.inference(&pcm, language, Some("transcribe")) {
+        match model.inference(&pcm, language) {
             Ok(text) => {
                 let inference_duration = inference_start.elapsed();
 

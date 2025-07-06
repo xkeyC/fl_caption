@@ -16,7 +16,7 @@ pub struct WhisperModel {
     // num_mel_bins: i32,
     // n_frames: i32,
     decoder_start_token_id: i32,
-    predict_timestamps: bool,
+    // predict_timestamps: bool,
 }
 
 impl WhisperModel {
@@ -98,7 +98,7 @@ impl WhisperModel {
             // num_mel_bins,
             // n_frames: N_FRAMES,
             decoder_start_token_id,
-            predict_timestamps,
+            // predict_timestamps,
         })
     }
 
@@ -106,7 +106,6 @@ impl WhisperModel {
         &mut self,
         audio_data: &[f32],
         language: Option<&str>,
-        task: Option<&str>, // "transcribe" 或 "translate"
     ) -> anyhow::Result<String> {
         use ort::value::Value;
 
@@ -125,19 +124,10 @@ impl WhisperModel {
 
         // 构建 decoder_input_ids
         let language_token = self.language_to_token(language.unwrap_or("en"));
+        let task_token = super::multilingual::get_language_token_id("transcribe").unwrap() as i32;
+        let timestamp_token =
+            super::multilingual::get_language_token_id("notimestamps").unwrap() as i32;
 
-        let task_token = match task.unwrap_or("transcribe") {
-            "translate" => 50358, // translate token
-            _ => 50359,           // transcribe token (default)
-        };
-
-        let timestamp_token = if self.predict_timestamps {
-            50364 // 启用时间戳
-        } else {
-            50363 // 不使用时间戳
-        };
-
-        // 构建强制解码器ID：[start_token, language_token, task_token, timestamp_token]
         let decoder_input_ids = Array::from_shape_vec(
             (1, 4),
             vec![
@@ -160,7 +150,6 @@ impl WhisperModel {
 
         let start = Instant::now();
 
-        // 使用 ort::inputs! 宏来正确构建输入
         let outputs = self.session.run(ort::inputs![
             "audio_stream" => audio_value,
             "max_length" => max_length_value,
@@ -208,7 +197,7 @@ impl WhisperModel {
     }
 
     fn language_to_token(&self, language: &str) -> u32 {
-        super::multilingual::get_token_id(language).unwrap_or(50259)
+        super::multilingual::get_language_token_id(language).unwrap_or(50259)
     }
 
     fn convert_audio_to_wav(&self, audio_data: &[f32]) -> Vec<u8> {

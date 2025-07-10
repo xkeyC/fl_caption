@@ -63,7 +63,7 @@ jobs:
       - name: Set up Flutter rust bridge
         run: |
           cargo install cargo-expand 
-          cargo install 'flutter_rust_bridge_codegen'
+          cargo install 'flutter_rust_bridge_codegen@2.10.0' --locked
       - name: Flutter Rust bridge generate
         run: flutter_rust_bridge_codegen generate
       #      - name: flutter gen l10n

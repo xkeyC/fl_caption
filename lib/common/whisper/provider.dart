@@ -1,6 +1,7 @@
 import 'dart:io';
 
-import 'package:fl_caption/common/rust/whisper_caption/whisper.dart' show WhisperStatus;
+import 'package:fl_caption/common/rust/candle_models/whisper/model.dart' show WhisperStatus;
+import 'package:fl_caption/common/whisper/onnx_models.dart';
 import 'package:fl_caption/pages/settings/settings_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -29,38 +30,86 @@ class DartWhisper extends _$DartWhisper {
     debugPrint("[DartWhisper] build");
     DartWhisperClientError? errorType;
     final appSettings = await ref.watch(appSettingsProvider.future);
-    // check file exist
-    final modelFile = File('${appSettings.modelWorkingDir}/${appSettings.whisperModel}');
-    if (!await modelFile.exists()) {
-      errorType = DartWhisperClientError.modelNotFound;
+    final modelData = whisperModels[appSettings.whisperModel];
+    if (modelData == null) {
+      throw "Model Configuration Error: Model ${appSettings.whisperModel} not found in whisperModels";
     }
+    final Map<String, String> modelFiles = {};
+    final isOnnxModel = modelData is OnnxModelsData;
+
+    if (modelData.downloadUrls.length > 1) {
+      for (final entry in modelData.downloadUrls.entries) {
+        final fileName = entry.key;
+        var modelDir = appSettings.modelWorkingDir;
+        if (isOnnxModel) {
+          modelDir = "$modelDir/onnx/${modelData.name}/$fileName";
+        } else {
+          modelFiles[fileName] = "$modelDir/${modelData.name}/$fileName";
+        }
+      }
+    } else {
+      final fileName = modelData.downloadUrls.keys.first;
+      var modelDir = appSettings.modelWorkingDir;
+      if (isOnnxModel) {
+        modelFiles[fileName] = "$modelDir/onnx/$fileName";
+      } else {
+        modelFiles[fileName] = "$modelDir/$fileName";
+      }
+    }
+
+    // check files existence
+    for (final entry in modelFiles.entries) {
+      if (!await File(entry.value).exists()) {
+        errorType = DartWhisperClientError.modelNotFound;
+      }
+    }
+
     final modelName = appSettings.whisperModel;
-    final modelData = whisperModels[modelName];
-    debugPrint("[DartWhisper] modelName: $modelName modelFile: ${modelFile.absolute.path} errorType: $errorType");
-    final config = await getConfigByName(modelName);
-    final tokenizer = await getTokenizerByName(modelName);
+    debugPrint("[DartWhisper] modelName: $modelName modelFile: ${modelFiles[modelName]} errorType: $errorType");
+    final config = await getConfigByModel(modelData);
+    final tokenizer = await getTokenizerByModel(modelData);
+    final modelType = getModelType(modelData);
     debugPrint("[DartWhisper] creating WhisperClient ...");
     final whisper = rs.WhisperClient(
-      whisperModel: modelFile.absolute.path,
-      whisperConfig: config,
-      whisperTokenizer: tokenizer,
-      isMultilingual: modelData?.isMultilingual ?? true,
-      isQuantized: modelData?.isQuantized ?? false,
+      models: modelFiles,
+      config: config,
+      tokenizer: tokenizer,
+      isMultilingual: modelData.isMultilingual,
+      isQuantized: modelData.isQuantized,
+      modelType: modelType,
     );
     debugPrint("[DartWhisper] WhisperClient created: $whisper");
     return DartWhisperClient(client: whisper, errorType: errorType);
   }
 
-  Future<String> getConfigByName(String name) async {
-    final configName = whisperModels[name]?.configType.name;
-    if (configName == null) throw Exception("Config not found for model $name");
-    return await rootBundle.loadString("assets/whisper/$configName-config.json");
+  Future<String> getConfigByModel(WhisperModelData model) async {
+    if (model is OnnxModelsData) {
+      if (const ["sense-voice", "whisper-olive"].contains(model.onnxExecMode)) {
+        return "";
+      }
+      return await rootBundle.loadString("assets/whisper/onnx/${model.name}-config.json");
+    }
+    return await rootBundle.loadString("assets/whisper/${model.configType.name}-config.json");
   }
 
-  Future<Uint8List> getTokenizerByName(String name) async {
-    final configName = whisperModels[name]?.configType.name;
-    if (configName == null) throw Exception("Tokenizer not found for model $name");
-    return (await rootBundle.load("assets/whisper/$configName-tokenizer.json")).buffer.asUint8List();
+  Future<Uint8List> getTokenizerByModel(WhisperModelData model) async {
+    if (model is OnnxModelsData) {
+      if (const ["whisper-olive"].contains(model.onnxExecMode)) {
+        return Uint8List(0);
+      } else if (model.onnxExecMode == "sense-voice") {
+        return (await rootBundle.load("assets/whisper/onnx/${model.name}-tokens.txt")).buffer.asUint8List();
+      } else {
+        return (await rootBundle.load("assets/whisper/onnx/${model.name}-tokenizer.json")).buffer.asUint8List();
+      }
+    }
+    return (await rootBundle.load("assets/whisper/${model.configType.name}-tokenizer.json")).buffer.asUint8List();
+  }
+
+  String getModelType(WhisperModelData model) {
+    if (model is OnnxModelsData) {
+      return "${model.onnxExecMode}_onnx";
+    }
+    return "whisper";
   }
 }
 

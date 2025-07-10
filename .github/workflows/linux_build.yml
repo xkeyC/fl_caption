@@ -259,20 +259,34 @@ jobs:
       - name: Set up Flutter rust bridge
         run: |
           cargo install cargo-expand 
-          cargo install 'flutter_rust_bridge_codegen'
+          cargo install 'flutter_rust_bridge_codegen@2.10.0' --locked
       - name: Flutter Rust bridge generate
         run: flutter_rust_bridge_codegen generate
       #      - name: flutter gen l10n
       #        run: |
       #          flutter pub global activate intl_utils
       #          flutter pub global run intl_utils:generate
-   
-      - name: Flutter Build
-        run: |
-          flutter build linux -v
 
-      - name: Archive build
+      - name: Build With Nvidia
+        run: scripts/build_linux.sh "true"
+        env:
+          ENABLE_NVIDIA: "true"
+
+      - name: Archive build with Nvidia
         uses: actions/upload-artifact@v4
         with:
-          name: linux
-          path: build/linux/x64/release/bundle
+          name: fl_caption_linux(NVIDIA)
+          path: build/linux/x64/release/bundle_with_cuda
+
+      - name: Build Without Nvidia
+        run: |
+          rm -rf build
+          scripts/build_linux.sh "false"
+        env:
+          ENABLE_NVIDIA: "false"
+
+      - name: Archive build without Nvidia
+        uses: actions/upload-artifact@v4
+        with:
+          name: fl_caption_linux
+          path: build/linux/x64/release/bundle_without_cuda

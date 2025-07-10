@@ -19,15 +19,15 @@ jobs:
         env:
           INPUT_CUDA_VERSION: 12.4.0
       - name: Setup Developer Command Prompt
-        uses: ilammy/msvc-dev-cmd@v1     
-        
+        uses: ilammy/msvc-dev-cmd@v1
+
       - name: Find cl.exe Path
         shell: pwsh
         run: |
           Write-Host "User: $env:USERNAME"
           Write-Host "Date: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
           Write-Host "========== Finding cl.exe locations =========="
-          
+
           # Check if cl.exe is available in PATH
           try {
               $clCommand = Get-Command cl.exe -ErrorAction Stop
@@ -74,11 +74,11 @@ jobs:
                   Write-Host "cl.exe not found in Visual Studio directories!" -ForegroundColor Red
               }
           }
-          
+
           # List environment variables related to Visual Studio and CUDA
           Write-Host "========== Environment Variables =========="
           Get-ChildItem env: | Where-Object { $_.Name -match "VS|MSVC|CUDA|NVCC" } | Format-Table -AutoSize
-      
+
       - name: Test CUDA Build Environment
         shell: cmd
         run: |
@@ -93,16 +93,16 @@ jobs:
           ) else (
             echo WARNING: NVCC_CCBIN is not defined
           )
-          
+
           where cl.exe 2>nul && echo cl.exe is in PATH || echo cl.exe is NOT in PATH
-          
+
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: 'stable'
+          channel: "stable"
           cache: true
-          cache-key: 'flutter-:os:-:channel:-:version:-:arch:-:hash:' # optional, change this to force refresh cache
-          cache-path: '${{ runner.tool_cache }}/flutter/:channel:-:version:-:arch:' # optional, change this to specify the cache path
+          cache-key: "flutter-:os:-:channel:-:version:-:arch:-:hash:" # optional, change this to force refresh cache
+          cache-path: "${{ runner.tool_cache }}/flutter/:channel:-:version:-:arch:" # optional, change this to specify the cache path
       - run: flutter --version
 
       - name: Set up Rust
@@ -134,25 +134,36 @@ jobs:
       - name: Set up Flutter rust bridge
         run: |
           cargo install cargo-expand 
-          cargo install 'flutter_rust_bridge_codegen'
+          cargo install 'flutter_rust_bridge_codegen@2.10.0' --locked
       - name: Flutter Rust bridge generate
         run: flutter_rust_bridge_codegen generate
       #      - name: flutter gen l10n
       #        run: |
       #          flutter pub global activate intl_utils
       #          flutter pub global run intl_utils:generate
-   
-      - name: Flutter Build
-        shell: pwsh
-        run: |
-          $repoRoot = $pwd.Path -replace '\\', '/'
-          $manifestPath = "$repoRoot/rust/Cargo.toml"
-          $targetDir = "$repoRoot/build/windows/x64/plugins/rust_lib_fl_caption/cargokit_build"
-          rustup run stable cargo build --manifest-path $manifestPath -p "rust_lib_fl_caption" --release --target "x86_64-pc-windows-msvc" --target-dir $targetDir
-          flutter build windows -v
 
-      - name: Archive build
+      - name: Build With Nvidia
+        shell: pwsh
+        run: scripts/build_windows.ps1 -EnableNvidia "true"
+        env:
+          ENABLE_NVIDIA: "true"
+
+      - name: Archive build with Nvidia
         uses: actions/upload-artifact@v4
         with:
-          name: windows
-          path: build/windows/x64/runner/Release
+          name: fl_caption(NVIDIA)
+          path: build/windows/x64/runner/Release_with_cuda
+
+      - name: Build Without Nvidia
+        shell: pwsh
+        run: |
+          Remove-Item -Path "build" -Recurse -Force -ErrorAction SilentlyContinue
+          scripts/build_windows.ps1 -EnableNvidia "false"
+        env:
+          ENABLE_NVIDIA: "false"
+
+      - name: Archive build without Nvidia
+        uses: actions/upload-artifact@v4
+        with:
+          name: fl_caption
+          path: build/windows/x64/runner/Release_without_cuda

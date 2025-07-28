@@ -1,4 +1,5 @@
-use crate::{frb_generated::StreamSink, whisper_caption};
+use crate::onnx_models;
+use crate::{candle_models, frb_generated::StreamSink};
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::sync::Mutex;
@@ -30,34 +31,37 @@ pub fn cancel_cancellation_token(token_id: String) {
 }
 
 pub struct WhisperClient {
-    pub whisper_model: String,
-    pub whisper_config: String,
-    pub whisper_tokenizer: Vec<u8>,
+    pub models: HashMap<String, String>,
+    pub config: String,
+    pub tokenizer: Vec<u8>,
     pub is_multilingual: bool,
     pub is_quantized: bool,
+    pub model_type: String,
 }
 
 impl WhisperClient {
     pub fn new(
-        whisper_model: String,
-        whisper_config: String,
-        whisper_tokenizer: Vec<u8>,
+        models: HashMap<String, String>,
+        config: String,
+        tokenizer: Vec<u8>,
         is_multilingual: bool,
         is_quantized: bool,
+        model_type: String,
     ) -> Self {
         Self {
-            whisper_model,
-            whisper_config,
-            whisper_tokenizer,
+            models,
+            config,
+            tokenizer,
             is_multilingual,
             is_quantized,
+            model_type,
         }
     }
 }
 
 pub async fn launch_caption(
     whisper_client: WhisperClient,
-    stream_sink: StreamSink<Vec<whisper_caption::whisper::Segment>>,
+    stream_sink: StreamSink<Vec<candle_models::whisper::model::Segment>>,
     audio_device: Option<String>,
     audio_device_is_input: Option<bool>,
     audio_language: Option<String>,
@@ -83,32 +87,40 @@ pub async fn launch_caption(
         }
     };
 
-    let r = whisper_caption::launch_caption(
-        whisper_client.whisper_model,
-        &whisper_client.whisper_config,
-        whisper_client.is_quantized,
-        whisper_client.whisper_tokenizer,
+    let p = candle_models::whisper::LaunchCaptionParams {
+        models: whisper_client.models,
+        config_data: whisper_client.config,
+        model_type: whisper_client.model_type,
+        is_quantized: whisper_client.is_quantized,
+        tokenizer_data: whisper_client.tokenizer,
         audio_device,
         audio_device_is_input,
         audio_language,
-        Some(whisper_client.is_multilingual),
+        is_multilingual: Some(whisper_client.is_multilingual),
         cancel_token,
         with_timestamps,
         verbose,
-        try_with_cuda.unwrap_or(false),
-        // 使用inference_interval作为超时时间
-        inference_interval.map(|ms| Duration::from_millis(ms)),
-        whisper_default_max_decode_tokens,
-        whisper_max_audio_duration, // 传递音频上下文长度
-        inference_interval,         // 传递推理间隔时间
-        whisper_temperature,        // 传递温度参数
-        vad_model_path,             // 传递VAD模型路径
+        try_with_cuda: try_with_cuda.unwrap_or(false),
+        inference_timeout: inference_interval.map(|ms| Duration::from_millis(ms)),
+        max_tokens_per_segment: whisper_default_max_decode_tokens,
+        whisper_max_audio_duration,
+        inference_interval_ms: inference_interval,
+        whisper_temperature,
+        vad_model_path,
         vad_filters_value,
-        move |segments| {
+    };
+
+    let r = if p.model_type.ends_with("_onnx") {
+        onnx_models::launch_caption(p, move |segments| {
             let _ = stream_sink.add(segments);
-        },
-    )
-    .await;
+        })
+        .await
+    } else {
+        candle_models::whisper::launch_caption(p, move |segments| {
+            let _ = stream_sink.add(segments);
+        })
+        .await
+    };
     if let Err(e) = r {
         stream_sink_clone
             .add_error(format!("Error in whisper captioning: {e}"))

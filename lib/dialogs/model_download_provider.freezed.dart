@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ModelDownloadStateData implements DiagnosticableTreeMixin {
 
- String get modelName; String get modelPath; double get progress; bool get isReady; String? get errorText;
+ String get modelName; String get modelPath; int get currentProgress; int get currentTotal; bool get isReady; dynamic get currentDownloadFileIndex; String? get errorText;
 /// Create a copy of ModelDownloadStateData
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -30,21 +30,21 @@ $ModelDownloadStateDataCopyWith<ModelDownloadStateData> get copyWith => _$ModelD
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
   properties
     ..add(DiagnosticsProperty('type', 'ModelDownloadStateData'))
-    ..add(DiagnosticsProperty('modelName', modelName))..add(DiagnosticsProperty('modelPath', modelPath))..add(DiagnosticsProperty('progress', progress))..add(DiagnosticsProperty('isReady', isReady))..add(DiagnosticsProperty('errorText', errorText));
+    ..add(DiagnosticsProperty('modelName', modelName))..add(DiagnosticsProperty('modelPath', modelPath))..add(DiagnosticsProperty('currentProgress', currentProgress))..add(DiagnosticsProperty('currentTotal', currentTotal))..add(DiagnosticsProperty('isReady', isReady))..add(DiagnosticsProperty('currentDownloadFileIndex', currentDownloadFileIndex))..add(DiagnosticsProperty('errorText', errorText));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ModelDownloadStateData&&(identical(other.modelName, modelName) || other.modelName == modelName)&&(identical(other.modelPath, modelPath) || other.modelPath == modelPath)&&(identical(other.progress, progress) || other.progress == progress)&&(identical(other.isReady, isReady) || other.isReady == isReady)&&(identical(other.errorText, errorText) || other.errorText == errorText));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ModelDownloadStateData&&(identical(other.modelName, modelName) || other.modelName == modelName)&&(identical(other.modelPath, modelPath) || other.modelPath == modelPath)&&(identical(other.currentProgress, currentProgress) || other.currentProgress == currentProgress)&&(identical(other.currentTotal, currentTotal) || other.currentTotal == currentTotal)&&(identical(other.isReady, isReady) || other.isReady == isReady)&&const DeepCollectionEquality().equals(other.currentDownloadFileIndex, currentDownloadFileIndex)&&(identical(other.errorText, errorText) || other.errorText == errorText));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,modelName,modelPath,progress,isReady,errorText);
+int get hashCode => Object.hash(runtimeType,modelName,modelPath,currentProgress,currentTotal,isReady,const DeepCollectionEquality().hash(currentDownloadFileIndex),errorText);
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'ModelDownloadStateData(modelName: $modelName, modelPath: $modelPath, progress: $progress, isReady: $isReady, errorText: $errorText)';
+  return 'ModelDownloadStateData(modelName: $modelName, modelPath: $modelPath, currentProgress: $currentProgress, currentTotal: $currentTotal, isReady: $isReady, currentDownloadFileIndex: $currentDownloadFileIndex, errorText: $errorText)';
 }
 
 
@@ -55,7 +55,7 @@ abstract mixin class $ModelDownloadStateDataCopyWith<$Res>  {
   factory $ModelDownloadStateDataCopyWith(ModelDownloadStateData value, $Res Function(ModelDownloadStateData) _then) = _$ModelDownloadStateDataCopyWithImpl;
 @useResult
 $Res call({
- String modelName, String modelPath, double progress, bool isReady, String? errorText
+ String modelName, String modelPath, int currentProgress, int currentTotal, bool isReady, dynamic currentDownloadFileIndex, String? errorText
 });
 
 
@@ -72,13 +72,15 @@ class _$ModelDownloadStateDataCopyWithImpl<$Res>
 
 /// Create a copy of ModelDownloadStateData
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? modelName = null,Object? modelPath = null,Object? progress = null,Object? isReady = null,Object? errorText = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? modelName = null,Object? modelPath = null,Object? currentProgress = null,Object? currentTotal = null,Object? isReady = null,Object? currentDownloadFileIndex = freezed,Object? errorText = freezed,}) {
   return _then(_self.copyWith(
 modelName: null == modelName ? _self.modelName : modelName // ignore: cast_nullable_to_non_nullable
 as String,modelPath: null == modelPath ? _self.modelPath : modelPath // ignore: cast_nullable_to_non_nullable
-as String,progress: null == progress ? _self.progress : progress // ignore: cast_nullable_to_non_nullable
-as double,isReady: null == isReady ? _self.isReady : isReady // ignore: cast_nullable_to_non_nullable
-as bool,errorText: freezed == errorText ? _self.errorText : errorText // ignore: cast_nullable_to_non_nullable
+as String,currentProgress: null == currentProgress ? _self.currentProgress : currentProgress // ignore: cast_nullable_to_non_nullable
+as int,currentTotal: null == currentTotal ? _self.currentTotal : currentTotal // ignore: cast_nullable_to_non_nullable
+as int,isReady: null == isReady ? _self.isReady : isReady // ignore: cast_nullable_to_non_nullable
+as bool,currentDownloadFileIndex: freezed == currentDownloadFileIndex ? _self.currentDownloadFileIndex : currentDownloadFileIndex // ignore: cast_nullable_to_non_nullable
+as dynamic,errorText: freezed == errorText ? _self.errorText : errorText // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -90,13 +92,15 @@ as String?,
 @JsonSerializable()
 
 class _ModelDownloadStateData with DiagnosticableTreeMixin implements ModelDownloadStateData {
-   _ModelDownloadStateData({required this.modelName, required this.modelPath, required this.progress, required this.isReady, this.errorText});
+   _ModelDownloadStateData({required this.modelName, required this.modelPath, required this.currentProgress, required this.currentTotal, required this.isReady, this.currentDownloadFileIndex = 0, this.errorText});
   factory _ModelDownloadStateData.fromJson(Map<String, dynamic> json) => _$ModelDownloadStateDataFromJson(json);
 
 @override final  String modelName;
 @override final  String modelPath;
-@override final  double progress;
+@override final  int currentProgress;
+@override final  int currentTotal;
 @override final  bool isReady;
+@override@JsonKey() final  dynamic currentDownloadFileIndex;
 @override final  String? errorText;
 
 /// Create a copy of ModelDownloadStateData
@@ -113,21 +117,21 @@ Map<String, dynamic> toJson() {
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
   properties
     ..add(DiagnosticsProperty('type', 'ModelDownloadStateData'))
-    ..add(DiagnosticsProperty('modelName', modelName))..add(DiagnosticsProperty('modelPath', modelPath))..add(DiagnosticsProperty('progress', progress))..add(DiagnosticsProperty('isReady', isReady))..add(DiagnosticsProperty('errorText', errorText));
+    ..add(DiagnosticsProperty('modelName', modelName))..add(DiagnosticsProperty('modelPath', modelPath))..add(DiagnosticsProperty('currentProgress', currentProgress))..add(DiagnosticsProperty('currentTotal', currentTotal))..add(DiagnosticsProperty('isReady', isReady))..add(DiagnosticsProperty('currentDownloadFileIndex', currentDownloadFileIndex))..add(DiagnosticsProperty('errorText', errorText));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ModelDownloadStateData&&(identical(other.modelName, modelName) || other.modelName == modelName)&&(identical(other.modelPath, modelPath) || other.modelPath == modelPath)&&(identical(other.progress, progress) || other.progress == progress)&&(identical(other.isReady, isReady) || other.isReady == isReady)&&(identical(other.errorText, errorText) || other.errorText == errorText));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ModelDownloadStateData&&(identical(other.modelName, modelName) || other.modelName == modelName)&&(identical(other.modelPath, modelPath) || other.modelPath == modelPath)&&(identical(other.currentProgress, currentProgress) || other.currentProgress == currentProgress)&&(identical(other.currentTotal, currentTotal) || other.currentTotal == currentTotal)&&(identical(other.isReady, isReady) || other.isReady == isReady)&&const DeepCollectionEquality().equals(other.currentDownloadFileIndex, currentDownloadFileIndex)&&(identical(other.errorText, errorText) || other.errorText == errorText));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,modelName,modelPath,progress,isReady,errorText);
+int get hashCode => Object.hash(runtimeType,modelName,modelPath,currentProgress,currentTotal,isReady,const DeepCollectionEquality().hash(currentDownloadFileIndex),errorText);
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'ModelDownloadStateData(modelName: $modelName, modelPath: $modelPath, progress: $progress, isReady: $isReady, errorText: $errorText)';
+  return 'ModelDownloadStateData(modelName: $modelName, modelPath: $modelPath, currentProgress: $currentProgress, currentTotal: $currentTotal, isReady: $isReady, currentDownloadFileIndex: $currentDownloadFileIndex, errorText: $errorText)';
 }
 
 
@@ -138,7 +142,7 @@ abstract mixin class _$ModelDownloadStateDataCopyWith<$Res> implements $ModelDow
   factory _$ModelDownloadStateDataCopyWith(_ModelDownloadStateData value, $Res Function(_ModelDownloadStateData) _then) = __$ModelDownloadStateDataCopyWithImpl;
 @override @useResult
 $Res call({
- String modelName, String modelPath, double progress, bool isReady, String? errorText
+ String modelName, String modelPath, int currentProgress, int currentTotal, bool isReady, dynamic currentDownloadFileIndex, String? errorText
 });
 
 
@@ -155,13 +159,15 @@ class __$ModelDownloadStateDataCopyWithImpl<$Res>
 
 /// Create a copy of ModelDownloadStateData
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? modelName = null,Object? modelPath = null,Object? progress = null,Object? isReady = null,Object? errorText = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? modelName = null,Object? modelPath = null,Object? currentProgress = null,Object? currentTotal = null,Object? isReady = null,Object? currentDownloadFileIndex = freezed,Object? errorText = freezed,}) {
   return _then(_ModelDownloadStateData(
 modelName: null == modelName ? _self.modelName : modelName // ignore: cast_nullable_to_non_nullable
 as String,modelPath: null == modelPath ? _self.modelPath : modelPath // ignore: cast_nullable_to_non_nullable
-as String,progress: null == progress ? _self.progress : progress // ignore: cast_nullable_to_non_nullable
-as double,isReady: null == isReady ? _self.isReady : isReady // ignore: cast_nullable_to_non_nullable
-as bool,errorText: freezed == errorText ? _self.errorText : errorText // ignore: cast_nullable_to_non_nullable
+as String,currentProgress: null == currentProgress ? _self.currentProgress : currentProgress // ignore: cast_nullable_to_non_nullable
+as int,currentTotal: null == currentTotal ? _self.currentTotal : currentTotal // ignore: cast_nullable_to_non_nullable
+as int,isReady: null == isReady ? _self.isReady : isReady // ignore: cast_nullable_to_non_nullable
+as bool,currentDownloadFileIndex: freezed == currentDownloadFileIndex ? _self.currentDownloadFileIndex : currentDownloadFileIndex // ignore: cast_nullable_to_non_nullable
+as dynamic,errorText: freezed == errorText ? _self.errorText : errorText // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }

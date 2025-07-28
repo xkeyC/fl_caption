@@ -11,8 +11,10 @@ _ModelDownloadStateData _$ModelDownloadStateDataFromJson(
 ) => _ModelDownloadStateData(
   modelName: json['modelName'] as String,
   modelPath: json['modelPath'] as String,
-  progress: (json['progress'] as num).toDouble(),
+  currentProgress: (json['currentProgress'] as num).toInt(),
+  currentTotal: (json['currentTotal'] as num).toInt(),
   isReady: json['isReady'] as bool,
+  currentDownloadFileIndex: json['currentDownloadFileIndex'] ?? 0,
   errorText: json['errorText'] as String?,
 );
 
@@ -21,8 +23,10 @@ Map<String, dynamic> _$ModelDownloadStateDataToJson(
 ) => <String, dynamic>{
   'modelName': instance.modelName,
   'modelPath': instance.modelPath,
-  'progress': instance.progress,
+  'currentProgress': instance.currentProgress,
+  'currentTotal': instance.currentTotal,
   'isReady': instance.isReady,
+  'currentDownloadFileIndex': instance.currentDownloadFileIndex,
   'errorText': instance.errorText,
 };
 
@@ -31,7 +35,7 @@ Map<String, dynamic> _$ModelDownloadStateDataToJson(
 // **************************************************************************
 
 String _$modelDownloadStateHash() =>
-    r'60b6cc9f9929d438669ac0b6aac4ec8977cf6d51';
+    r'a622dd592d8839873423e27437c3f426b8510f5b';
 
 /// Copied from Dart SDK
 class _SystemHash {

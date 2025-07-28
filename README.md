@@ -7,7 +7,7 @@
 [![Linux Build](https://github.com/xkeyC/fl_caption/actions/workflows/linux_build.yml/badge.svg)](https://github.com/xkeyC/fl_caption/actions/workflows/linux_build.yml)
 [![macOS Build](https://github.com/xkeyC/fl_caption/actions/workflows/macos_build.yml/badge.svg)](https://github.com/xkeyC/fl_caption/actions/workflows/macos_build.yml)
 
-离线实时字幕软件，使用 Flutter 和 Rust 编写，由 LLM 和 基于 candle 推理框架的 Whisper 驱动。
+离线实时字幕软件，使用 Flutter 和 Rust 编写，由 LLM 和 基于 (candle 推理框架 / onnx) 的 Whisper 驱动。
 
 演示视频：https://www.bilibili.com/video/BV1VyQtYMEWA
 
@@ -34,3 +34,11 @@ QQ群：1037016702
     > 提示：安装时仅选择 Development 和 Runtime -> Libraries 可优化安装速度与文件体积。
     ![image.png](https://s2.loli.net/2025/03/16/dZiXMquhF1YDj2U.png)
 
+## 鸣谢
+本项目参考了多个开源项目来实现音频推理，在此表示感谢：
+
+- [candle](https://github.com/huggingface/candle)
+- [ort](https://github.com/pykeio/ort)
+- [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx)
+- [sensevoice-rs](https://github.com/darkautism/sensevoice-rs)
+- [Olive](https://github.com/microsoft/Olive)

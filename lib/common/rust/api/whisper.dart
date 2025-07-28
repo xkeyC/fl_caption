@@ -3,8 +3,8 @@
 
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
+import '../candle_models/whisper/model.dart';
 import '../frb_generated.dart';
-import '../whisper_caption/whisper.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 Future<String> createCancellationToken() =>
@@ -48,51 +48,57 @@ Stream<List<Segment>> launchCaption({
 );
 
 class WhisperClient {
-  final String whisperModel;
-  final String whisperConfig;
-  final Uint8List whisperTokenizer;
+  final Map<String, String> models;
+  final String config;
+  final Uint8List tokenizer;
   final bool isMultilingual;
   final bool isQuantized;
+  final String modelType;
 
   const WhisperClient({
-    required this.whisperModel,
-    required this.whisperConfig,
-    required this.whisperTokenizer,
+    required this.models,
+    required this.config,
+    required this.tokenizer,
     required this.isMultilingual,
     required this.isQuantized,
+    required this.modelType,
   });
 
   // HINT: Make it `#[frb(sync)]` to let it become the default constructor of Dart class.
   static Future<WhisperClient> newInstance({
-    required String whisperModel,
-    required String whisperConfig,
-    required List<int> whisperTokenizer,
+    required Map<String, String> models,
+    required String config,
+    required List<int> tokenizer,
     required bool isMultilingual,
     required bool isQuantized,
+    required String modelType,
   }) => RustLib.instance.api.crateApiWhisperWhisperClientNew(
-    whisperModel: whisperModel,
-    whisperConfig: whisperConfig,
-    whisperTokenizer: whisperTokenizer,
+    models: models,
+    config: config,
+    tokenizer: tokenizer,
     isMultilingual: isMultilingual,
     isQuantized: isQuantized,
+    modelType: modelType,
   );
 
   @override
   int get hashCode =>
-      whisperModel.hashCode ^
-      whisperConfig.hashCode ^
-      whisperTokenizer.hashCode ^
+      models.hashCode ^
+      config.hashCode ^
+      tokenizer.hashCode ^
       isMultilingual.hashCode ^
-      isQuantized.hashCode;
+      isQuantized.hashCode ^
+      modelType.hashCode;
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is WhisperClient &&
           runtimeType == other.runtimeType &&
-          whisperModel == other.whisperModel &&
-          whisperConfig == other.whisperConfig &&
-          whisperTokenizer == other.whisperTokenizer &&
+          models == other.models &&
+          config == other.config &&
+          tokenizer == other.tokenizer &&
           isMultilingual == other.isMultilingual &&
-          isQuantized == other.isQuantized;
+          isQuantized == other.isQuantized &&
+          modelType == other.modelType;
 }

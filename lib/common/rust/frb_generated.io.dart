@@ -5,12 +5,12 @@
 
 import 'api/text_util.dart';
 import 'api/whisper.dart';
+import 'candle_models/whisper/model.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:ffi' as ffi;
 import 'frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated_io.dart';
-import 'whisper_caption/whisper.dart';
 
 abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   RustLibApiImplPlatform({
@@ -22,6 +22,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   AnyhowException dco_decode_AnyhowException(dynamic raw);
+
+  @protected
+  Map<String, String> dco_decode_Map_String_String_None(dynamic raw);
 
   @protected
   RustStreamSink<List<Segment>> dco_decode_StreamSink_list_segment_Dco(
@@ -77,6 +80,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
 
   @protected
+  List<(String, String)> dco_decode_list_record_string_string(dynamic raw);
+
+  @protected
   List<Segment> dco_decode_list_segment(dynamic raw);
 
   @protected
@@ -99,6 +105,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   BigInt? dco_decode_opt_box_autoadd_usize(dynamic raw);
+
+  @protected
+  (String, String) dco_decode_record_string_string(dynamic raw);
 
   @protected
   Segment dco_decode_segment(dynamic raw);
@@ -126,6 +135,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   AnyhowException sse_decode_AnyhowException(SseDeserializer deserializer);
+
+  @protected
+  Map<String, String> sse_decode_Map_String_String_None(
+    SseDeserializer deserializer,
+  );
 
   @protected
   RustStreamSink<List<Segment>> sse_decode_StreamSink_list_segment_Dco(
@@ -183,6 +197,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
 
   @protected
+  List<(String, String)> sse_decode_list_record_string_string(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   List<Segment> sse_decode_list_segment(SseDeserializer deserializer);
 
   @protected
@@ -205,6 +224,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   BigInt? sse_decode_opt_box_autoadd_usize(SseDeserializer deserializer);
+
+  @protected
+  (String, String) sse_decode_record_string_string(
+    SseDeserializer deserializer,
+  );
 
   @protected
   Segment sse_decode_segment(SseDeserializer deserializer);
@@ -236,6 +260,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ) {
     // Codec=Cst (C-struct based), see doc to use other codecs
     throw UnimplementedError();
+  }
+
+  @protected
+  ffi.Pointer<wire_cst_list_record_string_string>
+  cst_encode_Map_String_String_None(Map<String, String> raw) {
+    // Codec=Cst (C-struct based), see doc to use other codecs
+    return cst_encode_list_record_string_string(
+      raw.entries.map((e) => (e.key, e.value)).toList(),
+    );
   }
 
   @protected
@@ -335,6 +368,17 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   }
 
   @protected
+  ffi.Pointer<wire_cst_list_record_string_string>
+  cst_encode_list_record_string_string(List<(String, String)> raw) {
+    // Codec=Cst (C-struct based), see doc to use other codecs
+    final ans = wire.cst_new_list_record_string_string(raw.length);
+    for (var i = 0; i < raw.length; ++i) {
+      cst_api_fill_to_wire_record_string_string(raw[i], ans.ref.ptr[i]);
+    }
+    return ans;
+  }
+
+  @protected
   ffi.Pointer<wire_cst_list_segment> cst_encode_list_segment(
     List<Segment> raw,
   ) {
@@ -424,6 +468,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   }
 
   @protected
+  void cst_api_fill_to_wire_record_string_string(
+    (String, String) apiObj,
+    wire_cst_record_string_string wireObj,
+  ) {
+    wireObj.field0 = cst_encode_String(apiObj.$1);
+    wireObj.field1 = cst_encode_String(apiObj.$2);
+  }
+
+  @protected
   void cst_api_fill_to_wire_segment(Segment apiObj, wire_cst_segment wireObj) {
     wireObj.start = cst_encode_f_64(apiObj.start);
     wireObj.duration = cst_encode_f_64(apiObj.duration);
@@ -439,13 +492,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     WhisperClient apiObj,
     wire_cst_whisper_client wireObj,
   ) {
-    wireObj.whisper_model = cst_encode_String(apiObj.whisperModel);
-    wireObj.whisper_config = cst_encode_String(apiObj.whisperConfig);
-    wireObj.whisper_tokenizer = cst_encode_list_prim_u_8_strict(
-      apiObj.whisperTokenizer,
-    );
+    wireObj.models = cst_encode_Map_String_String_None(apiObj.models);
+    wireObj.config = cst_encode_String(apiObj.config);
+    wireObj.tokenizer = cst_encode_list_prim_u_8_strict(apiObj.tokenizer);
     wireObj.is_multilingual = cst_encode_bool(apiObj.isMultilingual);
     wireObj.is_quantized = cst_encode_bool(apiObj.isQuantized);
+    wireObj.model_type = cst_encode_String(apiObj.modelType);
   }
 
   @protected
@@ -475,6 +527,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_AnyhowException(
     AnyhowException self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_Map_String_String_None(
+    Map<String, String> self,
     SseSerializer serializer,
   );
 
@@ -545,6 +603,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_list_record_string_string(
+    List<(String, String)> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_segment(List<Segment> self, SseSerializer serializer);
 
   @protected
@@ -567,6 +631,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_opt_box_autoadd_usize(BigInt? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_record_string_string(
+    (String, String) self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_segment(Segment self, SseSerializer serializer);
@@ -771,19 +841,21 @@ class RustLibWire implements BaseWire {
 
   void wire__crate__api__whisper__whisper_client_new(
     int port_,
-    ffi.Pointer<wire_cst_list_prim_u_8_strict> whisper_model,
-    ffi.Pointer<wire_cst_list_prim_u_8_strict> whisper_config,
-    ffi.Pointer<wire_cst_list_prim_u_8_loose> whisper_tokenizer,
+    ffi.Pointer<wire_cst_list_record_string_string> models,
+    ffi.Pointer<wire_cst_list_prim_u_8_strict> config,
+    ffi.Pointer<wire_cst_list_prim_u_8_loose> tokenizer,
     bool is_multilingual,
     bool is_quantized,
+    ffi.Pointer<wire_cst_list_prim_u_8_strict> model_type,
   ) {
     return _wire__crate__api__whisper__whisper_client_new(
       port_,
-      whisper_model,
-      whisper_config,
-      whisper_tokenizer,
+      models,
+      config,
+      tokenizer,
       is_multilingual,
       is_quantized,
+      model_type,
     );
   }
 
@@ -791,11 +863,12 @@ class RustLibWire implements BaseWire {
     ffi.NativeFunction<
       ffi.Void Function(
         ffi.Int64,
-        ffi.Pointer<wire_cst_list_prim_u_8_strict>,
+        ffi.Pointer<wire_cst_list_record_string_string>,
         ffi.Pointer<wire_cst_list_prim_u_8_strict>,
         ffi.Pointer<wire_cst_list_prim_u_8_loose>,
         ffi.Bool,
         ffi.Bool,
+        ffi.Pointer<wire_cst_list_prim_u_8_strict>,
       )
     >
   >('frbgen_fl_caption_wire__crate__api__whisper__whisper_client_new');
@@ -804,11 +877,12 @@ class RustLibWire implements BaseWire {
           .asFunction<
             void Function(
               int,
-              ffi.Pointer<wire_cst_list_prim_u_8_strict>,
+              ffi.Pointer<wire_cst_list_record_string_string>,
               ffi.Pointer<wire_cst_list_prim_u_8_strict>,
               ffi.Pointer<wire_cst_list_prim_u_8_loose>,
               bool,
               bool,
+              ffi.Pointer<wire_cst_list_prim_u_8_strict>,
             )
           >();
 
@@ -933,6 +1007,22 @@ class RustLibWire implements BaseWire {
             ffi.Pointer<wire_cst_list_prim_u_8_strict> Function(int)
           >();
 
+  ffi.Pointer<wire_cst_list_record_string_string>
+  cst_new_list_record_string_string(int len) {
+    return _cst_new_list_record_string_string(len);
+  }
+
+  late final _cst_new_list_record_string_stringPtr = _lookup<
+    ffi.NativeFunction<
+      ffi.Pointer<wire_cst_list_record_string_string> Function(ffi.Int32)
+    >
+  >('frbgen_fl_caption_cst_new_list_record_string_string');
+  late final _cst_new_list_record_string_string =
+      _cst_new_list_record_string_stringPtr
+          .asFunction<
+            ffi.Pointer<wire_cst_list_record_string_string> Function(int)
+          >();
+
   ffi.Pointer<wire_cst_list_segment> cst_new_list_segment(int len) {
     return _cst_new_list_segment(len);
   }
@@ -972,18 +1062,33 @@ final class wire_cst_list_prim_u_8_strict extends ffi.Struct {
   external int len;
 }
 
+final class wire_cst_record_string_string extends ffi.Struct {
+  external ffi.Pointer<wire_cst_list_prim_u_8_strict> field0;
+
+  external ffi.Pointer<wire_cst_list_prim_u_8_strict> field1;
+}
+
+final class wire_cst_list_record_string_string extends ffi.Struct {
+  external ffi.Pointer<wire_cst_record_string_string> ptr;
+
+  @ffi.Int32()
+  external int len;
+}
+
 final class wire_cst_whisper_client extends ffi.Struct {
-  external ffi.Pointer<wire_cst_list_prim_u_8_strict> whisper_model;
+  external ffi.Pointer<wire_cst_list_record_string_string> models;
 
-  external ffi.Pointer<wire_cst_list_prim_u_8_strict> whisper_config;
+  external ffi.Pointer<wire_cst_list_prim_u_8_strict> config;
 
-  external ffi.Pointer<wire_cst_list_prim_u_8_strict> whisper_tokenizer;
+  external ffi.Pointer<wire_cst_list_prim_u_8_strict> tokenizer;
 
   @ffi.Bool()
   external bool is_multilingual;
 
   @ffi.Bool()
   external bool is_quantized;
+
+  external ffi.Pointer<wire_cst_list_prim_u_8_strict> model_type;
 }
 
 final class wire_cst_list_prim_u_8_loose extends ffi.Struct {

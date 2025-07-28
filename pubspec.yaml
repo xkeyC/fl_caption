@@ -52,7 +52,7 @@ dependencies:
   # Platform Tools
   file_picker: ^10.2.0
 
-  url_launcher: ^6.3.1
+  url_launcher: ^6.3.2
 
 dependency_overrides: 
   macos_window_utils: 1.6.1

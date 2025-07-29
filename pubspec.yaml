@@ -61,7 +61,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
-  msix: ^3.16.9
+  msix: ^3.16.10
   build_runner: ^2.5.4
   freezed: ^3.1.0
   json_serializable: ^6.9.5

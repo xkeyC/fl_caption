@@ -10,10 +10,10 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.8
-  flutter_riverpod: ^2.6.1
-  riverpod_annotation: ^2.6.1
+  flutter_riverpod: ^3.0.0-dev.17
+  riverpod_annotation: ^3.0.0-dev.17
   flutter_hooks: ^0.21.2
-  hooks_riverpod: ^2.6.1
+  hooks_riverpod: ^3.0.0-dev.17
   json_annotation: ^4.9.0
   flutter_rust_bridge: ^2.7.1
   fluent_ui: ^4.12.0
@@ -62,12 +62,12 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^6.0.0
   msix: ^3.16.10
-  build_runner: ^2.5.4
-  freezed: ^3.1.0
-  json_serializable: ^6.9.5
-  riverpod_generator: ^2.6.5
-  custom_lint: ^0.7.6
-  riverpod_lint: ^2.6.5
+  build_runner: ^2.6.0
+  freezed: ^3.2.0
+  json_serializable: ^6.10.0
+  riverpod_generator: ^3.0.0-dev.17
+  custom_lint: ^0.8.0
+  riverpod_lint: ^3.0.0-dev.17
   ffigen: ^19.1.0
 
 flutter:

@@ -517,9 +517,9 @@ dependencies = [
 
 [[package]]
 name = "core-audio-types-rs"
-version = "0.3.4"
+version = "0.3.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "02f7359c779907f80443d2b2d1b5a61182abb6d8ffd43b6fcb87a27c327d845f"
+checksum = "bebfc66b5ef3f159b3c4a6097e7c2a2e2cc71ec77fff7913e9895fae45f4c349"
 dependencies = [
  "core-foundation 0.10.1",
 ]
@@ -587,9 +587,9 @@ dependencies = [
 
 [[package]]
 name = "core-media-rs"
-version = "0.3.4"
+version = "0.3.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3e33a8804301de5fc0f705ea1cdea692233c08bdcee8e42abb258f5de3b9a5e7"
+checksum = "6592bdc3e2b3479140e8c64d419b62d613526c8b61136ca990cd0bae4377db4f"
 dependencies = [
  "core-audio-types-rs",
  "core-foundation 0.10.1",
@@ -600,9 +600,9 @@ dependencies = [
 
 [[package]]
 name = "core-utils-rs"
-version = "0.3.4"
+version = "0.3.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "068ec1aa07335261033bf610b2868ea9db05353468b72b0045ae469e00d26121"
+checksum = "791d9e8eb99cff8db5e2b6a5bb420b893476b7a064bb6889b2a691c1bb6d745c"
 dependencies = [
  "core-foundation 0.10.1",
  "four-char-code",
@@ -610,9 +610,9 @@ dependencies = [
 
 [[package]]
 name = "core-video-rs"
-version = "0.3.4"
+version = "0.3.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7559e93f816c05607068cb0b741d997a47709f4ba70b36a02d335f7136b30c46"
+checksum = "f1f1614e163a5d6fb972305fa14fc5c2989143da0426c213b74785b31e1fadb8"
 dependencies = [
  "core-foundation 0.10.1",
  "core-graphics",

@@ -47,7 +47,7 @@ dependencies:
   super_sliver_list: ^0.4.1
 
   # Icons
-  font_awesome_flutter: ^10.8.0
+  font_awesome_flutter: ^10.9.0
 
   # Platform Tools
   file_picker: ^10.2.0

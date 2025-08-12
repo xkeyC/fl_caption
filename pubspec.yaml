@@ -38,7 +38,7 @@ dependencies:
   # Network
   dio: ^5.9.0
   dio_compatibility_layer: ^0.1.0
-  rhttp: ^0.12.0
+  rhttp: ^0.13.0
 
   # Async lock
   synchronized: ^3.4.0

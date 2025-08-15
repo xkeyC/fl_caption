@@ -12,6 +12,8 @@ jobs:
         uses: microsoft/setup-msbuild@v2
       - name: Setup Protoc
         uses: arduino/setup-protoc@v3
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Setup CUDA Toolkit
         id: cuda-toolkit
         shell: pwsh

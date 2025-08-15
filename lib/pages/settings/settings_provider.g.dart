@@ -57,22 +57,50 @@ Map<String, dynamic> _$AppSettingsDataToJson(_AppSettingsData instance) =>
 // RiverpodGenerator
 // **************************************************************************
 
+@ProviderFor(AppSettings)
+const appSettingsProvider = AppSettingsProvider._();
+
+final class AppSettingsProvider
+    extends $AsyncNotifierProvider<AppSettings, AppSettingsData> {
+  const AppSettingsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'appSettingsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$appSettingsHash();
+
+  @$internal
+  @override
+  AppSettings create() => AppSettings();
+}
+
 String _$appSettingsHash() => r'96c81bc4989baa5817b3da872b81fef4dc1514b8';
 
-/// See also [AppSettings].
-@ProviderFor(AppSettings)
-final appSettingsProvider =
-    AutoDisposeAsyncNotifierProvider<AppSettings, AppSettingsData>.internal(
-      AppSettings.new,
-      name: r'appSettingsProvider',
-      debugGetCreateSourceHash:
-          const bool.fromEnvironment('dart.vm.product')
-              ? null
-              : _$appSettingsHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
+abstract class _$AppSettings extends $AsyncNotifier<AppSettingsData> {
+  FutureOr<AppSettingsData> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref = this.ref as $Ref<AsyncValue<AppSettingsData>, AppSettingsData>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<AppSettingsData>, AppSettingsData>,
+              AsyncValue<AppSettingsData>,
+              Object?,
+              Object?
+            >;
+    element.handleValue(ref, created);
+  }
+}
 
-typedef _$AppSettings = AutoDisposeAsyncNotifier<AppSettingsData>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

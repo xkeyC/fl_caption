@@ -34,189 +34,105 @@ Map<String, dynamic> _$ModelDownloadStateDataToJson(
 // RiverpodGenerator
 // **************************************************************************
 
-String _$modelDownloadStateHash() =>
-    r'a622dd592d8839873423e27437c3f426b8510f5b';
-
-/// Copied from Dart SDK
-class _SystemHash {
-  _SystemHash._();
-
-  static int combine(int hash, int value) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + value);
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-    return hash ^ (hash >> 6);
-  }
-
-  static int finish(int hash) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-    // ignore: parameter_assignments
-    hash = hash ^ (hash >> 11);
-    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
-  }
-}
-
-abstract class _$ModelDownloadState
-    extends BuildlessAutoDisposeNotifier<ModelDownloadStateData> {
-  late final String modelName;
-  late final String savePath;
-
-  ModelDownloadStateData build(String modelName, String savePath);
-}
-
-/// See also [ModelDownloadState].
 @ProviderFor(ModelDownloadState)
-const modelDownloadStateProvider = ModelDownloadStateFamily();
+const modelDownloadStateProvider = ModelDownloadStateFamily._();
 
-/// See also [ModelDownloadState].
-class ModelDownloadStateFamily extends Family<ModelDownloadStateData> {
-  /// See also [ModelDownloadState].
-  const ModelDownloadStateFamily();
+final class ModelDownloadStateProvider
+    extends $NotifierProvider<ModelDownloadState, ModelDownloadStateData> {
+  const ModelDownloadStateProvider._({
+    required ModelDownloadStateFamily super.from,
+    required (String, String) super.argument,
+  }) : super(
+         retry: null,
+         name: r'modelDownloadStateProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
-  /// See also [ModelDownloadState].
-  ModelDownloadStateProvider call(String modelName, String savePath) {
-    return ModelDownloadStateProvider(modelName, savePath);
+  @override
+  String debugGetCreateSourceHash() => _$modelDownloadStateHash();
+
+  @override
+  String toString() {
+    return r'modelDownloadStateProvider'
+        ''
+        '$argument';
   }
 
+  @$internal
   @override
-  ModelDownloadStateProvider getProviderOverride(
-    covariant ModelDownloadStateProvider provider,
-  ) {
-    return call(provider.modelName, provider.savePath);
-  }
+  ModelDownloadState create() => ModelDownloadState();
 
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'modelDownloadStateProvider';
-}
-
-/// See also [ModelDownloadState].
-class ModelDownloadStateProvider
-    extends
-        AutoDisposeNotifierProviderImpl<
-          ModelDownloadState,
-          ModelDownloadStateData
-        > {
-  /// See also [ModelDownloadState].
-  ModelDownloadStateProvider(String modelName, String savePath)
-    : this._internal(
-        () =>
-            ModelDownloadState()
-              ..modelName = modelName
-              ..savePath = savePath,
-        from: modelDownloadStateProvider,
-        name: r'modelDownloadStateProvider',
-        debugGetCreateSourceHash:
-            const bool.fromEnvironment('dart.vm.product')
-                ? null
-                : _$modelDownloadStateHash,
-        dependencies: ModelDownloadStateFamily._dependencies,
-        allTransitiveDependencies:
-            ModelDownloadStateFamily._allTransitiveDependencies,
-        modelName: modelName,
-        savePath: savePath,
-      );
-
-  ModelDownloadStateProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.modelName,
-    required this.savePath,
-  }) : super.internal();
-
-  final String modelName;
-  final String savePath;
-
-  @override
-  ModelDownloadStateData runNotifierBuild(
-    covariant ModelDownloadState notifier,
-  ) {
-    return notifier.build(modelName, savePath);
-  }
-
-  @override
-  Override overrideWith(ModelDownloadState Function() create) {
-    return ProviderOverride(
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ModelDownloadStateData value) {
+    return $ProviderOverride(
       origin: this,
-      override: ModelDownloadStateProvider._internal(
-        () =>
-            create()
-              ..modelName = modelName
-              ..savePath = savePath,
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        modelName: modelName,
-        savePath: savePath,
-      ),
+      providerOverride: $SyncValueProvider<ModelDownloadStateData>(value),
     );
   }
 
   @override
-  AutoDisposeNotifierProviderElement<ModelDownloadState, ModelDownloadStateData>
-  createElement() {
-    return _ModelDownloadStateProviderElement(this);
-  }
-
-  @override
   bool operator ==(Object other) {
-    return other is ModelDownloadStateProvider &&
-        other.modelName == modelName &&
-        other.savePath == savePath;
+    return other is ModelDownloadStateProvider && other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, modelName.hashCode);
-    hash = _SystemHash.combine(hash, savePath.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin ModelDownloadStateRef
-    on AutoDisposeNotifierProviderRef<ModelDownloadStateData> {
-  /// The parameter `modelName` of this provider.
-  String get modelName;
+String _$modelDownloadStateHash() =>
+    r'677e169e6a0a1c8ff4df4204a8b457521a93b1d2';
 
-  /// The parameter `savePath` of this provider.
-  String get savePath;
+final class ModelDownloadStateFamily extends $Family
+    with
+        $ClassFamilyOverride<
+          ModelDownloadState,
+          ModelDownloadStateData,
+          ModelDownloadStateData,
+          ModelDownloadStateData,
+          (String, String)
+        > {
+  const ModelDownloadStateFamily._()
+    : super(
+        retry: null,
+        name: r'modelDownloadStateProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  ModelDownloadStateProvider call(String modelName, String savePath) =>
+      ModelDownloadStateProvider._(argument: (modelName, savePath), from: this);
+
+  @override
+  String toString() => r'modelDownloadStateProvider';
 }
 
-class _ModelDownloadStateProviderElement
-    extends
-        AutoDisposeNotifierProviderElement<
-          ModelDownloadState,
-          ModelDownloadStateData
-        >
-    with ModelDownloadStateRef {
-  _ModelDownloadStateProviderElement(super.provider);
+abstract class _$ModelDownloadState extends $Notifier<ModelDownloadStateData> {
+  late final _$args = ref.$arg as (String, String);
+  String get modelName => _$args.$1;
+  String get savePath => _$args.$2;
 
+  ModelDownloadStateData build(String modelName, String savePath);
+  @$mustCallSuper
   @override
-  String get modelName => (origin as ModelDownloadStateProvider).modelName;
-  @override
-  String get savePath => (origin as ModelDownloadStateProvider).savePath;
+  void runBuild() {
+    final created = build(_$args.$1, _$args.$2);
+    final ref =
+        this.ref as $Ref<ModelDownloadStateData, ModelDownloadStateData>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<ModelDownloadStateData, ModelDownloadStateData>,
+              ModelDownloadStateData,
+              Object?,
+              Object?
+            >;
+    element.handleValue(ref, created);
+  }
 }
 
 // ignore_for_file: type=lint

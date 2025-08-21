@@ -62,6 +62,9 @@ jobs:
           
       - name: Flutter build runner
         run: dart run build_runner build --delete-conflicting-outputs
+        
+      - name: Restore NVIDIA settings (post-operation)
+        run: scripts/build_macos.sh --restore-nvidia
       - name: Rust cargo update
         run: cargo update
         working-directory: rust

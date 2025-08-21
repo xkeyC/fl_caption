@@ -7,7 +7,7 @@ edition = "2021"
 crate-type = ["cdylib", "staticlib"]
 
 [features]
-default = [] # enable nvidia default
+default = ["nvidia"] # enable nvidia default
 nvidia = [
     "candle-core/cuda",
     "candle-nn/cuda",

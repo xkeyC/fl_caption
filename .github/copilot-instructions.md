@@ -5,13 +5,15 @@
 ## Project Overview
 FL Caption is a Flutter desktop application with Rust backend for real-time subtitle/caption generation using AI models (Whisper). It supports Windows, Linux, and macOS with optional CUDA acceleration for NVIDIA GPUs.
 
+**CRITICAL:** This project has complex dependencies and long build times. Always use the exact commands and timeouts specified below.
+
 ## Working Effectively
 
 ### Initial Setup (Required Every Time)
 Run these commands in order to set up the development environment:
 
 ```bash
-# 1. Install system dependencies (Linux)
+# 1. Install system dependencies (Linux) - takes 2-5 minutes
 sudo apt-get update
 sudo apt-get install -y \
   clang \
@@ -25,17 +27,27 @@ sudo apt-get install -y \
   libprotobuf-dev \
   libssl-dev \
   libfontconfig1-dev \
-  libfreetype6-dev
+  libfreetype6-dev \
+  libpipewire-0.3-dev \
+  libspa-0.2-dev \
+  pipewire-audio-client-libraries \
+  libasound2-dev \
+  libpulse-dev
 
 # 2. Install Flutter (if not available)
 # Use snap: sudo snap install flutter --classic
 # OR download manually from https://flutter.dev/docs/get-started/install
+# OR clone from GitHub: git clone -b stable https://github.com/flutter/flutter.git
 
 # 3. Install Rust toolchain (if not available)
 # Use rustup: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
-# 4. Install LLVM 18
+# 4. Install LLVM 18 (required for FFI bindings)
 # Use package manager or GitHub actions: KyleMayes/install-llvm-action@v2
+
+# 5. For CUDA support (optional)
+# Install CUDA Toolkit 12.4.0 from https://developer.nvidia.com/cuda-downloads
+# Ensure nvcc is in PATH
 ```
 
 ### Build Process (NEVER CANCEL - CRITICAL TIMING)
@@ -156,11 +168,27 @@ After making any changes, **ALWAYS test these complete user workflows**:
 
 ## Common Issues and Solutions
 
+### Common Issues and Solutions
+
 ### Build Failures
+- **"libpipewire-0.3 not found"** (Linux): Install `libpipewire-0.3-dev libspa-0.2-dev pipewire-audio-client-libraries`
+- **"Failed to GET ort-rs binary"**: ONNX Runtime downloads binaries from cdn.pyke.io - requires internet access
 - **"cl.exe not found"** (Windows): Ensure MSVC Build Tools are installed and NVCC_CCBIN is set
-- **CUDA not found**: Install CUDA Toolkit 12.4.0 or disable NVIDIA features
-- **Flutter not found**: Use `flutter` command, not `dart pub`
-- **Protoc not found**: Install protobuf-compiler package
+- **"Failed to execute nvcc"**: Install CUDA Toolkit 12.4.0 or disable NVIDIA features with `--no-default-features`
+- **"Flutter not found"**: Use `flutter` command, not `dart pub`
+- **"Protoc not found"**: Install protobuf-compiler package
+
+### Network Dependencies
+The build process requires internet access for:
+- ONNX Runtime binary downloads (automatic)
+- Hugging Face model downloads (runtime)
+- Dart/Flutter package resolution
+- Rust crate downloads
+
+If internet access is restricted:
+- Pre-download required binaries and set `ORT_LIB_LOCATION` environment variable
+- Use HF_ENDPOINT environment variable for Hugging Face mirrors
+- Set up local package mirrors for development
 
 ### Runtime Issues  
 - **"Wait for Whisper" hangs**: Check CUDA installation or disable NVIDIA acceleration
@@ -169,8 +197,10 @@ After making any changes, **ALWAYS test these complete user workflows**:
 
 ### Environment Variables
 - `ENABLE_NVIDIA=true/false` - Controls CUDA acceleration
-- `HF_ENDPOINT` - Hugging Face mirror for model downloads
+- `HF_ENDPOINT` - Hugging Face mirror for model downloads (e.g., `https://hf-mirror.com`)
 - `NVCC_CCBIN` - CUDA compiler path (Windows)
+- `ORT_LIB_LOCATION` - Path to ONNX Runtime libraries (if not using auto-download)
+- `ORT_SKIP_DOWNLOAD=1` - Skip automatic ONNX Runtime binary download
 
 ## Platform-Specific Notes
 
@@ -190,13 +220,41 @@ After making any changes, **ALWAYS test these complete user workflows**:
 - Requires Xcode command line tools
 - Build outputs: `build/macos/Build/Products/Release/`
 
-## Timing Expectations
+## Timing Expectations (Based on Validation)
 
 **Development Setup:** 10-15 minutes total
+**Rust Tool Installation:** 3-5 minutes (`cargo install flutter_rust_bridge_codegen`)
+**Dependency Updates:** 20-30 seconds (`cargo update`)
 **Full Clean Build:** 15-45 minutes (NEVER CANCEL)
 **Incremental Build:** 5-15 minutes  
 **Test Suite:** 5-15 minutes (NEVER CANCEL)
-**Model Download:** 10-30 minutes (varies by model size)
+**Model Download:** 10-30 minutes (varies by model size and network speed)
+
+## Alternative Build Configurations
+
+### Building without CUDA/NVIDIA support
+If CUDA is not available or causing issues:
+```bash
+# Disable NVIDIA features in Rust build
+cd rust
+cargo build --release --no-default-features
+
+# Use non-CUDA build scripts
+scripts/build_linux.sh "false"
+scripts/build_windows.ps1 -EnableNvidia "false"
+```
+
+### Building with offline/restricted network
+If internet access is limited:
+```bash
+# Set environment variables for offline builds
+export ORT_SKIP_DOWNLOAD=1
+export ORT_LIB_LOCATION="/path/to/onnxruntime"
+
+# Use local package caches
+flutter pub get --offline  # After initial online setup
+cargo build --offline      # After initial online setup
+```
 
 ## CI/CD Reference
 See `.github/workflows/` for exact build steps used in continuous integration:
@@ -205,3 +263,25 @@ See `.github/workflows/` for exact build steps used in continuous integration:
 - `macos_build.yml` - macOS build process
 
 Always reference these workflows for the most up-to-date build commands and dependency versions.
+
+## Quick Validation Commands
+Use these commands to quickly verify the development environment:
+
+```bash
+# Verify tools are available
+flutter --version        # Should show Flutter stable
+dart --version           # Should show Dart 3.8+
+cargo --version          # Should show Rust 1.89+
+cmake --version          # Should show CMake 3.31+
+protoc --version         # Should show protobuf 3.21+
+
+# Verify audio libraries (Linux)
+pkg-config --modversion libpipewire-0.3  # Should show version
+pkg-config --modversion libpulse         # Should show version
+
+# Quick dependency check
+cd rust && cargo check --no-default-features  # Should compile without CUDA
+flutter pub get                               # Should resolve dependencies
+```
+
+**Remember:** NEVER CANCEL long-running builds. Wait for completion even if it takes 45+ minutes.

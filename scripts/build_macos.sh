@@ -3,6 +3,43 @@
 # macOS Build Script for fl_caption
 # Based on build_linux.sh but adapted for macOS
 
+# Check if this is a pre-operation call (just disable NVIDIA)
+if [[ "$1" == "--disable-nvidia-only" ]]; then
+    echo -e "\033[36mRunning NVIDIA disable pre-operation for macOS...\033[0m"
+    PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+    
+    # Disable NVIDIA function
+    disable_nvidia() {
+        local cargo_toml_path="$PROJECT_ROOT/rust/Cargo.toml"
+        echo -e "\033[33mDisabling NVIDIA features in Cargo.toml for macOS pre-operation...\033[0m"
+        
+        if [[ ! -f "$cargo_toml_path" ]]; then
+            echo -e "\033[31mError: Cargo.toml not found at: $cargo_toml_path\033[0m"
+            exit 1
+        fi
+        
+        # Create a temporary file for the new content
+        local temp_file=$(mktemp)
+        
+        while IFS= read -r line; do
+            if [[ "$line" =~ ^default[[:space:]]*=.*#[[:space:]]*enable[[:space:]]*nvidia[[:space:]]*default ]]; then
+                echo 'default = [] # enable nvidia default' >> "$temp_file"
+                echo -e "\033[32mDisabled NVIDIA features for macOS (uses Metal acceleration)\033[0m"
+            else
+                echo "$line" >> "$temp_file"
+            fi
+        done < "$cargo_toml_path"
+        
+        # Replace the original file with the updated content
+        mv "$temp_file" "$cargo_toml_path"
+        echo -e "\033[32mNVIDIA pre-operation completed successfully\033[0m"
+    }
+    
+    # Execute the disable function and exit
+    disable_nvidia
+    exit 0
+fi
+
 # macOS always disables NVIDIA (uses Metal instead of CUDA)
 ENABLE_NVIDIA="false"
 echo -e "\033[36mmacOS build always disables NVIDIA (uses Metal acceleration instead)\033[0m"

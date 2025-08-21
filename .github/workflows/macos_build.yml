@@ -54,6 +54,12 @@ jobs:
 
       - name: Flutter pub get
         run: flutter pub get
+      
+      - name: Disable NVIDIA for macOS (pre-operation)
+        run: |
+          chmod +x scripts/build_macos.sh
+          scripts/build_macos.sh --disable-nvidia-only
+          
       - name: Flutter build runner
         run: dart run build_runner build --delete-conflicting-outputs
       - name: Rust cargo update

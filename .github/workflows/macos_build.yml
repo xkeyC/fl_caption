@@ -71,9 +71,10 @@ jobs:
       #          flutter pub global activate intl_utils
       #          flutter pub global run intl_utils:generate
    
-      - name: Flutter Build
+      - name: Build with macOS script
         run: |
-          flutter build macos -v
+          chmod +x scripts/build_macos.sh
+          scripts/build_macos.sh
 
       - name: Create ZIP archive
         run: |

@@ -46,7 +46,7 @@ ort = { version = "2.0.0-rc.10", features = [
 ] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
-pipewire = { version = "0.8", features = ["v0_3_44"] }
+pipewire = { version = "0.9", features = ["v0_3_44"] }
 ort = { version = "2.0.0-rc.10", features = ["xnnpack", "download-binaries"] }
 
 [target.'cfg(target_os = "macos")'.dependencies]

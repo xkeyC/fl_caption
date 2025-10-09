@@ -921,10 +921,10 @@ packages:
     dependency: "direct main"
     description:
       name: rhttp
-      sha256: e8f0a8756a931598b7d9c4107a4afe93c2b81cbf8c45e532ba9dc52e12bbaa35
+      sha256: ea373e32d6471ed98e3b21467ce63b0679912b9a50c66a3d6bc021a5b2caa66d
       url: "https://pub.dev"
     source: hosted
-    version: "0.13.0"
+    version: "0.14.0"
   riverpod:
     dependency: transitive
     description:

@@ -553,10 +553,10 @@ packages:
     dependency: "direct main"
     description:
       name: hive_ce
-      sha256: d678b1b2e315c18cd7ed8fd79eda25d70a1f3852d6988bfe5461cffe260c60aa
+      sha256: e3a9d2608350ca5ae1fcaa594bbc24c443cf8e67cd16b89ec258fb0bcccb0847
       url: "https://pub.dev"
     source: hosted
-    version: "2.14.0"
+    version: "2.15.0"
   hive_ce_flutter:
     dependency: "direct main"
     description:

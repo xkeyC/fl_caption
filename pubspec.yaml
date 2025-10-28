@@ -29,7 +29,7 @@ dependencies:
   desktop_multi_window: ^0.2.1
 
   # KV Store
-  hive_ce: ^2.15.0
+  hive_ce: ^2.15.1
   hive_ce_flutter: ^2.3.2
 
   # local store

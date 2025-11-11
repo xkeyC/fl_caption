@@ -19,7 +19,7 @@ nvidia = [
 [dependencies]
 flutter_rust_bridge = "=2.11.1"
 tokio = { version = "1.48.0", features = ["full"] }
-tokio-util = "0.7.16"
+tokio-util = "0.7.17"
 anyhow = "1.0"
 candle-core = { version = "0.9.1" }
 candle-nn = { version = "0.9.1" }

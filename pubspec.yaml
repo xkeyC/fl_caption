@@ -30,7 +30,7 @@ dependencies:
 
   # KV Store
   hive_ce: ^2.15.1
-  hive_ce_flutter: ^2.3.2
+  hive_ce_flutter: ^2.3.3
 
   # local store
   path_provider: ^2.1.5

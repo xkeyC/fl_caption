@@ -50,7 +50,7 @@ dependencies:
   font_awesome_flutter: ^10.12.0
 
   # Platform Tools
-  file_picker: ^10.3.3
+  file_picker: ^10.3.7
 
   url_launcher: ^6.3.2
 

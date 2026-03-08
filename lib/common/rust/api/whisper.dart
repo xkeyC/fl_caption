@@ -7,6 +7,8 @@ import '../audio_models/model.dart';
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
+// These functions are ignored because they are not marked as `pub`: `init_qwen_asr`, `is_qwen_asr_initialized`
+
 Future<String> createCancellationToken() =>
     RustLib.instance.api.crateApiWhisperCreateCancellationToken();
 
@@ -48,7 +50,7 @@ Stream<List<Segment>> launchCaption({
 );
 
 class WhisperClient {
-  final Map<String, String> models;
+  final String modelName;
   final String config;
   final Uint8List tokenizer;
   final bool isMultilingual;
@@ -56,7 +58,7 @@ class WhisperClient {
   final String modelType;
 
   const WhisperClient({
-    required this.models,
+    required this.modelName,
     required this.config,
     required this.tokenizer,
     required this.isMultilingual,
@@ -66,14 +68,14 @@ class WhisperClient {
 
   // HINT: Make it `#[frb(sync)]` to let it become the default constructor of Dart class.
   static Future<WhisperClient> newInstance({
-    required Map<String, String> models,
+    required String modelName,
     required String config,
     required List<int> tokenizer,
     required bool isMultilingual,
     required bool isQuantized,
     required String modelType,
   }) => RustLib.instance.api.crateApiWhisperWhisperClientNew(
-    models: models,
+    modelName: modelName,
     config: config,
     tokenizer: tokenizer,
     isMultilingual: isMultilingual,
@@ -83,7 +85,7 @@ class WhisperClient {
 
   @override
   int get hashCode =>
-      models.hashCode ^
+      modelName.hashCode ^
       config.hashCode ^
       tokenizer.hashCode ^
       isMultilingual.hashCode ^
@@ -95,7 +97,7 @@ class WhisperClient {
       identical(this, other) ||
       other is WhisperClient &&
           runtimeType == other.runtimeType &&
-          models == other.models &&
+          modelName == other.modelName &&
           config == other.config &&
           tokenizer == other.tokenizer &&
           isMultilingual == other.isMultilingual &&

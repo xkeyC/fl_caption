@@ -116,17 +116,17 @@ fn wire__crate__api__whisper__create_cancellation_token_impl(
 }
 fn wire__crate__api__whisper__launch_caption_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
-    _whisper_client: impl CstDecode<crate::api::whisper::WhisperClient>,
+    whisper_client: impl CstDecode<crate::api::whisper::WhisperClient>,
     stream_sink: impl CstDecode<
         StreamSink<
             Vec<crate::audio_models::model::Segment>,
             flutter_rust_bridge::for_generated::DcoCodec,
         >,
     >,
-    _audio_device: impl CstDecode<Option<String>>,
-    _audio_device_is_input: impl CstDecode<Option<bool>>,
-    _audio_language: impl CstDecode<Option<String>>,
-    _cancel_token_id: impl CstDecode<String>,
+    audio_device: impl CstDecode<Option<String>>,
+    audio_device_is_input: impl CstDecode<Option<bool>>,
+    audio_language: impl CstDecode<Option<String>>,
+    cancel_token_id: impl CstDecode<String>,
     _with_timestamps: impl CstDecode<Option<bool>>,
     _verbose: impl CstDecode<Option<bool>>,
     _try_with_cuda: impl CstDecode<Option<bool>>,
@@ -134,7 +134,7 @@ fn wire__crate__api__whisper__launch_caption_impl(
     _inference_interval: impl CstDecode<Option<u64>>,
     _whisper_default_max_decode_tokens: impl CstDecode<Option<usize>>,
     _whisper_temperature: impl CstDecode<Option<f32>>,
-    _vad_model_path: impl CstDecode<Option<String>>,
+    vad_model_path: impl CstDecode<Option<String>>,
     _vad_filters_value: impl CstDecode<Option<f32>>,
 ) {
     FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::DcoCodec, _, _, _>(
@@ -144,12 +144,12 @@ fn wire__crate__api__whisper__launch_caption_impl(
             mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
         },
         move || {
-            let api__whisper_client = _whisper_client.cst_decode();
+            let api_whisper_client = whisper_client.cst_decode();
             let api_stream_sink = stream_sink.cst_decode();
-            let api__audio_device = _audio_device.cst_decode();
-            let api__audio_device_is_input = _audio_device_is_input.cst_decode();
-            let api__audio_language = _audio_language.cst_decode();
-            let api__cancel_token_id = _cancel_token_id.cst_decode();
+            let api_audio_device = audio_device.cst_decode();
+            let api_audio_device_is_input = audio_device_is_input.cst_decode();
+            let api_audio_language = audio_language.cst_decode();
+            let api_cancel_token_id = cancel_token_id.cst_decode();
             let api__with_timestamps = _with_timestamps.cst_decode();
             let api__verbose = _verbose.cst_decode();
             let api__try_with_cuda = _try_with_cuda.cst_decode();
@@ -158,18 +158,18 @@ fn wire__crate__api__whisper__launch_caption_impl(
             let api__whisper_default_max_decode_tokens =
                 _whisper_default_max_decode_tokens.cst_decode();
             let api__whisper_temperature = _whisper_temperature.cst_decode();
-            let api__vad_model_path = _vad_model_path.cst_decode();
+            let api_vad_model_path = vad_model_path.cst_decode();
             let api__vad_filters_value = _vad_filters_value.cst_decode();
             move |context| async move {
                 transform_result_dco::<_, _, flutter_rust_bridge::for_generated::anyhow::Error>(
                     (move || async move {
                         let output_ok = crate::api::whisper::launch_caption(
-                            api__whisper_client,
+                            api_whisper_client,
                             api_stream_sink,
-                            api__audio_device,
-                            api__audio_device_is_input,
-                            api__audio_language,
-                            api__cancel_token_id,
+                            api_audio_device,
+                            api_audio_device_is_input,
+                            api_audio_language,
+                            api_cancel_token_id,
                             api__with_timestamps,
                             api__verbose,
                             api__try_with_cuda,
@@ -177,7 +177,7 @@ fn wire__crate__api__whisper__launch_caption_impl(
                             api__inference_interval,
                             api__whisper_default_max_decode_tokens,
                             api__whisper_temperature,
-                            api__vad_model_path,
+                            api_vad_model_path,
                             api__vad_filters_value,
                         )
                         .await?;
@@ -191,7 +191,7 @@ fn wire__crate__api__whisper__launch_caption_impl(
 }
 fn wire__crate__api__whisper__whisper_client_new_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
-    models: impl CstDecode<std::collections::HashMap<String, String>>,
+    model_name: impl CstDecode<String>,
     config: impl CstDecode<String>,
     tokenizer: impl CstDecode<Vec<u8>>,
     is_multilingual: impl CstDecode<bool>,
@@ -205,7 +205,7 @@ fn wire__crate__api__whisper__whisper_client_new_impl(
             mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
         },
         move || {
-            let api_models = models.cst_decode();
+            let api_model_name = model_name.cst_decode();
             let api_config = config.cst_decode();
             let api_tokenizer = tokenizer.cst_decode();
             let api_is_multilingual = is_multilingual.cst_decode();
@@ -214,7 +214,7 @@ fn wire__crate__api__whisper__whisper_client_new_impl(
             move |context| {
                 transform_result_dco::<_, _, ()>((move || {
                     let output_ok = Result::<_, ()>::Ok(crate::api::whisper::WhisperClient::new(
-                        api_models,
+                        api_model_name,
                         api_config,
                         api_tokenizer,
                         api_is_multilingual,
@@ -296,14 +296,6 @@ impl SseDecode for flutter_rust_bridge::for_generated::anyhow::Error {
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut inner = <String>::sse_decode(deserializer);
         return flutter_rust_bridge::for_generated::anyhow::anyhow!("{}", inner);
-    }
-}
-
-impl SseDecode for std::collections::HashMap<String, String> {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut inner = <Vec<(String, String)>>::sse_decode(deserializer);
-        return inner.into_iter().collect();
     }
 }
 
@@ -408,18 +400,6 @@ impl SseDecode for Vec<u8> {
     }
 }
 
-impl SseDecode for Vec<(String, String)> {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut len_ = <i32>::sse_decode(deserializer);
-        let mut ans_ = vec![];
-        for idx_ in 0..len_ {
-            ans_.push(<(String, String)>::sse_decode(deserializer));
-        }
-        return ans_;
-    }
-}
-
 impl SseDecode for Vec<crate::audio_models::model::Segment> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -511,15 +491,6 @@ impl SseDecode for Option<usize> {
     }
 }
 
-impl SseDecode for (String, String) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut var_field0 = <String>::sse_decode(deserializer);
-        let mut var_field1 = <String>::sse_decode(deserializer);
-        return (var_field0, var_field1);
-    }
-}
-
 impl SseDecode for crate::audio_models::model::Segment {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -578,14 +549,14 @@ impl SseDecode for usize {
 impl SseDecode for crate::api::whisper::WhisperClient {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut var_models = <std::collections::HashMap<String, String>>::sse_decode(deserializer);
+        let mut var_modelName = <String>::sse_decode(deserializer);
         let mut var_config = <String>::sse_decode(deserializer);
         let mut var_tokenizer = <Vec<u8>>::sse_decode(deserializer);
         let mut var_isMultilingual = <bool>::sse_decode(deserializer);
         let mut var_isQuantized = <bool>::sse_decode(deserializer);
         let mut var_modelType = <String>::sse_decode(deserializer);
         return crate::api::whisper::WhisperClient {
-            models: var_models,
+            model_name: var_modelName,
             config: var_config,
             tokenizer: var_tokenizer,
             is_multilingual: var_isMultilingual,
@@ -692,7 +663,7 @@ impl flutter_rust_bridge::IntoIntoDart<crate::audio_models::model::Segment>
 impl flutter_rust_bridge::IntoDart for crate::api::whisper::WhisperClient {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
-            self.models.into_into_dart().into_dart(),
+            self.model_name.into_into_dart().into_dart(),
             self.config.into_into_dart().into_dart(),
             self.tokenizer.into_into_dart().into_dart(),
             self.is_multilingual.into_into_dart().into_dart(),
@@ -742,13 +713,6 @@ impl SseEncode for flutter_rust_bridge::for_generated::anyhow::Error {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <String>::sse_encode(format!("{:?}", self), serializer);
-    }
-}
-
-impl SseEncode for std::collections::HashMap<String, String> {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <Vec<(String, String)>>::sse_encode(self.into_iter().collect(), serializer);
     }
 }
 
@@ -838,16 +802,6 @@ impl SseEncode for Vec<u8> {
     }
 }
 
-impl SseEncode for Vec<(String, String)> {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <i32>::sse_encode(self.len() as _, serializer);
-        for item in self {
-            <(String, String)>::sse_encode(item, serializer);
-        }
-    }
-}
-
 impl SseEncode for Vec<crate::audio_models::model::Segment> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -928,14 +882,6 @@ impl SseEncode for Option<usize> {
     }
 }
 
-impl SseEncode for (String, String) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <String>::sse_encode(self.0, serializer);
-        <String>::sse_encode(self.1, serializer);
-    }
-}
-
 impl SseEncode for crate::audio_models::model::Segment {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -988,7 +934,7 @@ impl SseEncode for usize {
 impl SseEncode for crate::api::whisper::WhisperClient {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <std::collections::HashMap<String, String>>::sse_encode(self.models, serializer);
+        <String>::sse_encode(self.model_name, serializer);
         <String>::sse_encode(self.config, serializer);
         <Vec<u8>>::sse_encode(self.tokenizer, serializer);
         <bool>::sse_encode(self.is_multilingual, serializer);
@@ -1042,15 +988,6 @@ mod io {
         // Codec=Cst (C-struct based), see doc to use other codecs
         fn cst_decode(self) -> flutter_rust_bridge::for_generated::anyhow::Error {
             unimplemented!()
-        }
-    }
-    impl CstDecode<std::collections::HashMap<String, String>>
-        for *mut wire_cst_list_record_string_string
-    {
-        // Codec=Cst (C-struct based), see doc to use other codecs
-        fn cst_decode(self) -> std::collections::HashMap<String, String> {
-            let vec: Vec<(String, String)> = self.cst_decode();
-            vec.into_iter().collect()
         }
     }
     impl
@@ -1162,16 +1099,6 @@ mod io {
             }
         }
     }
-    impl CstDecode<Vec<(String, String)>> for *mut wire_cst_list_record_string_string {
-        // Codec=Cst (C-struct based), see doc to use other codecs
-        fn cst_decode(self) -> Vec<(String, String)> {
-            let vec = unsafe {
-                let wrap = flutter_rust_bridge::for_generated::box_from_leak_ptr(self);
-                flutter_rust_bridge::for_generated::vec_from_leak_ptr(wrap.ptr, wrap.len)
-            };
-            vec.into_iter().map(CstDecode::cst_decode).collect()
-        }
-    }
     impl CstDecode<Vec<crate::audio_models::model::Segment>> for *mut wire_cst_list_segment {
         // Codec=Cst (C-struct based), see doc to use other codecs
         fn cst_decode(self) -> Vec<crate::audio_models::model::Segment> {
@@ -1180,12 +1107,6 @@ mod io {
                 flutter_rust_bridge::for_generated::vec_from_leak_ptr(wrap.ptr, wrap.len)
             };
             vec.into_iter().map(CstDecode::cst_decode).collect()
-        }
-    }
-    impl CstDecode<(String, String)> for wire_cst_record_string_string {
-        // Codec=Cst (C-struct based), see doc to use other codecs
-        fn cst_decode(self) -> (String, String) {
-            (self.field0.cst_decode(), self.field1.cst_decode())
         }
     }
     impl CstDecode<crate::audio_models::model::Segment> for wire_cst_segment {
@@ -1206,7 +1127,7 @@ mod io {
         // Codec=Cst (C-struct based), see doc to use other codecs
         fn cst_decode(self) -> crate::api::whisper::WhisperClient {
             crate::api::whisper::WhisperClient {
-                models: self.models.cst_decode(),
+                model_name: self.model_name.cst_decode(),
                 config: self.config.cst_decode(),
                 tokenizer: self.tokenizer.cst_decode(),
                 is_multilingual: self.is_multilingual.cst_decode(),
@@ -1232,19 +1153,6 @@ mod io {
             Self::new_with_null_ptr()
         }
     }
-    impl NewWithNullPtr for wire_cst_record_string_string {
-        fn new_with_null_ptr() -> Self {
-            Self {
-                field0: core::ptr::null_mut(),
-                field1: core::ptr::null_mut(),
-            }
-        }
-    }
-    impl Default for wire_cst_record_string_string {
-        fn default() -> Self {
-            Self::new_with_null_ptr()
-        }
-    }
     impl NewWithNullPtr for wire_cst_segment {
         fn new_with_null_ptr() -> Self {
             Self {
@@ -1266,7 +1174,7 @@ mod io {
     impl NewWithNullPtr for wire_cst_whisper_client {
         fn new_with_null_ptr() -> Self {
             Self {
-                models: core::ptr::null_mut(),
+                model_name: core::ptr::null_mut(),
                 config: core::ptr::null_mut(),
                 tokenizer: core::ptr::null_mut(),
                 is_multilingual: Default::default(),
@@ -1307,12 +1215,12 @@ mod io {
     #[unsafe(no_mangle)]
     pub extern "C" fn frbgen_fl_caption_wire__crate__api__whisper__launch_caption(
         port_: i64,
-        _whisper_client: *mut wire_cst_whisper_client,
+        whisper_client: *mut wire_cst_whisper_client,
         stream_sink: *mut wire_cst_list_prim_u_8_strict,
-        _audio_device: *mut wire_cst_list_prim_u_8_strict,
-        _audio_device_is_input: *mut bool,
-        _audio_language: *mut wire_cst_list_prim_u_8_strict,
-        _cancel_token_id: *mut wire_cst_list_prim_u_8_strict,
+        audio_device: *mut wire_cst_list_prim_u_8_strict,
+        audio_device_is_input: *mut bool,
+        audio_language: *mut wire_cst_list_prim_u_8_strict,
+        cancel_token_id: *mut wire_cst_list_prim_u_8_strict,
         _with_timestamps: *mut bool,
         _verbose: *mut bool,
         _try_with_cuda: *mut bool,
@@ -1320,17 +1228,17 @@ mod io {
         _inference_interval: *mut u64,
         _whisper_default_max_decode_tokens: *mut usize,
         _whisper_temperature: *mut f32,
-        _vad_model_path: *mut wire_cst_list_prim_u_8_strict,
+        vad_model_path: *mut wire_cst_list_prim_u_8_strict,
         _vad_filters_value: *mut f32,
     ) {
         wire__crate__api__whisper__launch_caption_impl(
             port_,
-            _whisper_client,
+            whisper_client,
             stream_sink,
-            _audio_device,
-            _audio_device_is_input,
-            _audio_language,
-            _cancel_token_id,
+            audio_device,
+            audio_device_is_input,
+            audio_language,
+            cancel_token_id,
             _with_timestamps,
             _verbose,
             _try_with_cuda,
@@ -1338,7 +1246,7 @@ mod io {
             _inference_interval,
             _whisper_default_max_decode_tokens,
             _whisper_temperature,
-            _vad_model_path,
+            vad_model_path,
             _vad_filters_value,
         )
     }
@@ -1346,7 +1254,7 @@ mod io {
     #[unsafe(no_mangle)]
     pub extern "C" fn frbgen_fl_caption_wire__crate__api__whisper__whisper_client_new(
         port_: i64,
-        models: *mut wire_cst_list_record_string_string,
+        model_name: *mut wire_cst_list_prim_u_8_strict,
         config: *mut wire_cst_list_prim_u_8_strict,
         tokenizer: *mut wire_cst_list_prim_u_8_loose,
         is_multilingual: bool,
@@ -1355,7 +1263,7 @@ mod io {
     ) {
         wire__crate__api__whisper__whisper_client_new_impl(
             port_,
-            models,
+            model_name,
             config,
             tokenizer,
             is_multilingual,
@@ -1431,20 +1339,6 @@ mod io {
     }
 
     #[unsafe(no_mangle)]
-    pub extern "C" fn frbgen_fl_caption_cst_new_list_record_string_string(
-        len: i32,
-    ) -> *mut wire_cst_list_record_string_string {
-        let wrap = wire_cst_list_record_string_string {
-            ptr: flutter_rust_bridge::for_generated::new_leak_vec_ptr(
-                <wire_cst_record_string_string>::new_with_null_ptr(),
-                len,
-            ),
-            len,
-        };
-        flutter_rust_bridge::for_generated::new_leak_box_ptr(wrap)
-    }
-
-    #[unsafe(no_mangle)]
     pub extern "C" fn frbgen_fl_caption_cst_new_list_segment(
         len: i32,
     ) -> *mut wire_cst_list_segment {
@@ -1488,21 +1382,9 @@ mod io {
     }
     #[repr(C)]
     #[derive(Clone, Copy)]
-    pub struct wire_cst_list_record_string_string {
-        ptr: *mut wire_cst_record_string_string,
-        len: i32,
-    }
-    #[repr(C)]
-    #[derive(Clone, Copy)]
     pub struct wire_cst_list_segment {
         ptr: *mut wire_cst_segment,
         len: i32,
-    }
-    #[repr(C)]
-    #[derive(Clone, Copy)]
-    pub struct wire_cst_record_string_string {
-        field0: *mut wire_cst_list_prim_u_8_strict,
-        field1: *mut wire_cst_list_prim_u_8_strict,
     }
     #[repr(C)]
     #[derive(Clone, Copy)]
@@ -1518,7 +1400,7 @@ mod io {
     #[repr(C)]
     #[derive(Clone, Copy)]
     pub struct wire_cst_whisper_client {
-        models: *mut wire_cst_list_record_string_string,
+        model_name: *mut wire_cst_list_prim_u_8_strict,
         config: *mut wire_cst_list_prim_u_8_strict,
         tokenizer: *mut wire_cst_list_prim_u_8_strict,
         is_multilingual: bool,

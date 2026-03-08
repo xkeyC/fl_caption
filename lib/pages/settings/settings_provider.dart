@@ -43,7 +43,7 @@ class AppSettings extends _$AppSettings {
       "model_working_dir",
       defaultValue: "${(await getApplicationSupportDirectory()).absolute.path.replaceAll("\\", "/")}/whisper",
     );
-    final String whisperModel = box.get("whisper_model", defaultValue: "base");
+    final String whisperModel = box.get("whisper_model_v2", defaultValue: "Qwen/Qwen3-ASR-0.6B");
     final String llmProviderUrl = box.get(
       "llm_provider_url",
       defaultValue: "http://localhost:11434/v1/chat/completions",

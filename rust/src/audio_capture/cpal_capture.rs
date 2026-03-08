@@ -1,9 +1,9 @@
 use super::traits::{AudioCapture, AudioCaptureConfig, AudioCaptureInfo};
 use anyhow::Result;
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
-use std::sync::mpsc;
 use std::thread;
 use std::time::Duration;
+use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
 pub struct CpalAudioCapture {
@@ -63,7 +63,7 @@ impl AudioCapture for CpalAudioCapture {
     }
 
     fn start_capture(&self, cancel_token: CancellationToken) -> Result<mpsc::Receiver<Vec<f32>>> {
-        let (tx, rx) = mpsc::channel::<Vec<f32>>();
+        let (tx, rx) = mpsc::channel::<Vec<f32>>(64);
 
         let config = self.config.clone();
         let channels = self.channels as usize;
@@ -115,7 +115,7 @@ impl AudioCapture for CpalAudioCapture {
                         let mono_pcm = merge_channels(pcm, channels);
                         if !mono_pcm.is_empty() {
                             let resampled_pcm = resample_audio(&mono_pcm, resample_ratio);
-                            let _ = tx.send(resampled_pcm);
+                            let _ = tx.blocking_send(resampled_pcm);
                         }
                     },
                     move |err| {

@@ -26,17 +26,16 @@ class DartWhisper extends _$DartWhisper {
     debugPrint("[DartWhisper] build");
     DartWhisperClientError? errorType;
     final appSettings = await ref.watch(appSettingsProvider.future);
-    final Map<String, String> modelFiles = {};
     final modelName = appSettings.whisperModel;
-    debugPrint("[DartWhisper] modelName: $modelName modelFile: ${modelFiles[modelName]} errorType: $errorType");
+    debugPrint("[DartWhisper] modelName: $modelName errorType: $errorType");
     debugPrint("[DartWhisper] creating WhisperClient ...");
     final whisper = rs.WhisperClient(
-      models: modelFiles,
+      modelName: modelName,
       config: "",
       tokenizer: Uint8List(0),
       isMultilingual: true,
       isQuantized: true,
-      modelType: "whisper",
+      modelType: "qwen",
     );
     debugPrint("[DartWhisper] WhisperClient created: $whisper");
     return DartWhisperClient(client: whisper, errorType: errorType);

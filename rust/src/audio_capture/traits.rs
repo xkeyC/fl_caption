@@ -1,5 +1,5 @@
-use std::sync::mpsc;
 use anyhow::Result;
+use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
 /// Audio capture configuration
@@ -37,11 +37,13 @@ pub struct AudioCaptureInfo {
 /// Trait for audio capture implementations
 pub trait AudioCapture: Send + Sync {
     /// Create a new audio capture instance
-    fn new(config: AudioCaptureConfig) -> Result<Self> where Self: Sized;
-    
+    fn new(config: AudioCaptureConfig) -> Result<Self>
+    where
+        Self: Sized;
+
     /// Get audio capture information
     fn get_info(&self) -> AudioCaptureInfo;
-    
+
     /// Start audio capture
     /// Returns a receiver for audio samples (f32, mono, 16kHz)
     fn start_capture(&self, cancel_token: CancellationToken) -> Result<mpsc::Receiver<Vec<f32>>>;

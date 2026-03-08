@@ -6,6 +6,9 @@ part of 'provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
+
 @ProviderFor(DartWhisper)
 const dartWhisperProvider = DartWhisperProvider._();
 
@@ -30,7 +33,7 @@ final class DartWhisperProvider
   DartWhisper create() => DartWhisper();
 }
 
-String _$dartWhisperHash() => r'71a5a698555a386b24fe64f37e44f26517029d82';
+String _$dartWhisperHash() => r'9852678975c14aa07a3c475323f643a2968fad89';
 
 abstract class _$DartWhisper extends $AsyncNotifier<DartWhisperClient> {
   FutureOr<DartWhisperClient> build();
@@ -107,6 +110,3 @@ abstract class _$DartWhisperCaption
     element.handleValue(ref, created);
   }
 }
-
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

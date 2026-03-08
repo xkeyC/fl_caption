@@ -1,8 +1,6 @@
 use anyhow::Result;
 use ndarray::{Array1, Array2, Array3, Axis};
-use ort::{inputs, session::Session, value::Value};
-
-use crate::onnx_models;
+use ort::{inputs, session::Session, value::Tensor};
 
 struct VadModelState {
     frame_size: usize,
@@ -63,13 +61,20 @@ impl VadDevice {
             }
 
             let full_chunk = ndarray::concatenate![Axis(1), context, chunk_array];
+            let full_chunk_vec: Vec<f32> = full_chunk.iter().cloned().collect();
 
             let sr_array = Array1::<i64>::from_elem(1, self.state.sample_rate);
+            let state_vec: Vec<f32> = state.iter().cloned().collect();
+
+            let input_value =
+                Tensor::from_array(([1, full_chunk.len()], full_chunk_vec.into_boxed_slice()))?;
+            let sr_value = Tensor::from_array(([1], sr_array.to_vec().into_boxed_slice()))?;
+            let state_value = Tensor::from_array(([2, 1, 128], state_vec.into_boxed_slice()))?;
 
             let outputs = self.session.run(inputs![
-                "input" => Value::from_array(full_chunk)?,
-                "sr" => Value::from_array(sr_array)?,
-                "state" => Value::from_array(state.clone())?
+                "input" => input_value,
+                "sr" => sr_value,
+                "state" => state_value
             ])?;
 
             let output_keys: Vec<_> = outputs.keys().collect();
@@ -86,10 +91,11 @@ impl VadDevice {
             let output_tensor = output.try_extract_tensor::<f32>()?;
             let state_tensor = new_state.try_extract_tensor::<f32>()?;
 
-            let prediction_value = output_tensor.1[0]; // 获取第一个值
+            let prediction_value = output_tensor.1[0];
             res.push(prediction_value);
 
-            state = Array3::<f32>::from_shape_vec((2, 1, 128), state_tensor.1.to_vec())?;
+            let state_data: Vec<f32> = state_tensor.1.iter().cloned().collect();
+            state = Array3::<f32>::from_shape_vec((2, 1, 128), state_data)?;
             context = next_context;
 
             if let Some(value) = filters_value {
@@ -117,9 +123,7 @@ impl VadDevice {
 }
 
 pub fn new_vad_model(model_path: String, _try_with_gpu: bool) -> Result<VadDevice> {
-    let mut builder = Session::builder()?;
-    onnx_models::register_execution_providers(&mut builder, _try_with_gpu, "vad".to_string())?;
-    let session = builder.commit_from_file(model_path)?;
+    let session = Session::builder()?.commit_from_file(model_path)?;
 
     let sample_rate: i64 = 16000;
     let (frame_size, context_size) = (512, 64);

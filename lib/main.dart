@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
-import 'package:fl_caption/common/rust/candle_models/whisper/model.dart' show WhisperStatus;
 import 'package:fl_caption/common/translate/translate_provider.dart';
 import 'package:fl_caption/pages/settings/settings_page.dart';
 import 'package:fl_caption/widgets/error.dart';
@@ -19,6 +18,7 @@ import 'package:rhttp/rhttp.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:window_manager/window_manager.dart';
 
+import 'common/rust/audio_models/model.dart' show WhisperStatus;
 import 'common/rust/frb_generated.dart';
 import 'pages/settings/settings_provider.dart';
 import 'common/utils/window_util.dart';

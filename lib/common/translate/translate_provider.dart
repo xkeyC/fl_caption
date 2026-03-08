@@ -5,7 +5,6 @@ import 'package:dio/dio.dart';
 import 'package:fl_caption/common/io/http.dart';
 import 'package:fl_caption/pages/settings/settings_provider.dart';
 import 'package:fl_caption/common/whisper/language.dart';
-import 'package:fl_caption/common/whisper/provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:synchronized/synchronized.dart';
@@ -16,28 +15,7 @@ part 'translate_provider.g.dart';
 class TranslateProvider extends _$TranslateProvider {
   @override
   String build() {
-    ref.listen(dartWhisperCaptionProvider, (p, n) async {
-      _updateTranslate(p?.value?.text, n.value?.text, n.value?.reasoningLang);
-    });
     return "";
-  }
-
-  void _updateTranslate(String? p, String? n, String? lang) async {
-    final appSettings = await ref.watch(appSettingsProvider.future);
-    if (appSettings.llmProviderUrl.isEmpty || appSettings.llmProviderModel.isEmpty) {
-      state = "";
-      return;
-    }
-    if (appSettings.captionLanguage == null) {
-      state = "<Not config captionLanguage>";
-      return;
-    }
-    final captionLanguage = captionLanguages[appSettings.captionLanguage!]!;
-    final pText = p ?? "";
-    final text = n ?? "";
-    if (pText == text) return;
-    if (text.isEmpty) return;
-    _doTranslate(text: text, appSettings: appSettings, captionLanguage: captionLanguage);
   }
 
   final _asyncLock = Lock();
@@ -52,7 +30,6 @@ class TranslateProvider extends _$TranslateProvider {
     required WhisperLanguage captionLanguage,
   }) async {
     await _asyncLock.synchronized(() async {
-      // state = "";
       _dio ??= await RDio.createRDioClient();
       final cancelToken = CancelToken();
       ref.onDispose(() {
@@ -62,7 +39,6 @@ class TranslateProvider extends _$TranslateProvider {
       try {
         var fixedText = text;
         final llmPromptPrefix = appSettings.llmPromptPrefix;
-        // Set up streaming request
         final workingDur = Duration(seconds: 2);
         final response = await _dio!.post(
           appSettings.llmProviderUrl,
@@ -97,7 +73,7 @@ class TranslateProvider extends _$TranslateProvider {
               {"role": "user", "content": "<live>$fixedText</live>"},
             ],
             "temperature": appSettings.llmTemperature,
-            "stream": true, // Enable streaming
+            "stream": true,
             "max_tokens": appSettings.llmMaxTokens,
           },
           options: Options(
@@ -107,7 +83,7 @@ class TranslateProvider extends _$TranslateProvider {
               "Accept": "text/event-stream",
               "Accept-Charset": "utf-8",
             },
-            responseType: ResponseType.stream, // Set response type to stream
+            responseType: ResponseType.stream,
             sendTimeout: Duration(seconds: 1),
             receiveTimeout: Duration(seconds: 1),
           ),
@@ -116,14 +92,12 @@ class TranslateProvider extends _$TranslateProvider {
 
         String partialTranslation = "";
 
-        // Process the stream data
         final stream = response.data.stream as Stream<List<int>>;
         await for (final chunk in stream
             .transform(unit8Transformer)
             .transform(const Utf8Decoder())
             .transform(const LineSplitter())
             .timeout(workingDur)) {
-          // Split by "data: " for SSE format
           final lines = chunk.split('data: ');
           for (final line in lines) {
             if (line.trim().isEmpty || line.trim() == '[DONE]') continue;
@@ -134,25 +108,20 @@ class TranslateProvider extends _$TranslateProvider {
                 partialTranslation += content;
               }
             } catch (e) {
-              // Skip invalid JSON chunks
               continue;
             }
           }
         }
-        // add text to history
         if (_historyMessage[fixedText] == null) {
           _historyMessage[fixedText] = "";
         }
-        // Update the state with the final translation [partialTranslation] eg:<result>This is Translate Output</result>
         final resultRegex = RegExp(r'<result>(.*?)</result>', dotAll: true);
         final match = resultRegex.firstMatch(partialTranslation);
         if (match != null && match.groupCount >= 1) {
           state = match.group(1) ?? "";
-          // add text to history
           _historyMessage[fixedText] = state;
         } else {
           state = partialTranslation;
-          // add text to history
           _historyMessage[fixedText] = state;
         }
         if (_historyMessage.length > 2) {

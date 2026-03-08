@@ -1,9 +1,8 @@
-use crate::onnx_models;
-use crate::{candle_models, frb_generated::StreamSink};
+use crate::audio_models;
+use crate::frb_generated::StreamSink;
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::sync::Mutex;
-use std::time::Duration;
 use uuid::Uuid;
 
 pub type CancellationToken = tokio_util::sync::CancellationToken;
@@ -60,71 +59,62 @@ impl WhisperClient {
 }
 
 pub async fn launch_caption(
-    whisper_client: WhisperClient,
-    stream_sink: StreamSink<Vec<candle_models::whisper::model::Segment>>,
-    audio_device: Option<String>,
-    audio_device_is_input: Option<bool>,
-    audio_language: Option<String>,
-    cancel_token_id: String,
-    with_timestamps: Option<bool>,
-    verbose: Option<bool>,
-    try_with_cuda: Option<bool>,
-    whisper_max_audio_duration: Option<u32>, // 音频上下文长度
-    inference_interval: Option<u64>,         // 推理间隔时间
-    whisper_default_max_decode_tokens: Option<usize>, // 最大推理token长度
-    whisper_temperature: Option<f32>,        // 温度参数
-    vad_model_path: Option<String>,          // VAD模型路径
-    vad_filters_value: Option<f32>,          // VAD过滤值
+    _whisper_client: WhisperClient,
+    stream_sink: StreamSink<Vec<audio_models::model::Segment>>,
+    _audio_device: Option<String>,
+    _audio_device_is_input: Option<bool>,
+    _audio_language: Option<String>,
+    _cancel_token_id: String,
+    _with_timestamps: Option<bool>,
+    _verbose: Option<bool>,
+    _try_with_cuda: Option<bool>,
+    _whisper_max_audio_duration: Option<u32>,
+    _inference_interval: Option<u64>,
+    _whisper_default_max_decode_tokens: Option<usize>,
+    _whisper_temperature: Option<f32>,
+    _vad_model_path: Option<String>,
+    _vad_filters_value: Option<f32>,
 ) -> anyhow::Result<()> {
-    let stream_sink_clone = stream_sink.clone();
-
-    let cancel_token = {
-        let store = TOKEN_STORE.lock().unwrap();
-        if let Some(token) = store.get(&cancel_token_id) {
-            token.clone()
-        } else {
-            return Err(anyhow::anyhow!("Invalid cancellation token ID"));
-        }
-    };
-
-    let p = candle_models::whisper::LaunchCaptionParams {
-        models: whisper_client.models,
-        config_data: whisper_client.config,
-        model_type: whisper_client.model_type,
-        is_quantized: whisper_client.is_quantized,
-        tokenizer_data: whisper_client.tokenizer,
-        audio_device,
-        audio_device_is_input,
-        audio_language,
-        is_multilingual: Some(whisper_client.is_multilingual),
-        cancel_token,
-        with_timestamps,
-        verbose,
-        try_with_cuda: try_with_cuda.unwrap_or(false),
-        inference_timeout: inference_interval.map(|ms| Duration::from_millis(ms)),
-        max_tokens_per_segment: whisper_default_max_decode_tokens,
-        whisper_max_audio_duration,
-        inference_interval_ms: inference_interval,
-        whisper_temperature,
-        vad_model_path,
-        vad_filters_value,
-    };
-
-    let r = if p.model_type.ends_with("_onnx") {
-        onnx_models::launch_caption(p, move |segments| {
-            let _ = stream_sink.add(segments);
-        })
-        .await
+    let cancel_token = if let Ok(store) = TOKEN_STORE.lock() {
+        store.get(&_cancel_token_id).cloned()
     } else {
-        candle_models::whisper::launch_caption(p, move |segments| {
-            let _ = stream_sink.add(segments);
-        })
-        .await
+        None
     };
-    if let Err(e) = r {
-        stream_sink_clone
-            .add_error(format!("Error in whisper captioning: {e}"))
-            .unwrap_or(());
+    
+    log::info!("[launch_caption] Starting Python call");
+    let result = crate::python::call_hello_world()
+        .map_err(|e| anyhow::anyhow!("Python error: {}", e))?;
+    log::info!("[launch_caption] Python call returned: {}", result);
+    
+    let segment = audio_models::model::Segment {
+        start: 0.0,
+        duration: 0.0,
+        dr: audio_models::model::DecodingResult {
+            tokens: vec![],
+            text: result,
+            avg_logprob: 0.0,
+            no_speech_prob: 0.0,
+            temperature: 0.0,
+            compression_ratio: 0.0,
+        },
+        reasoning_duration: None,
+        reasoning_lang: None,
+        audio_duration: None,
+        status: audio_models::model::WhisperStatus::Working,
+    };
+    
+    log::info!("[launch_caption] Sleeping for 2 seconds");
+    tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+    log::info!("[launch_caption] Sending segment via stream_sink");
+    
+    stream_sink.add(vec![segment]).unwrap();
+    log::info!("[launch_caption] Segment sent");
+    
+    if let Some(token) = cancel_token {
+        log::info!("[launch_caption] Waiting for cancellation token");
+        token.cancelled().await;
+        log::info!("[launch_caption] Cancellation token triggered");
     }
+    
     Ok(())
 }

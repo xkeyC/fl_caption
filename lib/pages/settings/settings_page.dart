@@ -3,7 +3,6 @@ import 'package:fl_caption/common/utils/window_util.dart';
 import 'package:fl_caption/pages/settings/settings_page_captions.dart';
 import 'package:fl_caption/pages/settings/settings_page_inference.dart';
 import 'package:fl_caption/pages/settings/settings_page_llm.dart';
-import 'package:fl_caption/pages/settings/settings_page_whisper.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -40,7 +39,7 @@ class SettingsApp extends HookConsumerWidget {
     final llmPromptPrefixController = useTextEditingController();
 
     useEffect(() {
-      DesktopMultiWindow.setMethodHandler(MultiWindowWindowUtil.windowMethodHandler);
+      DesktopMultiWindow.setMethodHandler((call, fromWindowId) => MultiWindowWindowUtil.windowMethodHandler(call, fromWindowId));
       () async {
         final settings = await MultiWindowWindowUtil.getAppSettingsData();
         modelDirController.text = settings.modelWorkingDir;
@@ -111,11 +110,6 @@ class SettingsApp extends HookConsumerWidget {
                                 child: Column(
                                   children: [
                                     SettingsCaptionsPage(appSettingsData: appSettingsData),
-                                    SizedBox(height: 12),
-                                    SettingsWhisperPage(
-                                      appSettingsData: appSettingsData,
-                                      modelDirController: modelDirController,
-                                    ),
                                     SizedBox(height: 12),
                                     SettingsLlmPage(
                                       apiUrlController: apiUrlController,

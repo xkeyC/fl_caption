@@ -116,26 +116,26 @@ fn wire__crate__api__whisper__create_cancellation_token_impl(
 }
 fn wire__crate__api__whisper__launch_caption_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
-    whisper_client: impl CstDecode<crate::api::whisper::WhisperClient>,
+    _whisper_client: impl CstDecode<crate::api::whisper::WhisperClient>,
     stream_sink: impl CstDecode<
         StreamSink<
-            Vec<crate::candle_models::whisper::model::Segment>,
+            Vec<crate::audio_models::model::Segment>,
             flutter_rust_bridge::for_generated::DcoCodec,
         >,
     >,
-    audio_device: impl CstDecode<Option<String>>,
-    audio_device_is_input: impl CstDecode<Option<bool>>,
-    audio_language: impl CstDecode<Option<String>>,
-    cancel_token_id: impl CstDecode<String>,
-    with_timestamps: impl CstDecode<Option<bool>>,
-    verbose: impl CstDecode<Option<bool>>,
-    try_with_cuda: impl CstDecode<Option<bool>>,
-    whisper_max_audio_duration: impl CstDecode<Option<u32>>,
-    inference_interval: impl CstDecode<Option<u64>>,
-    whisper_default_max_decode_tokens: impl CstDecode<Option<usize>>,
-    whisper_temperature: impl CstDecode<Option<f32>>,
-    vad_model_path: impl CstDecode<Option<String>>,
-    vad_filters_value: impl CstDecode<Option<f32>>,
+    _audio_device: impl CstDecode<Option<String>>,
+    _audio_device_is_input: impl CstDecode<Option<bool>>,
+    _audio_language: impl CstDecode<Option<String>>,
+    _cancel_token_id: impl CstDecode<String>,
+    _with_timestamps: impl CstDecode<Option<bool>>,
+    _verbose: impl CstDecode<Option<bool>>,
+    _try_with_cuda: impl CstDecode<Option<bool>>,
+    _whisper_max_audio_duration: impl CstDecode<Option<u32>>,
+    _inference_interval: impl CstDecode<Option<u64>>,
+    _whisper_default_max_decode_tokens: impl CstDecode<Option<usize>>,
+    _whisper_temperature: impl CstDecode<Option<f32>>,
+    _vad_model_path: impl CstDecode<Option<String>>,
+    _vad_filters_value: impl CstDecode<Option<f32>>,
 ) {
     FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::DcoCodec, _, _, _>(
         flutter_rust_bridge::for_generated::TaskInfo {
@@ -144,41 +144,41 @@ fn wire__crate__api__whisper__launch_caption_impl(
             mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
         },
         move || {
-            let api_whisper_client = whisper_client.cst_decode();
+            let api__whisper_client = _whisper_client.cst_decode();
             let api_stream_sink = stream_sink.cst_decode();
-            let api_audio_device = audio_device.cst_decode();
-            let api_audio_device_is_input = audio_device_is_input.cst_decode();
-            let api_audio_language = audio_language.cst_decode();
-            let api_cancel_token_id = cancel_token_id.cst_decode();
-            let api_with_timestamps = with_timestamps.cst_decode();
-            let api_verbose = verbose.cst_decode();
-            let api_try_with_cuda = try_with_cuda.cst_decode();
-            let api_whisper_max_audio_duration = whisper_max_audio_duration.cst_decode();
-            let api_inference_interval = inference_interval.cst_decode();
-            let api_whisper_default_max_decode_tokens =
-                whisper_default_max_decode_tokens.cst_decode();
-            let api_whisper_temperature = whisper_temperature.cst_decode();
-            let api_vad_model_path = vad_model_path.cst_decode();
-            let api_vad_filters_value = vad_filters_value.cst_decode();
+            let api__audio_device = _audio_device.cst_decode();
+            let api__audio_device_is_input = _audio_device_is_input.cst_decode();
+            let api__audio_language = _audio_language.cst_decode();
+            let api__cancel_token_id = _cancel_token_id.cst_decode();
+            let api__with_timestamps = _with_timestamps.cst_decode();
+            let api__verbose = _verbose.cst_decode();
+            let api__try_with_cuda = _try_with_cuda.cst_decode();
+            let api__whisper_max_audio_duration = _whisper_max_audio_duration.cst_decode();
+            let api__inference_interval = _inference_interval.cst_decode();
+            let api__whisper_default_max_decode_tokens =
+                _whisper_default_max_decode_tokens.cst_decode();
+            let api__whisper_temperature = _whisper_temperature.cst_decode();
+            let api__vad_model_path = _vad_model_path.cst_decode();
+            let api__vad_filters_value = _vad_filters_value.cst_decode();
             move |context| async move {
                 transform_result_dco::<_, _, flutter_rust_bridge::for_generated::anyhow::Error>(
                     (move || async move {
                         let output_ok = crate::api::whisper::launch_caption(
-                            api_whisper_client,
+                            api__whisper_client,
                             api_stream_sink,
-                            api_audio_device,
-                            api_audio_device_is_input,
-                            api_audio_language,
-                            api_cancel_token_id,
-                            api_with_timestamps,
-                            api_verbose,
-                            api_try_with_cuda,
-                            api_whisper_max_audio_duration,
-                            api_inference_interval,
-                            api_whisper_default_max_decode_tokens,
-                            api_whisper_temperature,
-                            api_vad_model_path,
-                            api_vad_filters_value,
+                            api__audio_device,
+                            api__audio_device_is_input,
+                            api__audio_language,
+                            api__cancel_token_id,
+                            api__with_timestamps,
+                            api__verbose,
+                            api__try_with_cuda,
+                            api__whisper_max_audio_duration,
+                            api__inference_interval,
+                            api__whisper_default_max_decode_tokens,
+                            api__whisper_temperature,
+                            api__vad_model_path,
+                            api__vad_filters_value,
                         )
                         .await?;
                         Ok(output_ok)
@@ -278,15 +278,15 @@ impl CstDecode<usize> for usize {
         self
     }
 }
-impl CstDecode<crate::candle_models::whisper::model::WhisperStatus> for i32 {
+impl CstDecode<crate::audio_models::model::WhisperStatus> for i32 {
     // Codec=Cst (C-struct based), see doc to use other codecs
-    fn cst_decode(self) -> crate::candle_models::whisper::model::WhisperStatus {
+    fn cst_decode(self) -> crate::audio_models::model::WhisperStatus {
         match self {
-            0 => crate::candle_models::whisper::model::WhisperStatus::Loading,
-            1 => crate::candle_models::whisper::model::WhisperStatus::Ready,
-            2 => crate::candle_models::whisper::model::WhisperStatus::Error,
-            3 => crate::candle_models::whisper::model::WhisperStatus::Working,
-            4 => crate::candle_models::whisper::model::WhisperStatus::Exit,
+            0 => crate::audio_models::model::WhisperStatus::Loading,
+            1 => crate::audio_models::model::WhisperStatus::Ready,
+            2 => crate::audio_models::model::WhisperStatus::Error,
+            3 => crate::audio_models::model::WhisperStatus::Working,
+            4 => crate::audio_models::model::WhisperStatus::Exit,
             _ => unreachable!("Invalid variant for WhisperStatus: {}", self),
         }
     }
@@ -309,7 +309,7 @@ impl SseDecode for std::collections::HashMap<String, String> {
 
 impl SseDecode
     for StreamSink<
-        Vec<crate::candle_models::whisper::model::Segment>,
+        Vec<crate::audio_models::model::Segment>,
         flutter_rust_bridge::for_generated::DcoCodec,
     >
 {
@@ -343,7 +343,7 @@ impl SseDecode for bool {
     }
 }
 
-impl SseDecode for crate::candle_models::whisper::model::DecodingResult {
+impl SseDecode for crate::audio_models::model::DecodingResult {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_tokens = <Vec<u32>>::sse_decode(deserializer);
@@ -352,7 +352,7 @@ impl SseDecode for crate::candle_models::whisper::model::DecodingResult {
         let mut var_noSpeechProb = <f64>::sse_decode(deserializer);
         let mut var_temperature = <f64>::sse_decode(deserializer);
         let mut var_compressionRatio = <f64>::sse_decode(deserializer);
-        return crate::candle_models::whisper::model::DecodingResult {
+        return crate::audio_models::model::DecodingResult {
             tokens: var_tokens,
             text: var_text,
             avg_logprob: var_avgLogprob,
@@ -420,13 +420,13 @@ impl SseDecode for Vec<(String, String)> {
     }
 }
 
-impl SseDecode for Vec<crate::candle_models::whisper::model::Segment> {
+impl SseDecode for Vec<crate::audio_models::model::Segment> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut len_ = <i32>::sse_decode(deserializer);
         let mut ans_ = vec![];
         for idx_ in 0..len_ {
-            ans_.push(<crate::candle_models::whisper::model::Segment>::sse_decode(
+            ans_.push(<crate::audio_models::model::Segment>::sse_decode(
                 deserializer,
             ));
         }
@@ -520,19 +520,17 @@ impl SseDecode for (String, String) {
     }
 }
 
-impl SseDecode for crate::candle_models::whisper::model::Segment {
+impl SseDecode for crate::audio_models::model::Segment {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_start = <f64>::sse_decode(deserializer);
         let mut var_duration = <f64>::sse_decode(deserializer);
-        let mut var_dr =
-            <crate::candle_models::whisper::model::DecodingResult>::sse_decode(deserializer);
+        let mut var_dr = <crate::audio_models::model::DecodingResult>::sse_decode(deserializer);
         let mut var_reasoningDuration = <Option<u128>>::sse_decode(deserializer);
         let mut var_reasoningLang = <Option<String>>::sse_decode(deserializer);
         let mut var_audioDuration = <Option<u128>>::sse_decode(deserializer);
-        let mut var_status =
-            <crate::candle_models::whisper::model::WhisperStatus>::sse_decode(deserializer);
-        return crate::candle_models::whisper::model::Segment {
+        let mut var_status = <crate::audio_models::model::WhisperStatus>::sse_decode(deserializer);
+        return crate::audio_models::model::Segment {
             start: var_start,
             duration: var_duration,
             dr: var_dr,
@@ -597,16 +595,16 @@ impl SseDecode for crate::api::whisper::WhisperClient {
     }
 }
 
-impl SseDecode for crate::candle_models::whisper::model::WhisperStatus {
+impl SseDecode for crate::audio_models::model::WhisperStatus {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut inner = <i32>::sse_decode(deserializer);
         return match inner {
-            0 => crate::candle_models::whisper::model::WhisperStatus::Loading,
-            1 => crate::candle_models::whisper::model::WhisperStatus::Ready,
-            2 => crate::candle_models::whisper::model::WhisperStatus::Error,
-            3 => crate::candle_models::whisper::model::WhisperStatus::Working,
-            4 => crate::candle_models::whisper::model::WhisperStatus::Exit,
+            0 => crate::audio_models::model::WhisperStatus::Loading,
+            1 => crate::audio_models::model::WhisperStatus::Ready,
+            2 => crate::audio_models::model::WhisperStatus::Error,
+            3 => crate::audio_models::model::WhisperStatus::Working,
+            4 => crate::audio_models::model::WhisperStatus::Exit,
             _ => unreachable!("Invalid variant for WhisperStatus: {}", inner),
         };
     }
@@ -640,7 +638,7 @@ fn pde_ffi_dispatcher_sync_impl(
 // Section: rust2dart
 
 // Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for crate::candle_models::whisper::model::DecodingResult {
+impl flutter_rust_bridge::IntoDart for crate::audio_models::model::DecodingResult {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
             self.tokens.into_into_dart().into_dart(),
@@ -654,18 +652,18 @@ impl flutter_rust_bridge::IntoDart for crate::candle_models::whisper::model::Dec
     }
 }
 impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for crate::candle_models::whisper::model::DecodingResult
+    for crate::audio_models::model::DecodingResult
 {
 }
-impl flutter_rust_bridge::IntoIntoDart<crate::candle_models::whisper::model::DecodingResult>
-    for crate::candle_models::whisper::model::DecodingResult
+impl flutter_rust_bridge::IntoIntoDart<crate::audio_models::model::DecodingResult>
+    for crate::audio_models::model::DecodingResult
 {
-    fn into_into_dart(self) -> crate::candle_models::whisper::model::DecodingResult {
+    fn into_into_dart(self) -> crate::audio_models::model::DecodingResult {
         self
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for crate::candle_models::whisper::model::Segment {
+impl flutter_rust_bridge::IntoDart for crate::audio_models::model::Segment {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
             self.start.into_into_dart().into_dart(),
@@ -680,13 +678,13 @@ impl flutter_rust_bridge::IntoDart for crate::candle_models::whisper::model::Seg
     }
 }
 impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for crate::candle_models::whisper::model::Segment
+    for crate::audio_models::model::Segment
 {
 }
-impl flutter_rust_bridge::IntoIntoDart<crate::candle_models::whisper::model::Segment>
-    for crate::candle_models::whisper::model::Segment
+impl flutter_rust_bridge::IntoIntoDart<crate::audio_models::model::Segment>
+    for crate::audio_models::model::Segment
 {
-    fn into_into_dart(self) -> crate::candle_models::whisper::model::Segment {
+    fn into_into_dart(self) -> crate::audio_models::model::Segment {
         self
     }
 }
@@ -716,7 +714,7 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::whisper::WhisperClient>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for crate::candle_models::whisper::model::WhisperStatus {
+impl flutter_rust_bridge::IntoDart for crate::audio_models::model::WhisperStatus {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         match self {
             Self::Loading => 0.into_dart(),
@@ -729,13 +727,13 @@ impl flutter_rust_bridge::IntoDart for crate::candle_models::whisper::model::Whi
     }
 }
 impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for crate::candle_models::whisper::model::WhisperStatus
+    for crate::audio_models::model::WhisperStatus
 {
 }
-impl flutter_rust_bridge::IntoIntoDart<crate::candle_models::whisper::model::WhisperStatus>
-    for crate::candle_models::whisper::model::WhisperStatus
+impl flutter_rust_bridge::IntoIntoDart<crate::audio_models::model::WhisperStatus>
+    for crate::audio_models::model::WhisperStatus
 {
-    fn into_into_dart(self) -> crate::candle_models::whisper::model::WhisperStatus {
+    fn into_into_dart(self) -> crate::audio_models::model::WhisperStatus {
         self
     }
 }
@@ -756,7 +754,7 @@ impl SseEncode for std::collections::HashMap<String, String> {
 
 impl SseEncode
     for StreamSink<
-        Vec<crate::candle_models::whisper::model::Segment>,
+        Vec<crate::audio_models::model::Segment>,
         flutter_rust_bridge::for_generated::DcoCodec,
     >
 {
@@ -787,7 +785,7 @@ impl SseEncode for bool {
     }
 }
 
-impl SseEncode for crate::candle_models::whisper::model::DecodingResult {
+impl SseEncode for crate::audio_models::model::DecodingResult {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <Vec<u32>>::sse_encode(self.tokens, serializer);
@@ -850,12 +848,12 @@ impl SseEncode for Vec<(String, String)> {
     }
 }
 
-impl SseEncode for Vec<crate::candle_models::whisper::model::Segment> {
+impl SseEncode for Vec<crate::audio_models::model::Segment> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <i32>::sse_encode(self.len() as _, serializer);
         for item in self {
-            <crate::candle_models::whisper::model::Segment>::sse_encode(item, serializer);
+            <crate::audio_models::model::Segment>::sse_encode(item, serializer);
         }
     }
 }
@@ -938,16 +936,16 @@ impl SseEncode for (String, String) {
     }
 }
 
-impl SseEncode for crate::candle_models::whisper::model::Segment {
+impl SseEncode for crate::audio_models::model::Segment {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <f64>::sse_encode(self.start, serializer);
         <f64>::sse_encode(self.duration, serializer);
-        <crate::candle_models::whisper::model::DecodingResult>::sse_encode(self.dr, serializer);
+        <crate::audio_models::model::DecodingResult>::sse_encode(self.dr, serializer);
         <Option<u128>>::sse_encode(self.reasoning_duration, serializer);
         <Option<String>>::sse_encode(self.reasoning_lang, serializer);
         <Option<u128>>::sse_encode(self.audio_duration, serializer);
-        <crate::candle_models::whisper::model::WhisperStatus>::sse_encode(self.status, serializer);
+        <crate::audio_models::model::WhisperStatus>::sse_encode(self.status, serializer);
     }
 }
 
@@ -999,16 +997,16 @@ impl SseEncode for crate::api::whisper::WhisperClient {
     }
 }
 
-impl SseEncode for crate::candle_models::whisper::model::WhisperStatus {
+impl SseEncode for crate::audio_models::model::WhisperStatus {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <i32>::sse_encode(
             match self {
-                crate::candle_models::whisper::model::WhisperStatus::Loading => 0,
-                crate::candle_models::whisper::model::WhisperStatus::Ready => 1,
-                crate::candle_models::whisper::model::WhisperStatus::Error => 2,
-                crate::candle_models::whisper::model::WhisperStatus::Working => 3,
-                crate::candle_models::whisper::model::WhisperStatus::Exit => 4,
+                crate::audio_models::model::WhisperStatus::Loading => 0,
+                crate::audio_models::model::WhisperStatus::Ready => 1,
+                crate::audio_models::model::WhisperStatus::Error => 2,
+                crate::audio_models::model::WhisperStatus::Working => 3,
+                crate::audio_models::model::WhisperStatus::Exit => 4,
                 _ => {
                     unimplemented!("");
                 }
@@ -1058,7 +1056,7 @@ mod io {
     impl
         CstDecode<
             StreamSink<
-                Vec<crate::candle_models::whisper::model::Segment>,
+                Vec<crate::audio_models::model::Segment>,
                 flutter_rust_bridge::for_generated::DcoCodec,
             >,
         > for *mut wire_cst_list_prim_u_8_strict
@@ -1067,7 +1065,7 @@ mod io {
         fn cst_decode(
             self,
         ) -> StreamSink<
-            Vec<crate::candle_models::whisper::model::Segment>,
+            Vec<crate::audio_models::model::Segment>,
             flutter_rust_bridge::for_generated::DcoCodec,
         > {
             let raw: String = self.cst_decode();
@@ -1124,10 +1122,10 @@ mod io {
             CstDecode::<crate::api::whisper::WhisperClient>::cst_decode(*wrap).into()
         }
     }
-    impl CstDecode<crate::candle_models::whisper::model::DecodingResult> for wire_cst_decoding_result {
+    impl CstDecode<crate::audio_models::model::DecodingResult> for wire_cst_decoding_result {
         // Codec=Cst (C-struct based), see doc to use other codecs
-        fn cst_decode(self) -> crate::candle_models::whisper::model::DecodingResult {
-            crate::candle_models::whisper::model::DecodingResult {
+        fn cst_decode(self) -> crate::audio_models::model::DecodingResult {
+            crate::audio_models::model::DecodingResult {
                 tokens: self.tokens.cst_decode(),
                 text: self.text.cst_decode(),
                 avg_logprob: self.avg_logprob.cst_decode(),
@@ -1174,9 +1172,9 @@ mod io {
             vec.into_iter().map(CstDecode::cst_decode).collect()
         }
     }
-    impl CstDecode<Vec<crate::candle_models::whisper::model::Segment>> for *mut wire_cst_list_segment {
+    impl CstDecode<Vec<crate::audio_models::model::Segment>> for *mut wire_cst_list_segment {
         // Codec=Cst (C-struct based), see doc to use other codecs
-        fn cst_decode(self) -> Vec<crate::candle_models::whisper::model::Segment> {
+        fn cst_decode(self) -> Vec<crate::audio_models::model::Segment> {
             let vec = unsafe {
                 let wrap = flutter_rust_bridge::for_generated::box_from_leak_ptr(self);
                 flutter_rust_bridge::for_generated::vec_from_leak_ptr(wrap.ptr, wrap.len)
@@ -1190,10 +1188,10 @@ mod io {
             (self.field0.cst_decode(), self.field1.cst_decode())
         }
     }
-    impl CstDecode<crate::candle_models::whisper::model::Segment> for wire_cst_segment {
+    impl CstDecode<crate::audio_models::model::Segment> for wire_cst_segment {
         // Codec=Cst (C-struct based), see doc to use other codecs
-        fn cst_decode(self) -> crate::candle_models::whisper::model::Segment {
-            crate::candle_models::whisper::model::Segment {
+        fn cst_decode(self) -> crate::audio_models::model::Segment {
+            crate::audio_models::model::Segment {
                 start: self.start.cst_decode(),
                 duration: self.duration.cst_decode(),
                 dr: self.dr.cst_decode(),
@@ -1309,39 +1307,39 @@ mod io {
     #[unsafe(no_mangle)]
     pub extern "C" fn frbgen_fl_caption_wire__crate__api__whisper__launch_caption(
         port_: i64,
-        whisper_client: *mut wire_cst_whisper_client,
+        _whisper_client: *mut wire_cst_whisper_client,
         stream_sink: *mut wire_cst_list_prim_u_8_strict,
-        audio_device: *mut wire_cst_list_prim_u_8_strict,
-        audio_device_is_input: *mut bool,
-        audio_language: *mut wire_cst_list_prim_u_8_strict,
-        cancel_token_id: *mut wire_cst_list_prim_u_8_strict,
-        with_timestamps: *mut bool,
-        verbose: *mut bool,
-        try_with_cuda: *mut bool,
-        whisper_max_audio_duration: *mut u32,
-        inference_interval: *mut u64,
-        whisper_default_max_decode_tokens: *mut usize,
-        whisper_temperature: *mut f32,
-        vad_model_path: *mut wire_cst_list_prim_u_8_strict,
-        vad_filters_value: *mut f32,
+        _audio_device: *mut wire_cst_list_prim_u_8_strict,
+        _audio_device_is_input: *mut bool,
+        _audio_language: *mut wire_cst_list_prim_u_8_strict,
+        _cancel_token_id: *mut wire_cst_list_prim_u_8_strict,
+        _with_timestamps: *mut bool,
+        _verbose: *mut bool,
+        _try_with_cuda: *mut bool,
+        _whisper_max_audio_duration: *mut u32,
+        _inference_interval: *mut u64,
+        _whisper_default_max_decode_tokens: *mut usize,
+        _whisper_temperature: *mut f32,
+        _vad_model_path: *mut wire_cst_list_prim_u_8_strict,
+        _vad_filters_value: *mut f32,
     ) {
         wire__crate__api__whisper__launch_caption_impl(
             port_,
-            whisper_client,
+            _whisper_client,
             stream_sink,
-            audio_device,
-            audio_device_is_input,
-            audio_language,
-            cancel_token_id,
-            with_timestamps,
-            verbose,
-            try_with_cuda,
-            whisper_max_audio_duration,
-            inference_interval,
-            whisper_default_max_decode_tokens,
-            whisper_temperature,
-            vad_model_path,
-            vad_filters_value,
+            _audio_device,
+            _audio_device_is_input,
+            _audio_language,
+            _cancel_token_id,
+            _with_timestamps,
+            _verbose,
+            _try_with_cuda,
+            _whisper_max_audio_duration,
+            _inference_interval,
+            _whisper_default_max_decode_tokens,
+            _whisper_temperature,
+            _vad_model_path,
+            _vad_filters_value,
         )
     }
 

@@ -6,6 +6,9 @@ part of 'translate_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
+
 @ProviderFor(TranslateProvider)
 const translateProviderProvider = TranslateProviderProvider._();
 
@@ -38,7 +41,7 @@ final class TranslateProviderProvider
   }
 }
 
-String _$translateProviderHash() => r'1826f87ec78dc1e30872a36007405407dd8beae7';
+String _$translateProviderHash() => r'23c0d3433216c8173e97b22ddfad2130b2089b37';
 
 abstract class _$TranslateProvider extends $Notifier<String> {
   String build();
@@ -58,6 +61,3 @@ abstract class _$TranslateProvider extends $Notifier<String> {
     element.handleValue(ref, created);
   }
 }
-
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

@@ -48,3 +48,6 @@ app.*.map.json
 .fvm/
 
 /macos/DerivedData
+
+# Python build workspace
+python_build_workspace/

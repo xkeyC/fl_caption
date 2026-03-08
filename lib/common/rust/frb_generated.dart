@@ -5,7 +5,7 @@
 
 import 'api/text_util.dart';
 import 'api/whisper.dart';
-import 'candle_models/whisper/model.dart';
+import 'audio_models/model.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'frb_generated.dart';

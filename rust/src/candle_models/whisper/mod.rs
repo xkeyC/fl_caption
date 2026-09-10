@@ -202,7 +202,11 @@ where
             }
         }
 
-        buffered_pcm.extend_from_slice(&pcm);
+        // 音频缓冲区保护：当缓冲区音频长度超过 max_audio_duration 的三倍时，丢弃新音频，防止占满用户内存
+        let max_buffer_samples = max_audio_duration * 3 * 16000;
+        if buffered_pcm.len() <= max_buffer_samples {
+            buffered_pcm.extend_from_slice(&pcm);
+        }
 
         if buffered_pcm.len() > 0 && (buffered_pcm.len() % 16000 == 0 || debug_counter % 200 == 0) {
             println!(

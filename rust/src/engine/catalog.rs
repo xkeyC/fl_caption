@@ -287,7 +287,7 @@ pub fn catalog() -> Vec<CatalogEntry> {
             files: &[],
             hosted: Some(Hosted {
                 repo: "ModaLeap/hy-mt2-1.8b-onnx",
-                revision: Some("a1d884fcf0f5ec65f4043bb353de76f12c597dca"),
+                revision: Some("92e654105c928c8b602a3c38e05575f4eab7c8c3"),
             }),
             recommended: true,
         },

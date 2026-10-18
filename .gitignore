@@ -48,3 +48,11 @@ app.*.map.json
 .fvm/
 
 /macos/DerivedData
+# Rust
+/rust/target/
+
+# Local ONNX Runtime / CUDA libraries for development (runtime/runtime.txt)
+/runtime/
+
+# Release packages
+/dist/

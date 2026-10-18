@@ -96,9 +96,6 @@ Future<void> _runCaptionWindow(ProviderContainer container, AppSettings settings
         await captions.clearContext();
       case 'context_export':
         await captions.exportContext();
-      case 'show_caption_bar':
-        await windowManager.show();
-        return null;
     }
     return null;
   });

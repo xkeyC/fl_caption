@@ -151,11 +151,6 @@ class _TitleBar extends ConsumerWidget {
               ),
             ),
           ),
-          Button(
-            onPressed: () => ref.read(remoteStatusProvider.notifier).call('show_caption_bar'),
-            child: iconLabel(FluentIcons.closed_caption, tr('显示字幕条', 'Show the caption bar')),
-          ),
-          const SizedBox(width: 16),
           const SizedBox(
             width: 138,
             height: 46,

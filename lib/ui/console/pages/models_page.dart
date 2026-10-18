@@ -455,7 +455,7 @@ class _ModelTile extends ConsumerWidget {
                 ],
                 Icon(FluentIcons.completed_solid, size: 14, color: Colors.green.lighter),
                 const SizedBox(width: 6),
-                Text(m.imported ? tr('已导入', 'Imported') : tr('已安装', 'Installed')),
+                Text(tr('已安装', 'Installed')),
                 const SizedBox(width: 4),
                 action(FluentIcons.folder_open, tr('打开目录', 'Open folder'), () => _openFolder(m.dir)),
                 action(

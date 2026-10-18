@@ -12,7 +12,8 @@ import '../../widgets.dart';
 import '../console_shell.dart';
 import 'models_page.dart' show GpuCard;
 
-final audioDevicesProvider = FutureProvider<List<rs_app.AudioDevice>>((ref) => rs_app.audioDevices());
+/// Listed again whenever the home page is shown (devices come and go).
+final audioDevicesProvider = FutureProvider.autoDispose<List<rs_app.AudioDevice>>((ref) => rs_app.audioDevices());
 
 /// The home page: start and stop, and the settings people switch most
 /// (languages, audio input, models). Everything else about the models is on
@@ -275,28 +276,15 @@ class _InputRow extends ConsumerWidget {
       description: s.audioSource == 'system'
           ? tr('录制该设备正在播放的声音（回环）', 'Records what the device plays (loopback)')
           : null,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Choice<String>(
-            value: items.any((i) => i.$1 == current) ? current : '${s.audioSource}|',
-            items: items,
-            onChanged: (v) {
-              final split = v.indexOf('|');
-              ref
-                  .read(settingsProvider.notifier)
-                  .update((s) => s.copyWith(audioSource: v.substring(0, split), deviceId: v.substring(split + 1)));
-            },
-          ),
-          const SizedBox(width: 4),
-          Tooltip(
-            message: tr('刷新设备', 'Refresh devices'),
-            child: IconButton(
-              icon: const Icon(FluentIcons.refresh),
-              onPressed: () => ref.invalidate(audioDevicesProvider),
-            ),
-          ),
-        ],
+      child: Choice<String>(
+        value: items.any((i) => i.$1 == current) ? current : '${s.audioSource}|',
+        items: items,
+        onChanged: (v) {
+          final split = v.indexOf('|');
+          ref
+              .read(settingsProvider.notifier)
+              .update((s) => s.copyWith(audioSource: v.substring(0, split), deviceId: v.substring(split + 1)));
+        },
       ),
     );
   }

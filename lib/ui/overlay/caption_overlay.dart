@@ -41,7 +41,8 @@ class CaptionOverlay extends HookConsumerWidget {
             decoration: BoxDecoration(
               color: Colors.black.withValues(alpha: s.backgroundOpacity),
               borderRadius: BorderRadius.circular(12),
-              border: hovering.value ? Border.all(color: Colors.white.withValues(alpha: 0.18)) : null,
+              // Always 1 px: hovering only colours it, so the content never shifts.
+              border: Border.all(color: Colors.white.withValues(alpha: hovering.value ? 0.18 : 0)),
             ),
             padding: const EdgeInsets.fromLTRB(20, 10, 20, 6),
             child: Stack(

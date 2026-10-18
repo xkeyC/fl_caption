@@ -75,8 +75,8 @@ class TranslationPage extends ConsumerWidget {
           children: [
             Text(
               tr(
-                '告诉翻译这是什么内容（游戏、讲座、动画……）与风格要求，例如：“星际公民游戏语音，口语化”。',
-                'Tell the translator what this is (a game, a talk, an anime…) and the style, e.g. “Star Citizen voice chat, casual”.',
+                '告诉翻译这是什么内容（会议、讲座、动画……）与风格要求，例如：“技术分享会，产品名保留英文，口语化”。',
+                'Tell the translator what this is (a meeting, a talk, an anime…) and the style, e.g. “A tech talk; keep product names in English, casual”.',
               ),
               style: TextStyle(color: muted(context), fontSize: 12.5),
             ),
@@ -102,7 +102,9 @@ class _TestSection extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final text = useTextEditingController(text: 'Park the ship near the hangar and meet me at the bar.');
+    final text = useTextEditingController(
+      text: "Let's move the meeting to Thursday afternoon and share the slides before then.",
+    );
     final result = useState<String?>(null);
     final busy = useState(false);
     final translation = translationSettingsOf(settings.copyWith(translationEnabled: true));

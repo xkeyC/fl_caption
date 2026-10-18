@@ -653,12 +653,12 @@ mod tests {
         );
         assert_eq!(k, "Hello,");
         let k = kept(
-            "Park the ship near the hangar, and",
-            "把飞船停在机库附近，然后",
-            Some("把飞船停在机库附近，和"),
-            "Park the ship near the hangar, and meet me at the bar.",
+            "Send me the report before noon, and",
+            "中午前把报告发给我，然后",
+            Some("中午前把报告发给我，和"),
+            "Send me the report before noon, and we can review it together.",
         );
-        assert_eq!(k, "把飞船停在机库附近，");
+        assert_eq!(k, "中午前把报告发给我，");
     }
 
     #[test]

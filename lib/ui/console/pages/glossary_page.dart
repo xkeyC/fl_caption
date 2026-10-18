@@ -74,12 +74,12 @@ class GlossaryPage extends ConsumerWidget {
                 cells: [
                   CommitTextField(
                     value: glossary[i].source,
-                    hint: 'Hornet',
+                    hint: 'large language model',
                     onCommit: (v) => setGlossary([...glossary]..[i] = glossary[i].copyWith(source: v)),
                   ),
                   CommitTextField(
                     value: glossary[i].target,
-                    hint: tr('大黄蜂（可留空：只作热词）', 'Hornet (optional: hotword only)'),
+                    hint: tr('大语言模型（可留空：只作热词）', '大语言模型 (optional: hotword only)'),
                     onCommit: (v) => setGlossary([...glossary]..[i] = glossary[i].copyWith(target: v)),
                   ),
                   Checkbox(

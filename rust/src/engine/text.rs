@@ -64,12 +64,12 @@ mod tests {
     #[test]
     fn replacements_ignore_ascii_case_only() {
         let rules = [Replacement {
-            from: "port olisar".into(),
-            to: "Port Olisar".into(),
+            from: "visual studio code".into(),
+            to: "Visual Studio Code".into(),
         }];
         assert_eq!(
-            apply_replacements("go to PORT olisar now", &rules),
-            "go to Port Olisar now"
+            apply_replacements("open VISUAL studio code now", &rules),
+            "open Visual Studio Code now"
         );
         let cjk = [Replacement {
             from: "笑乐".into(),
@@ -82,20 +82,20 @@ mod tests {
     fn terms_match_longest_first() {
         let terms = [
             Term {
-                source: "Hornet".into(),
-                target: "大黄蜂".into(),
+                source: "language model".into(),
+                target: "语言模型".into(),
             },
             Term {
-                source: "Super Hornet".into(),
-                target: "超级大黄蜂".into(),
+                source: "large language model".into(),
+                target: "大语言模型".into(),
             },
             Term {
-                source: "Gladius".into(),
-                target: "短剑".into(),
+                source: "spreadsheet".into(),
+                target: "电子表格".into(),
             },
         ];
-        let found = matching_terms("my super hornet is ready", &terms, 8);
+        let found = matching_terms("our large language model is ready", &terms, 8);
         assert_eq!(found.len(), 2);
-        assert_eq!(found[0].source, "Super Hornet");
+        assert_eq!(found[0].source, "large language model");
     }
 }

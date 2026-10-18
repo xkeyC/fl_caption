@@ -1,48 +1,48 @@
-import 'package:flutter/material.dart';
+import 'package:fluent_ui/fluent_ui.dart';
 
 const fontFamily = 'SourceHanSansCN';
 
-/// Accent of the app (buttons, selection, the level meter).
-const accent = Color(0xFF5B8CFF);
+/// Aurora teal: buttons, selection, the transcript's translations.
+const accent = Color(0xFF2EC4B6);
 
-ThemeData buildTheme() {
-  final scheme = ColorScheme.fromSeed(
-    seedColor: accent,
+/// Panels over the aurora: translucent, so the aurora shows through.
+const panelColor = Color(0x52102028);
+const cardColor = Color(0x661A2E38);
+const strokeColor = Color(0x1AFFFFFF);
+
+FluentThemeData buildTheme() {
+  return FluentThemeData(
     brightness: Brightness.dark,
-    surface: const Color(0xFF14161A),
-  );
-  final base = ThemeData(
-    useMaterial3: true,
-    colorScheme: scheme,
+    accentColor: AccentColor.swatch(const {
+      'darkest': Color(0xFF13756C),
+      'darker': Color(0xFF1A9187),
+      'dark': Color(0xFF22AA9E),
+      'normal': Color(0xFF2EC4B6),
+      'light': Color(0xFF2EC4B6),
+      'lighter': Color(0xFF2EC4B6),
+      'lightest': Color(0xFF7FE0D6),
+    }),
+    visualDensity: const VisualDensity(vertical: 1),
     fontFamily: fontFamily,
-    scaffoldBackgroundColor: const Color(0xFF14161A),
-    visualDensity: VisualDensity.standard,
-  );
-  return base.copyWith(
-    cardTheme: CardThemeData(
-      color: const Color(0xFF1C1F25),
-      elevation: 0,
-      margin: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-        side: const BorderSide(color: Color(0xFF2A2E36)),
+    scaffoldBackgroundColor: Colors.transparent,
+    micaBackgroundColor: const Color(0xFF0A1A24),
+    cardColor: cardColor,
+    navigationPaneTheme: const NavigationPaneThemeData(backgroundColor: Colors.transparent),
+    buttonTheme: ButtonThemeData(
+      // fluent_ui 4.16 fills disabled IconButtons with the button colour;
+      // keep them transparent (as ToolBox does).
+      iconButtonStyle: ButtonStyle(
+        backgroundColor: WidgetStateProperty.resolveWith((states) {
+          const res = ResourceDictionary.dark();
+          if (states.isDisabled) return res.subtleFillColorTransparent;
+          if (states.isPressed) return res.subtleFillColorTertiary;
+          if (states.isHovered) return res.subtleFillColorSecondary;
+          return res.subtleFillColorTransparent;
+        }),
       ),
     ),
-    dividerTheme: const DividerThemeData(color: Color(0xFF2A2E36), thickness: 1, space: 1),
-    inputDecorationTheme: InputDecorationTheme(
-      filled: true,
-      fillColor: const Color(0xFF181B20),
-      isDense: true,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFF2E333C))),
-      enabledBorder:
-          OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFF2E333C))),
-    ),
-    listTileTheme: const ListTileThemeData(contentPadding: EdgeInsets.symmetric(horizontal: 16)),
-    tooltipTheme: const TooltipThemeData(waitDuration: Duration(milliseconds: 400)),
-    textTheme: base.textTheme.apply(fontFamily: fontFamily),
   );
 }
 
 /// Muted text (secondary labels, hints).
-Color muted(BuildContext context) => Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6);
+Color muted(BuildContext context) => FluentTheme.of(context).resources.textFillColorSecondary;

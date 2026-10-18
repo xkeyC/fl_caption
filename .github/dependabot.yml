@@ -11,6 +11,6 @@ updates:
       interval: "weekly"
       
   - package-ecosystem: "cargo" # See documentation for possible values
-    directory: "/rust" # Location of package manifests
+    directory: "/rust"
     schedule:
       interval: "weekly"

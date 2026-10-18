@@ -7,14 +7,16 @@
 //! newest only: a newer partial or a final line stops a partial translation
 //! in progress, while final lines are all translated, in order.
 
-use super::asr::AsrOptions;
+use super::asr::{AsrOptions, Recognized};
 use super::capture::{self, SourceKind};
 use super::catalog;
 use super::lang;
 use super::pool;
 use super::segmenter::{Segmenter, SegmenterConfig, Utterance};
 use super::text::{apply_replacements, Replacement};
-use super::translate::{ApiClient, ApiConfig, Backend, PromptStyle, Translator, TranslatorConfig};
+use super::translate::{
+    ApiClient, ApiConfig, Backend, Draft, PromptStyle, Translator, TranslatorConfig,
+};
 use super::{samples_to_ms, SAMPLE_RATE};
 use anyhow::{anyhow, Result};
 use std::collections::VecDeque;
@@ -125,6 +127,8 @@ struct Tunables {
 
 struct Session {
     stop: Arc<AtomicBool>,
+    /// Frees the models when the session ends (not when another starts).
+    release: Arc<AtomicBool>,
     thread: Option<JoinHandle<()>>,
     tunables: Arc<Mutex<Tunables>>,
     jobs: Option<Arc<Jobs>>,
@@ -140,10 +144,13 @@ pub fn running() -> bool {
         .is_some_and(|session| session.thread.as_ref().is_some_and(|t| !t.is_finished()))
 }
 
-/// Starts captions (stopping a session already running).
+/// Starts captions, stopping a session already running (its models stay
+/// loaded for this one when they are the same).
 pub fn start(config: LiveConfig, emit: Emit) {
-    stop();
+    RELEASE_GENERATION.fetch_add(1, Ordering::SeqCst);
+    stop_session(false);
     let stop = Arc::new(AtomicBool::new(false));
+    let release = Arc::new(AtomicBool::new(true));
     let tunables = Arc::new(Mutex::new(Tunables {
         asr_options: config.asr_options.clone(),
         replacements: config.replacements.clone(),
@@ -162,12 +169,16 @@ pub fn start(config: LiveConfig, emit: Emit) {
         .map(|_| Arc::new(Jobs::default()));
     let thread = {
         let stop = stop.clone();
+        let release = release.clone();
         let tunables = tunables.clone();
         let jobs = jobs.clone();
         std::thread::Builder::new()
             .name("fl-live".into())
             .spawn(move || {
                 let result = run(config, emit.clone(), stop, tunables, jobs);
+                if release.load(Ordering::Relaxed) {
+                    pool::release_unused();
+                }
                 let (state, message) = match result {
                     Ok(()) => (LiveState::Stopped, String::new()),
                     Err(error) => (LiveState::Failed, format!("{error:#}")),
@@ -183,15 +194,39 @@ pub fn start(config: LiveConfig, emit: Emit) {
     };
     *SESSION.lock().unwrap_or_else(|e| e.into_inner()) = Some(Session {
         stop,
+        release,
         thread,
         tunables,
         jobs,
     });
 }
 
+/// Stopped captions keep their models this long, so a short pause resumes
+/// at once.
+const IDLE_RELEASE: Duration = Duration::from_secs(5 * 60);
+/// Bumped by every start and stop: a pending release of an older stop
+/// does nothing.
+static RELEASE_GENERATION: AtomicU64 = AtomicU64::new(0);
+
+/// Stops captions; their models are freed after [`IDLE_RELEASE`] unless
+/// captions start again first.
 pub fn stop() {
+    let generation = RELEASE_GENERATION.fetch_add(1, Ordering::SeqCst) + 1;
+    stop_session(false);
+    let _ = std::thread::Builder::new()
+        .name("fl-release".into())
+        .spawn(move || {
+            std::thread::sleep(IDLE_RELEASE);
+            if RELEASE_GENERATION.load(Ordering::SeqCst) == generation && !running() {
+                pool::release_unused();
+            }
+        });
+}
+
+fn stop_session(release: bool) {
     let session = SESSION.lock().unwrap_or_else(|e| e.into_inner()).take();
     if let Some(mut session) = session {
+        session.release.store(release, Ordering::Relaxed);
         session.stop.store(true, Ordering::Relaxed);
         if let Some(jobs) = &session.jobs {
             jobs.close();
@@ -199,6 +234,15 @@ pub fn stop() {
         if let Some(thread) = session.thread.take() {
             let _ = thread.join();
         }
+    }
+}
+
+/// Forgets the earlier lines the running session's translator uses as
+/// context.
+pub fn clear_context() {
+    let guard = SESSION.lock().unwrap_or_else(|e| e.into_inner());
+    if let Some(jobs) = guard.as_ref().and_then(|session| session.jobs.as_ref()) {
+        jobs.clear_history();
     }
 }
 
@@ -231,6 +275,7 @@ struct Queue {
     finals: VecDeque<(u64, String)>,
     partial: Option<(u64, String)>,
     config: Option<TranslatorConfig>,
+    clear_history: bool,
     closed: bool,
 }
 
@@ -269,6 +314,12 @@ impl Jobs {
         self.ready.notify_one();
     }
 
+    fn clear_history(&self) {
+        let mut queue = self.queue.lock().unwrap_or_else(|e| e.into_inner());
+        queue.clear_history = true;
+        self.ready.notify_one();
+    }
+
     fn close(&self) {
         let mut queue = self.queue.lock().unwrap_or_else(|e| e.into_inner());
         queue.closed = true;
@@ -277,14 +328,17 @@ impl Jobs {
     }
 
     /// The next job (finals first), with the generation it started at; any
-    /// config change to apply first. `None` once closed.
-    fn next(&self) -> Option<(Option<TranslatorConfig>, Option<(Job, u64)>)> {
+    /// config change to apply first (and whether to forget the context).
+    /// `None` once closed.
+    #[allow(clippy::type_complexity)]
+    fn next(&self) -> Option<(Option<TranslatorConfig>, bool, Option<(Job, u64)>)> {
         let mut queue = self.queue.lock().unwrap_or_else(|e| e.into_inner());
         loop {
             if queue.closed {
                 return None;
             }
             let config = queue.config.take();
+            let clear = std::mem::take(&mut queue.clear_history);
             let job = if let Some((id, text)) = queue.finals.pop_front() {
                 Some(Job::Final(id, text))
             } else {
@@ -293,9 +347,9 @@ impl Jobs {
                     .take()
                     .map(|(id, text)| Job::Partial(id, text))
             };
-            if config.is_some() || job.is_some() {
+            if config.is_some() || clear || job.is_some() {
                 let generation = self.generation.load(Ordering::SeqCst);
-                return Some((config, job.map(|job| (job, generation))));
+                return Some((config, clear, job.map(|job| (job, generation))));
             }
             queue = self.ready.wait(queue).unwrap_or_else(|e| e.into_inner());
         }
@@ -322,9 +376,20 @@ fn make_translator(setup: &TranslationSetup) -> Result<Translator> {
 
 fn translation_worker(mut translator: Translator, jobs: Arc<Jobs>, emit: Emit) {
     let mut last_partial = String::new();
-    while let Some((config, job)) = jobs.next() {
+    // The latest partial translation of a line (id, source, translation,
+    // the translation before it): the next one of the same line continues
+    // its agreed clauses.
+    let mut draft: Option<(u64, String, String, Option<String>)> = None;
+    // Comparison runs: every translation from scratch, or drafts only
+    // continued (not shown as a reference).
+    let use_drafts = std::env::var_os("FL_CAPTION_NO_DRAFT").is_none();
+    let reference = std::env::var_os("FL_CAPTION_NO_DRAFT_REFERENCE").is_none();
+    while let Some((config, clear, job)) = jobs.next() {
         if let Some(config) = config {
             translator.set_config(config);
+        }
+        if clear {
+            translator.clear_history();
         }
         let Some((job, generation)) = job else {
             continue;
@@ -342,25 +407,35 @@ fn translation_worker(mut translator: Translator, jobs: Arc<Jobs>, emit: Emit) {
         if !partial {
             last_partial.clear();
         }
-        let emit_delta = emit.clone();
         let jobs_ref = jobs.clone();
-        let result = translator.translate(&text, !partial, &mut |so_far| {
-            if partial && jobs_ref.generation.load(Ordering::SeqCst) != generation {
-                return false;
-            }
-            emit_delta(LiveEvent::Translation {
-                id,
-                text: so_far.to_string(),
-                partial,
-                done: false,
-                same_language: false,
-                first_token_ms: 0,
-                total_ms: 0,
-                prompt_tokens: 0,
-                cached_tokens: 0,
+        let line_draft = draft
+            .as_ref()
+            .filter(|(line, ..)| use_drafts && *line == id)
+            .map(|(_, source, translation, earlier)| Draft {
+                source,
+                translation,
+                earlier: earlier.as_deref(),
+                // A final line is translated afresh (beyond its agreed
+                // clauses): a draft taken as a reference holds small models
+                // to its early guesses.
+                reference: reference && partial,
             });
-            true
+        // A translation is shown once it is complete (no token-by-token
+        // typing); a newer job stops a partial one early.
+        let result = translator.translate(&text, !partial, line_draft, &mut |_| {
+            !(partial && jobs_ref.generation.load(Ordering::SeqCst) != generation)
         });
+        match &result {
+            Ok(Some(done)) if partial => {
+                let earlier = draft
+                    .take()
+                    .filter(|(line, ..)| *line == id)
+                    .map(|(_, _, translation, _)| translation);
+                draft = Some((id, text.clone(), done.text.clone(), earlier));
+            }
+            Ok(Some(_)) => draft = None,
+            _ => {}
+        }
         match result {
             Ok(Some(done)) => emit(LiveEvent::Translation {
                 id,
@@ -421,6 +496,8 @@ fn run(
         }
         _ => None,
     };
+    // A model the previous session left loaded and this one does not use.
+    pool::release_unused();
     let target = config.translation.as_ref().map(|t| t.config.target.clone());
 
     let (capture, rx) = match &config.file_source {
@@ -439,6 +516,7 @@ fn run(
     let mut level_count = 0usize;
     let mut level_at = Instant::now();
     let interval = Duration::from_millis(config.partial_interval_ms.max(150));
+    let max_samples = config.segmenter.max_segment_ms * SAMPLE_RATE / 1000;
     let mut agc = config.auto_gain.then(super::agc::AutoGain::default);
 
     let recognize = |samples: &[f32], options: &AsrOptions| {
@@ -573,6 +651,15 @@ fn run(
                 last_partial = Instant::now();
                 match result {
                     Ok(recognized) => {
+                        // A long line whose text already finished a sentence
+                        // ends there (fast speech rarely pauses long enough).
+                        let cut = sentence_end(&recognized, samples.len(), max_samples)
+                            .and_then(|at| segmenter.cut_near(start + at));
+                        if let Some(utterance) = cut {
+                            partial_for = None;
+                            finish_utterance(utterance, id);
+                            continue;
+                        }
                         let text = apply_replacements(&recognized.text, &replacements);
                         if !text.trim().is_empty() {
                             let stable_chars = previous_partial
@@ -618,8 +705,73 @@ fn run(
         let _ = worker.join();
     }
     drop(asr);
-    pool::release_unused();
     result
+}
+
+/// Sentence ends in recognized text (a `.` only before a space or at the
+/// end, not in a number).
+fn is_sentence_end(text: &[char], index: usize) -> bool {
+    match text[index] {
+        '。' | '！' | '？' | '!' | '?' | '…' => true,
+        '.' => text.get(index + 1).is_none_or(|next| next.is_whitespace()),
+        _ => false,
+    }
+}
+
+/// Clause ends, cut at when a line is close to the longest allowed.
+fn is_clause_end(c: char) -> bool {
+    matches!(c, '，' | '；' | '、' | ',' | ';' | '：' | ':')
+}
+
+/// Where a partial line of `len` samples should end because its text
+/// already holds a finished sentence (a clause, when it is close to `max`):
+/// the samples up to the last such mark that has words after it. `None` for
+/// a line still short, or without one. The time comes from the tokens'
+/// (SenseVoice), else from the mark's share of the text.
+fn sentence_end(recognized: &Recognized, len: usize, max: usize) -> Option<usize> {
+    let share = len * 100 / max.max(1);
+    if share < 40 {
+        return None;
+    }
+    let text: Vec<char> = recognized
+        .text
+        .chars()
+        .filter(|c| !c.is_whitespace())
+        .collect();
+    let spaced: Vec<char> = recognized.text.chars().collect();
+    // Marks are found in the text with its spaces (for `.`), counted
+    // without them (as the tokens are).
+    let mut marks = Vec::new();
+    let mut visible = 0;
+    for (index, &c) in spaced.iter().enumerate() {
+        if c.is_whitespace() {
+            continue;
+        }
+        visible += 1;
+        if is_sentence_end(&spaced, index) || (share >= 75 && is_clause_end(c)) {
+            marks.push(visible);
+        }
+    }
+    // Words must follow, or the sentence may simply end with the audio.
+    let mark = marks.into_iter().rev().find(|&end| text.len() - end >= 2)?;
+    let tokens = &recognized.tokens;
+    let token_chars: usize = tokens
+        .iter()
+        .map(|t| t.text.chars().filter(|c| !c.is_whitespace()).count())
+        .sum();
+    let at = if !tokens.is_empty() && token_chars == text.len() {
+        let mut seen = 0;
+        let index = tokens.iter().position(|t| {
+            seen += t.text.chars().filter(|c| !c.is_whitespace()).count();
+            seen >= mark
+        })?;
+        let end = tokens[index].end_ms;
+        let next = tokens.get(index + 1).map_or(end, |t| t.start_ms);
+        ((end + next) / 2) as usize * SAMPLE_RATE / 1000
+    } else {
+        len * mark / text.len()
+    };
+    (at >= SAMPLE_RATE && at < len).then_some(at)
 }
 
 fn snapshot(tunables: &Mutex<Tunables>) -> (AsrOptions, Vec<Replacement>, bool, bool) {

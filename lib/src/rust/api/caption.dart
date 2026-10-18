@@ -18,6 +18,9 @@ Stream<CaptionEvent> startLive({required LiveSettings settings}) =>
 
 Future<void> stopLive() => RustLib.instance.api.crateApiCaptionStopLive();
 
+/// Makes the running session's translator forget the earlier lines.
+Future<void> clearLiveContext() => RustLib.instance.api.crateApiCaptionClearLiveContext();
+
 bool liveRunning() => RustLib.instance.api.crateApiCaptionLiveRunning();
 
 /// Applies word lists and translation settings to the running session
@@ -35,25 +38,14 @@ Future<void> updateLive({
 );
 
 /// Transcribes a file into subtitle files; events until `Done` or `Failed`.
-Stream<FileJobEvent> transcribeFile({
-  required String jobId,
-  required FileJobSettings settings,
-}) => RustLib.instance.api.crateApiCaptionTranscribeFile(
-  jobId: jobId,
-  settings: settings,
-);
+Stream<FileJobEvent> transcribeFile({required String jobId, required FileJobSettings settings}) =>
+    RustLib.instance.api.crateApiCaptionTranscribeFile(jobId: jobId, settings: settings);
 
-Future<void> cancelFileJob({required String jobId}) =>
-    RustLib.instance.api.crateApiCaptionCancelFileJob(jobId: jobId);
+Future<void> cancelFileJob({required String jobId}) => RustLib.instance.api.crateApiCaptionCancelFileJob(jobId: jobId);
 
 /// Translates one line with `settings` (checks an API key or a local model).
-Future<TranslationTest> testTranslation({
-  required TranslationSettings settings,
-  required String text,
-}) => RustLib.instance.api.crateApiCaptionTestTranslation(
-  settings: settings,
-  text: text,
-);
+Future<TranslationTest> testTranslation({required TranslationSettings settings, required String text}) =>
+    RustLib.instance.api.crateApiCaptionTestTranslation(settings: settings, text: text);
 
 enum ApiPromptStyle {
   /// A general chat model (system prompt, history as turns).
@@ -335,10 +327,7 @@ class GlossaryTerm {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is GlossaryTerm &&
-          runtimeType == other.runtimeType &&
-          source == other.source &&
-          target == other.target;
+      other is GlossaryTerm && runtimeType == other.runtimeType && source == other.source && target == other.target;
 }
 
 class LiveSettings {
@@ -426,10 +415,7 @@ class ReplacementRule {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is ReplacementRule &&
-          runtimeType == other.runtimeType &&
-          from == other.from &&
-          to == other.to;
+      other is ReplacementRule && runtimeType == other.runtimeType && from == other.from && to == other.to;
 }
 
 enum SubtitleLines { source, translation, both, bothTranslationFirst }
@@ -516,11 +502,7 @@ class TranslationTest {
   final BigInt firstTokenMs;
   final BigInt totalMs;
 
-  const TranslationTest({
-    required this.text,
-    required this.firstTokenMs,
-    required this.totalMs,
-  });
+  const TranslationTest({required this.text, required this.firstTokenMs, required this.totalMs});
 
   @override
   int get hashCode => text.hashCode ^ firstTokenMs.hashCode ^ totalMs.hashCode;

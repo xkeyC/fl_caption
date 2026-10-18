@@ -342,6 +342,11 @@ pub fn stop_live() {
     live::stop();
 }
 
+/// Makes the running session's translator forget the earlier lines.
+pub fn clear_live_context() {
+    live::clear_context();
+}
+
 #[flutter_rust_bridge::frb(sync)]
 pub fn live_running() -> bool {
     live::running()
@@ -578,7 +583,7 @@ pub fn test_translation(
     };
     let mut translator = Translator::new(backend, settings.translator_config());
     let result = translator
-        .translate(&text, false, &mut |_| true)?
+        .translate(&text, false, None, &mut |_| true)?
         .ok_or_else(|| anyhow::anyhow!("cancelled"))?;
     Ok(TranslationTest {
         text: result.text,

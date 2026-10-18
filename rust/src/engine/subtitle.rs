@@ -16,6 +16,11 @@ pub struct Cue {
     pub end_ms: u64,
     pub text: String,
     pub translation: Option<String>,
+    /// The whole sentence the cue was cut from (with its punctuation):
+    /// cues of one sentence are translated together.
+    pub sentence: String,
+    /// Shared by the cues of one sentence.
+    pub sentence_key: u64,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -62,20 +67,26 @@ pub fn segment_cues(
         token_units(start_ms, end_ms, recognized)
     };
     mark_word_starts(&mut units);
-    let mut ranges = Vec::new();
-    for sentence in sentences(&units) {
+    let mut cues: Vec<Cue> = Vec::new();
+    for (index, sentence) in sentences(&units).into_iter().enumerate() {
+        let text = join(&units[sentence.clone()]).trim().to_string();
+        let key = start_ms * 1000 + index as u64;
+        let mut ranges = Vec::new();
         split_long(&units, sentence, rules, &mut ranges);
+        cues.extend(
+            ranges
+                .into_iter()
+                .map(|range| Cue {
+                    start_ms: units[range.start].start,
+                    end_ms: units[range.end - 1].end,
+                    text: tidy(&join(&units[range]), rules),
+                    translation: None,
+                    sentence: text.clone(),
+                    sentence_key: key,
+                })
+                .filter(|cue| !cue.text.is_empty()),
+        );
     }
-    let mut cues: Vec<Cue> = ranges
-        .into_iter()
-        .map(|range| Cue {
-            start_ms: units[range.start].start,
-            end_ms: units[range.end - 1].end,
-            text: tidy(&join(&units[range]), rules),
-            translation: None,
-        })
-        .filter(|cue| !cue.text.is_empty())
-        .collect();
     if let Some(last) = cues.last_mut() {
         last.end_ms = last.end_ms.max(end_ms.min(last.end_ms + 800));
     }
@@ -270,6 +281,66 @@ fn tidy(text: &str, rules: &CueRules) -> String {
     text.trim().to_string()
 }
 
+/// Splits a sentence's translation over its cues, in proportion to the
+/// cues' `weights` (their display widths): at punctuation near each
+/// proportional point, else at a word boundary (jieba for CJK, spaces
+/// otherwise). Pieces are tidied as cue texts are.
+pub fn split_translation(text: &str, weights: &[usize], rules: &CueRules) -> Vec<String> {
+    let chars: Vec<char> = text.trim().chars().collect();
+    let k = weights.len();
+    if k <= 1 || chars.len() < k * 2 {
+        let mut out = vec![tidy(text, rules)];
+        out.resize(k.max(1), String::new());
+        return out;
+    }
+    let n = chars.len();
+    let total: usize = weights.iter().sum::<usize>().max(1);
+    // Where a piece may start: after punctuation, or at a word start.
+    let punctuation: Vec<usize> = (1..n)
+        .filter(|&i| is_clause_mark(chars[i - 1]) || is_sentence_end(chars[i - 1]))
+        .collect();
+    let words: Vec<usize> = if chars.iter().any(|&c| is_cjk(c)) {
+        static JIEBA: std::sync::OnceLock<jieba_rs::Jieba> = std::sync::OnceLock::new();
+        let joined: String = chars.iter().collect();
+        JIEBA
+            .get_or_init(jieba_rs::Jieba::new)
+            .cut(&joined, true)
+            .iter()
+            .map(|token| token.start)
+            .filter(|&i| i > 0 && i < n)
+            .collect()
+    } else {
+        (1..n).filter(|&i| chars[i - 1] == ' ').collect()
+    };
+    let mut cuts = Vec::with_capacity(k - 1);
+    let mut seen = 0usize;
+    let mut previous = 0usize;
+    for weight in &weights[..k - 1] {
+        seen += weight;
+        let target = n * seen / total;
+        let window = n / (k * 3) + 1;
+        let near = |list: &[usize]| {
+            list.iter()
+                .copied()
+                .filter(|&i| i > previous && i < n && i.abs_diff(target) <= window)
+                .min_by_key(|&i| i.abs_diff(target))
+        };
+        let cut = near(&punctuation)
+            .or_else(|| near(&words))
+            .unwrap_or_else(|| target.clamp(previous + 1, n - 1));
+        cuts.push(cut);
+        previous = cut;
+    }
+    let mut out = Vec::with_capacity(k);
+    let mut from = 0;
+    for cut in cuts.into_iter().chain(std::iter::once(n)) {
+        let piece: String = chars[from..cut.max(from)].iter().collect();
+        out.push(tidy(&piece, rules));
+        from = cut.max(from);
+    }
+    out
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Format {
     Srt,
@@ -447,6 +518,29 @@ mod tests {
     }
 
     #[test]
+    fn translations_split_at_punctuation_near_the_share() {
+        let rules = CueRules::default();
+        let pieces = split_translation("不是复杂的啤酒，但很好喝、很清爽。", &[21, 29], &rules);
+        assert_eq!(pieces, vec!["不是复杂的啤酒", "但很好喝、很清爽"]);
+        let english = split_translation(
+            "It is not a complex beer, but it is pleasant and refreshing.",
+            &[14, 16],
+            &rules,
+        );
+        assert_eq!(
+            english,
+            vec![
+                "It is not a complex beer",
+                "but it is pleasant and refreshing."
+            ]
+        );
+        assert_eq!(
+            split_translation("短", &[3, 3], &rules),
+            vec!["短".to_string(), String::new()]
+        );
+    }
+
+    #[test]
     fn characters_share_the_segment() {
         let recognized = Recognized {
             text: "Hello there. How are you?".into(),
@@ -465,6 +559,7 @@ mod tests {
             end_ms: 63_000,
             text: "hello".into(),
             translation: Some("你好".into()),
+            ..Cue::default()
         }];
         let srt = render(&cues, Format::Srt, Lines::Both, "");
         assert_eq!(srt, "1\n00:01:01,500 --> 00:01:03,000\nhello\n你好\n\n");

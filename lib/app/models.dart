@@ -10,8 +10,9 @@ final runtimeInfoProvider = Provider<rs_app.RuntimeInfo>((ref) => throw Unimplem
 
 /// Pushes the model locations to the engine whenever they change.
 void configureModelStore(AppSettings s, AppPaths paths) {
-  final imported =
-      s.importedModels.entries.map((e) => rs_app.ModelPath(id: e.key, dir: e.value)).toList(growable: false);
+  final imported = s.importedModels.entries
+      .map((e) => rs_app.ModelPath(id: e.key, dir: e.value))
+      .toList(growable: false);
   rs_app.configureModels(
     root: s.modelsDir.isEmpty ? paths.defaultModelsDir : s.modelsDir,
     imported: imported,
@@ -41,7 +42,7 @@ class DownloadState {
   final rs.DownloadEvent event;
   final String? error;
 
-  double get fraction => event.total > 0 ? event.downloaded / event.total : 0;
+  double get fraction => event.total > BigInt.zero ? event.downloaded.toInt() / event.total.toInt() : 0;
 }
 
 class DownloadsController extends Notifier<Map<String, DownloadState>> {

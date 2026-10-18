@@ -1,0 +1,84 @@
+name: Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      runtime:
+        description: "Also pack the CUDA runtime archive (~1.5 GB)"
+        type: boolean
+        default: false
+  push:
+    tags: ["v*"]
+
+env:
+  FLUTTER_VERSION: "3.47.7"
+  # local-multimodal-infra is a path dependency (rust/Cargo.toml): checked
+  # out beside this repository at this commit of its main branch.
+  INFRA_REPOSITORY: mercallureAI/local-multimodal-infra
+  INFRA_REF: 02c3219bcb2748614665bab70cf6a29046505e66
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: fl_caption
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: fl_caption
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ env.INFRA_REPOSITORY }}
+          ref: ${{ env.INFRA_REF }}
+          path: local-multimodal-infra
+          token: ${{ secrets.INFRA_TOKEN || github.token }}
+
+      - name: Linux build dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev \
+            libpipewire-0.3-dev libspa-0.2-dev libx11-dev libxi-dev liblzma-dev
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: fl_caption/rust
+
+      - name: Rust tests
+        working-directory: fl_caption/rust
+        run: cargo test --lib
+
+      - name: ONNX Runtime
+        run: python scripts/fetch_onnxruntime.py
+
+      - name: Build (Windows)
+        if: runner.os == 'Windows'
+        run: flutter build windows --release
+      - name: Build (Linux)
+        if: runner.os == 'Linux'
+        run: flutter build linux --release
+
+      - name: Package
+        shell: bash
+        run: |
+          only=program
+          if [ "${{ inputs.runtime }}" = "true" ] || [ "${{ github.ref_type }}" = "tag" ]; then only=program,runtime; fi
+          version="${GITHUB_REF_NAME#v}"
+          if [ "${{ github.ref_type }}" != "tag" ]; then version="dev-${GITHUB_SHA::7}"; fi
+          python scripts/package_release.py --version "$version" --only "$only"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fl_caption-${{ runner.os }}
+          path: fl_caption/dist/*

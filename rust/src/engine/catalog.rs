@@ -1,18 +1,21 @@
 //! The models fl_caption offers, all run by local-multimodal-infra adapters.
 //!
 //! Upstream files are pinned by URL, size and SHA-256 (as in infra's
-//! `configs/providers`). Packages that exist only as local exports (the GPU
-//! int8 SenseVoice, Fun-ASR-Nano, the int4 chat models) are hosted in one
-//! Hugging Face repository, one directory per model, and listed through the
-//! Hub API at a pinned revision; until it is published they can be imported
-//! from a local directory.
+//! `configs/providers`). The exports of local-multimodal-infra (the GPU int8
+//! SenseVoice, Fun-ASR-Nano, the int4 chat models) are published as complete
+//! packages, one Hugging Face repository each, and listed through the Hub API
+//! at a pinned revision; until one is published it can be imported from a
+//! local directory.
 
 use serde_json::{json, Map, Value};
 
-/// Where exported packages are hosted.
-pub const HOSTED_REPO: &str = "xkeyC/fl_caption-models";
-/// The pinned revision of [`HOSTED_REPO`]; `None` until it is published.
-pub const HOSTED_REVISION: Option<&str> = None;
+/// A published package: every file of `repo` at `revision`.
+#[derive(Debug, Clone, Copy)]
+pub struct Hosted {
+    pub repo: &'static str,
+    /// `None` until the repository is published.
+    pub revision: Option<&'static str>,
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ModelKind {
@@ -49,8 +52,9 @@ pub struct CatalogEntry {
     pub description_en: &'static str,
     /// Download size.
     pub size_mb: u64,
-    /// GPU memory the loaded model takes beside the CUDA context (measured
-    /// on an RTX 4090 with ORT 1.31), at the default context for chat models.
+    /// GPU memory the loaded model takes beside the CUDA context, at the
+    /// default context for chat models: NVML deltas on an RTX 4090 (ORT 1.31
+    /// CUDA 12) less the context, peaks of `examples/bench.rs` runs.
     pub vram_mb: u64,
     /// Host memory when it runs on the CPU (or for its CPU parts).
     pub ram_mb: u64,
@@ -66,8 +70,8 @@ pub struct CatalogEntry {
     pub homepage: &'static str,
     /// Upstream files.
     pub files: &'static [UrlFile],
-    /// The directory of [`HOSTED_REPO`] holding the rest of the package.
-    pub hosted_dir: Option<&'static str>,
+    /// The published package (instead of upstream files).
+    pub hosted: Option<Hosted>,
     /// Shown first in its kind.
     pub recommended: bool,
 }
@@ -116,7 +120,7 @@ impl CatalogEntry {
     }
 
     pub fn downloadable(&self) -> bool {
-        self.hosted_dir.is_none() || HOSTED_REVISION.is_some()
+        self.hosted.is_none_or(|hosted| hosted.revision.is_some())
     }
 
     /// GPU memory at `context` tokens (chat models) or as loaded (ASR).
@@ -188,15 +192,6 @@ const SENSEVOICE_CPU_FILES: [UrlFile; 8] = [
     FUNASR_PIPELINE[6],
 ];
 
-/// Fun-ASR-Nano takes the VAD and speaker graphs from SenseVoice's package;
-/// its asr/ directory is the hosted export.
-const NANO_PIPELINE_FILES: [UrlFile; 4] = [
-    FUNASR_PIPELINE[3],
-    FUNASR_PIPELINE[4],
-    FUNASR_PIPELINE[5],
-    FUNASR_PIPELINE[6],
-];
-
 pub fn catalog() -> Vec<CatalogEntry> {
     vec![
         CatalogEntry {
@@ -207,7 +202,7 @@ pub fn catalog() -> Vec<CatalogEntry> {
             description_zh: "低延迟实时识别：全程在 GPU 上运行并使用 CUDA graph，1.5 秒语音约 16 ms。识别语言、情绪与声音事件。",
             description_en: "Low-latency live recognition, entirely on the GPU with CUDA graphs: ~16 ms for 1.5 s of speech. Detects language, emotion and sound events.",
             size_mb: 540,
-            vram_mb: 800,
+            vram_mb: 1050,
             ram_mb: 900,
             kv_kb_per_token: 0,
             default_context: 0,
@@ -217,8 +212,11 @@ pub fn catalog() -> Vec<CatalogEntry> {
             languages: "zh, en, yue, ja, ko",
             license: "FunASR Model License",
             homepage: "https://huggingface.co/FunAudioLLM/SenseVoiceSmall",
-            files: &FUNASR_PIPELINE,
-            hosted_dir: Some("sensevoice-small-int8-gpu-onnx"),
+            files: &[],
+            hosted: Some(Hosted {
+                repo: "ModaLeap/sensevoice-small-onnx",
+                revision: Some("f9ce3be8f1d08eef33a3d1480c3c584599fefbbe"),
+            }),
             recommended: true,
         },
         CatalogEntry {
@@ -229,7 +227,7 @@ pub fn catalog() -> Vec<CatalogEntry> {
             description_zh: "更准确的识别（SenseVoice 编码器 + Qwen3-0.6B），支持热词，中英混说更好；1.5 秒语音约 30–45 ms。仅 GPU。",
             description_en: "More accurate (SenseVoice encoder + Qwen3-0.6B) with hotwords and better code-switching; ~30-45 ms for 1.5 s. GPU only.",
             size_mb: 1330,
-            vram_mb: 1900,
+            vram_mb: 2180,
             ram_mb: 1500,
             kv_kb_per_token: 0,
             default_context: 0,
@@ -239,8 +237,11 @@ pub fn catalog() -> Vec<CatalogEntry> {
             languages: "zh, en, ja",
             license: "Apache-2.0",
             homepage: "https://modelscope.cn/models/FunAudioLLM/Fun-ASR-Nano-2512",
-            files: &NANO_PIPELINE_FILES,
-            hosted_dir: Some("fun-asr-nano-onnx"),
+            files: &[],
+            hosted: Some(Hosted {
+                repo: "ModaLeap/fun-asr-nano-onnx",
+                revision: Some("563e2395ddd8d963343f2f0ac4c256245fc9957c"),
+            }),
             recommended: false,
         },
         CatalogEntry {
@@ -262,7 +263,7 @@ pub fn catalog() -> Vec<CatalogEntry> {
             license: "Apache-2.0",
             homepage: "https://huggingface.co/haixuantao/SenseVoiceSmall-onnx",
             files: &SENSEVOICE_CPU_FILES,
-            hosted_dir: None,
+            hosted: None,
             recommended: false,
         },
         CatalogEntry {
@@ -273,7 +274,7 @@ pub fn catalog() -> Vec<CatalogEntry> {
             description_zh: "腾讯混元翻译模型：33 种语言互译，支持术语表与背景信息，体积小、速度快。推荐用于实时字幕。",
             description_en: "Tencent Hunyuan translation model: 33 languages, glossary and background aware, small and fast. Recommended for live captions.",
             size_mb: 1080,
-            vram_mb: 1500,
+            vram_mb: 2100,
             ram_mb: 2500,
             kv_kb_per_token: 64,
             default_context: 4096,
@@ -281,10 +282,13 @@ pub fn catalog() -> Vec<CatalogEntry> {
             cpu_ok: false,
             hotwords: false,
             languages: "33",
-            license: "Tencent Hy Community License",
+            license: "Apache-2.0",
             homepage: "https://huggingface.co/tencent/Hy-MT2-1.8B",
             files: &[],
-            hosted_dir: Some("hy-mt2-1.8b-int4-onnx"),
+            hosted: Some(Hosted {
+                repo: "ModaLeap/hy-mt2-1.8b-onnx",
+                revision: Some("a1d884fcf0f5ec65f4043bb353de76f12c597dca"),
+            }),
             recommended: true,
         },
         CatalogEntry {
@@ -295,7 +299,7 @@ pub fn catalog() -> Vec<CatalogEntry> {
             description_zh: "通用大模型：可按自定义提示词翻译、润色并修正识别错误，显存占用更高。",
             description_en: "General LLM: follows custom prompts, polishes and fixes recognition errors; needs more GPU memory.",
             size_mb: 2700,
-            vram_mb: 3100,
+            vram_mb: 4100,
             ram_mb: 4500,
             kv_kb_per_token: 144,
             default_context: 4096,
@@ -306,7 +310,10 @@ pub fn catalog() -> Vec<CatalogEntry> {
             license: "Apache-2.0",
             homepage: "https://huggingface.co/Qwen/Qwen3-4B-Instruct-2507",
             files: &[],
-            hosted_dir: Some("qwen3-4b-instruct-2507-int4-onnx"),
+            hosted: Some(Hosted {
+                repo: "ModaLeap/qwen3-4b-instruct-2507-onnx",
+                revision: Some("9edf4d82358af91d00e028f891f8a23ce738d997"),
+            }),
             recommended: false,
         },
     ]
@@ -317,4 +324,4 @@ pub fn find(id: &str) -> Option<CatalogEntry> {
 }
 
 /// GPU memory the CUDA context and ONNX Runtime take once, whatever runs.
-pub const CUDA_CONTEXT_MB: u64 = 400;
+pub const CUDA_CONTEXT_MB: u64 = 300;

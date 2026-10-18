@@ -9,28 +9,22 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_fields_are_eq`, `clone`, `eq`, `fmt`
 
-Future<List<ModelInfo>> listModels() =>
-    RustLib.instance.api.crateApiModelsListModels();
+Future<List<ModelInfo>> listModels() => RustLib.instance.api.crateApiModelsListModels();
 
 /// Downloads a model; events until one with `done`.
-Stream<DownloadEvent> downloadModel({required String id}) =>
-    RustLib.instance.api.crateApiModelsDownloadModel(id: id);
+Stream<DownloadEvent> downloadModel({required String id}) => RustLib.instance.api.crateApiModelsDownloadModel(id: id);
 
-Future<void> cancelDownload({required String id}) =>
-    RustLib.instance.api.crateApiModelsCancelDownload(id: id);
+Future<void> cancelDownload({required String id}) => RustLib.instance.api.crateApiModelsCancelDownload(id: id);
 
-Future<void> deleteModel({required String id}) =>
-    RustLib.instance.api.crateApiModelsDeleteModel(id: id);
+Future<void> deleteModel({required String id}) => RustLib.instance.api.crateApiModelsDeleteModel(id: id);
 
 /// Checks that `dir` holds the model's package (before importing it).
 Future<void> validateModelDir({required String id, required String dir}) =>
     RustLib.instance.api.crateApiModelsValidateModelDir(id: id, dir: dir);
 
-Future<List<LoadedModel>> loadedModels() =>
-    RustLib.instance.api.crateApiModelsLoadedModels();
+Future<List<LoadedModel>> loadedModels() => RustLib.instance.api.crateApiModelsLoadedModels();
 
-Future<void> unloadModels() =>
-    RustLib.instance.api.crateApiModelsUnloadModels();
+Future<void> unloadModels() => RustLib.instance.api.crateApiModelsUnloadModels();
 
 class DownloadEvent {
   final String id;
@@ -95,10 +89,7 @@ class LoadedModel {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is LoadedModel &&
-          runtimeType == other.runtimeType &&
-          id == other.id &&
-          provider == other.provider;
+      other is LoadedModel && runtimeType == other.runtimeType && id == other.id && provider == other.provider;
 }
 
 enum ModelCategory { asr, translator }

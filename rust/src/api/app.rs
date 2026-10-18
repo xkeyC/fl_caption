@@ -84,6 +84,7 @@ pub struct ModelPath {
     pub dir: String,
 }
 
+#[flutter_rust_bridge::frb(sync)]
 /// Where models are kept; `imported`: models used from directories
 /// elsewhere. `hf_endpoint`: a Hugging Face mirror (e.g.
 /// https://hf-mirror.com), empty for huggingface.co.

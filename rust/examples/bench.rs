@@ -98,7 +98,7 @@ fn main() {
                 asr_model: args[1].clone(),
                 asr_gpu: args[2] == "gpu",
                 vad_model: vad(),
-                asr_options: AsrOptions::default(),
+                asr_options: asr_options(),
                 replacements: Vec::new(),
                 auto_gain: std::env::var_os("FL_CAPTION_AGC").is_some(),
                 formats: vec![Format::Srt, Format::Lrc, Format::Txt],
@@ -166,7 +166,7 @@ fn main() {
                 segmenter: SegmenterConfig::live(),
                 partial_interval_ms: 400,
                 auto_gain: std::env::var_os("FL_CAPTION_AGC").is_some(),
-                asr_options: AsrOptions::default(),
+                asr_options: asr_options(),
                 replacements: Vec::new(),
                 translation,
                 file_source: Some(PathBuf::from(&args[2])),
@@ -327,7 +327,7 @@ fn main() {
             let mut outputs = Vec::new();
             for row in &rows {
                 let result = translator
-                    .translate(&row[1], true, &mut |_| true)
+                    .translate(&row[1], true, None, &mut |_| true)
                     .unwrap()
                     .unwrap();
                 total_ms += result.total_ms;
@@ -354,6 +354,48 @@ fn main() {
                 peak.saturating_sub(base)
             );
         }
+        Some("download") => {
+            let started = Instant::now();
+            let mut last = Instant::now();
+            let result = store::download(&args[1], |p| {
+                if last.elapsed() > Duration::from_secs(2) {
+                    last = Instant::now();
+                    println!(
+                        "{}/{} {} {:.0} MB / {:.0} MB  {:.1} MB/s",
+                        p.file_index + 1,
+                        p.file_count,
+                        p.file,
+                        p.downloaded as f64 / 1048576.0,
+                        p.total as f64 / 1048576.0,
+                        p.speed as f64 / 1048576.0
+                    );
+                }
+            });
+            println!(
+                "download {:?} in {:.1} s",
+                result.err().map(|e| format!("{e:#}")),
+                started.elapsed().as_secs_f64()
+            );
+            let entry = catalog::find(&args[1]).unwrap();
+            println!(
+                "installed: {}",
+                store::install_state(&entry).unwrap().installed
+            );
+        }
+        Some("models") => {
+            for entry in catalog::catalog() {
+                let state = store::install_state(&entry).unwrap();
+                let check = store::validate_package(&entry, &state.dir);
+                println!(
+                    "{:36} installed={} imported={} dir={} check={:?}",
+                    entry.id,
+                    state.installed,
+                    state.imported,
+                    state.dir.display(),
+                    check.err().map(|e| e.to_string())
+                );
+            }
+        }
         _ => eprintln!("usage: see the module documentation"),
     }
 }
@@ -373,4 +415,12 @@ struct LiveStats {
     prompt_tokens: usize,
     cached_tokens: usize,
     peak: u64,
+}
+
+/// `FL_CAPTION_ASR_LANGUAGE`: the spoken language (detected when unset).
+fn asr_options() -> AsrOptions {
+    AsrOptions {
+        language: std::env::var("FL_CAPTION_ASR_LANGUAGE").ok(),
+        ..AsrOptions::default()
+    }
 }

@@ -5,7 +5,7 @@
 //! size and SHA-256, and finish with a `.fl_caption.json` marker listing the
 //! files, which the install check reads.
 
-use super::catalog::{self, CatalogEntry, UrlFile, HOSTED_REPO, HOSTED_REVISION};
+use super::catalog::{self, CatalogEntry, Hosted, UrlFile};
 use anyhow::{anyhow, bail, Context, Result};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -85,11 +85,9 @@ pub fn install_state(entry: &CatalogEntry) -> Result<InstallState> {
     let config = config()?;
     let imported = config.overrides.contains_key(entry.id);
     let dir = model_dir(entry.id)?;
-    let installed = if imported {
-        validate_package(entry, &dir).is_ok()
-    } else {
-        marker_complete(&dir, entry.id)
-    };
+    // A package placed in the models directory by hand (an export) counts
+    // as well: downloads only rename complete, verified files into place.
+    let installed = marker_complete(&dir, entry.id) || validate_package(entry, &dir).is_ok();
     Ok(InstallState {
         installed,
         imported,
@@ -293,8 +291,8 @@ fn run_download(
             sha256: Some(file.sha256.to_string()),
         })
         .collect();
-    if let (Some(subdir), Some(revision)) = (entry.hosted_dir, HOSTED_REVISION) {
-        files.extend(list_hosted(&client, &config.hf_endpoint, revision, subdir)?);
+    if let Some(hosted) = entry.hosted {
+        files.extend(list_hosted(&client, &config.hf_endpoint, hosted)?);
     }
     let total: u64 = files.iter().filter_map(|file| file.size).sum();
     let mut done_bytes = 0u64;
@@ -356,41 +354,41 @@ struct TreeLfs {
     size: u64,
 }
 
-/// The hosted package's files through the Hub API (`/api/models/.../tree`).
+/// The published package's files through the Hub API
+/// (`/api/models/.../tree`), `config.json` (which the Hub counts downloads
+/// by) and the model card included.
 fn list_hosted(
     client: &reqwest::blocking::Client,
     endpoint: &str,
-    revision: &str,
-    subdir: &str,
+    hosted: Hosted,
 ) -> Result<Vec<PlannedFile>> {
-    let url =
-        format!("{endpoint}/api/models/{HOSTED_REPO}/tree/{revision}/{subdir}?recursive=true");
+    let Hosted { repo, revision } = hosted;
+    let revision = revision.ok_or_else(|| anyhow!("{repo} is not published yet"))?;
+    let url = format!("{endpoint}/api/models/{repo}/tree/{revision}?recursive=true");
     let items: Vec<TreeItem> = client
         .get(&url)
         .send()
         .and_then(reqwest::blocking::Response::error_for_status)
         .with_context(|| format!("list {url}"))?
         .json()?;
-    let prefix = format!("{subdir}/");
     let files: Vec<PlannedFile> = items
         .into_iter()
-        .filter(|item| item.kind == "file")
-        .filter_map(|item| {
-            let relative = item.path.strip_prefix(&prefix)?.to_string();
+        .filter(|item| item.kind == "file" && item.path != ".gitattributes")
+        .map(|item| {
             let (size, sha256) = match item.lfs {
                 Some(lfs) => (lfs.size, Some(lfs.oid)),
                 None => (item.size, None),
             };
-            Some(PlannedFile {
-                url: format!("{endpoint}/{HOSTED_REPO}/resolve/{revision}/{}", item.path),
-                path: relative,
+            PlannedFile {
+                url: format!("{endpoint}/{repo}/resolve/{revision}/{}", item.path),
+                path: item.path,
                 size: Some(size),
                 sha256,
-            })
+            }
         })
         .collect();
     if files.is_empty() {
-        bail!("{HOSTED_REPO}@{revision} has no files under {subdir}/");
+        bail!("{repo}@{revision} has no files");
     }
     Ok(files)
 }

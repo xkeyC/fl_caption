@@ -1,11 +1,15 @@
 import 'dart:async';
+import 'dart:convert';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../src/rust/api/app.dart' as rs_app;
 import '../src/rust/api/caption.dart' as rs;
+import 'models.dart';
 import 'settings.dart';
+import 'windows.dart';
 
 /// One caption: the recognized line (growing while it is spoken) and its
 /// translation (streamed).
@@ -57,22 +61,21 @@ class CaptionLine {
     int? endMs,
     int? asrMs,
     int? translationMs,
-  }) =>
-      CaptionLine(
-        id: id,
-        source: source ?? this.source,
-        stableChars: stableChars ?? this.stableChars,
-        isFinal: isFinal ?? this.isFinal,
-        translation: translation ?? this.translation,
-        translationDone: translationDone ?? this.translationDone,
-        translationIsPartial: translationIsPartial ?? this.translationIsPartial,
-        sameLanguage: sameLanguage ?? this.sameLanguage,
-        language: language ?? this.language,
-        startMs: startMs ?? this.startMs,
-        endMs: endMs ?? this.endMs,
-        asrMs: asrMs ?? this.asrMs,
-        translationMs: translationMs ?? this.translationMs,
-      );
+  }) => CaptionLine(
+    id: id,
+    source: source ?? this.source,
+    stableChars: stableChars ?? this.stableChars,
+    isFinal: isFinal ?? this.isFinal,
+    translation: translation ?? this.translation,
+    translationDone: translationDone ?? this.translationDone,
+    translationIsPartial: translationIsPartial ?? this.translationIsPartial,
+    sameLanguage: sameLanguage ?? this.sameLanguage,
+    language: language ?? this.language,
+    startMs: startMs ?? this.startMs,
+    endMs: endMs ?? this.endMs,
+    asrMs: asrMs ?? this.asrMs,
+    translationMs: translationMs ?? this.translationMs,
+  );
 }
 
 enum CaptionStatus { idle, loading, running, failed }
@@ -112,21 +115,35 @@ class CaptionState {
     List<CaptionLine>? lines,
     String? lastError,
     bool? paused,
-  }) =>
-      CaptionState(
-        status: status ?? this.status,
-        message: message ?? this.message,
-        provider: provider ?? this.provider,
-        device: device ?? this.device,
-        level: level ?? this.level,
-        lines: lines ?? this.lines,
-        lastError: lastError ?? this.lastError,
-        paused: paused ?? this.paused,
-      );
+  }) => CaptionState(
+    status: status ?? this.status,
+    message: message ?? this.message,
+    provider: provider ?? this.provider,
+    device: device ?? this.device,
+    level: level ?? this.level,
+    lines: lines ?? this.lines,
+    lastError: lastError ?? this.lastError,
+    paused: paused ?? this.paused,
+  );
 }
 
-/// Lines kept for the transcript view.
+/// Lines kept for the caption bar.
 const _maxLines = 300;
+
+/// Final lines kept in memory for exporting the context.
+const maxHistory = 10000;
+
+/// A final line, kept for the context export.
+class HistoryEntry {
+  HistoryEntry({required this.id, required this.time, required this.source});
+
+  final int id;
+
+  /// When the line was finished (wall clock).
+  final DateTime time;
+  final String source;
+  String translation = '';
+}
 
 rs.TranslationSettings? translationSettingsOf(AppSettings s) {
   if (!s.translationEnabled) return null;
@@ -159,14 +176,60 @@ List<rs.ReplacementRule> replacementRulesOf(AppSettings s) => s.replacements
 
 class CaptionController extends Notifier<CaptionState> {
   StreamSubscription<rs.CaptionEvent>? _subscription;
+  Timer? _restart;
+
+  /// The settings the running session started with.
+  AppSettings? _session;
+
+  /// Audio input and segmentation: a running session restarts at once
+  /// (its models stay loaded).
+  static bool _needsRestart(AppSettings a, AppSettings b) =>
+      a.audioSource != b.audioSource ||
+      a.deviceId != b.deviceId ||
+      a.vadThreshold != b.vadThreshold ||
+      a.minSilenceMs != b.minSilenceMs ||
+      a.maxSegmentMs != b.maxSegmentMs ||
+      a.partialIntervalMs != b.partialIntervalMs ||
+      a.autoGain != b.autoGain;
+
+  /// The models a session runs (and the translator's backend): changing
+  /// them is applied when the user asks (it unloads and loads models).
+  static String _models(AppSettings s) => [
+    s.asrModel,
+    s.asrGpu,
+    s.translationEnabled,
+    if (s.translationEnabled) ...[
+      s.translator.name,
+      if (s.translator == TranslatorKind.local) ...[s.localTranslator, s.localGpu, s.contextTokens],
+      if (s.translator == TranslatorKind.api) ...[s.apiBaseUrl, s.apiKey, s.apiModel, s.apiStyle.name],
+    ],
+  ].join('|');
+
+  /// The running session uses other models than the ones now selected.
+  bool get modelsPending {
+    final session = _session;
+    return state.active && session != null && _models(session) != _models(ref.read(settingsProvider));
+  }
+
+  /// The last [maxHistory] final lines, oldest first.
+  final history = <HistoryEntry>[];
 
   @override
   CaptionState build() {
     // Word lists and translation options reach a running session at once;
-    // models, devices and the backend need a restart.
+    // models, devices and the backend restart it (keeping loaded models).
     ref.listen(settingsProvider, (previous, next) {
       if (!state.active || previous == null) return;
-      final changed = previous.glossary != next.glossary ||
+      if (_models(previous) != _models(next)) _pushStatus();
+      if (_needsRestart(previous, next)) {
+        _restart?.cancel();
+        _restart = Timer(const Duration(milliseconds: 600), () {
+          if (state.active) start();
+        });
+        return;
+      }
+      final changed =
+          previous.glossary != next.glossary ||
           previous.replacements != next.replacements ||
           previous.targetLanguage != next.targetLanguage ||
           previous.background != next.background ||
@@ -183,13 +246,47 @@ class CaptionController extends Notifier<CaptionState> {
         );
       }
     });
-    ref.onDispose(() => _subscription?.cancel());
+    ref.onDispose(() {
+      _restart?.cancel();
+      _subscription?.cancel();
+    });
+    // The settings window shows the status (it has no caption stream).
+    listenSelf((previous, next) {
+      if (previous == null ||
+          previous.status != next.status ||
+          previous.message != next.message ||
+          previous.provider != next.provider ||
+          previous.device != next.device ||
+          previous.lastError != next.lastError) {
+        settingsChannel.invokeMethod('caption_status', statusMap(next)).catchError((_) => null);
+      }
+    });
     return const CaptionState();
   }
 
+  void _pushStatus() => settingsChannel.invokeMethod('caption_status', statusMap(state)).catchError((_) => null);
+
+  Map<String, dynamic> statusMap(CaptionState s) => {
+    'status': s.status.name,
+    'message': s.message,
+    'provider': s.provider,
+    'device': s.device,
+    'lastError': s.lastError,
+    'lines': history.length,
+    'pending': modelsPending,
+  };
+
   Future<void> start() async {
-    await stop();
+    // Without ONNX Runtime nothing can load (the caption bar shows why).
+    if (ref.read(runtimeInfoProvider).error != null) return;
+    _restart?.cancel();
+    // The Rust side stops a running session itself, keeping its models
+    // loaded for this one.
+    await _subscription?.cancel();
+    _subscription = null;
+    _rememberOn(true);
     final s = ref.read(settingsProvider);
+    _session = s;
     final paths = ref.read(appPathsProvider);
     state = state.copyWith(status: CaptionStatus.loading, message: 'asr', lastError: '', paused: false);
     final settings = rs.LiveSettings(
@@ -202,17 +299,37 @@ class CaptionController extends Notifier<CaptionState> {
       minSilenceMs: s.minSilenceMs,
       maxSegmentMs: s.maxSegmentMs,
       partialIntervalMs: s.partialIntervalMs,
+      autoGain: s.autoGain,
       hotwords: s.hotwords,
       asrLanguage: s.asrLanguage.isEmpty ? null : s.asrLanguage,
       replacements: replacementRulesOf(s),
       translation: translationSettingsOf(s),
     );
-    _subscription = rs.startLive(settings: settings).listen(_onEvent, onError: (Object error) {
-      state = state.copyWith(status: CaptionStatus.failed, message: '$error');
-    });
+    _subscription = rs
+        .startLive(settings: settings)
+        .listen(
+          _onEvent,
+          onError: (Object error) {
+            state = state.copyWith(status: CaptionStatus.failed, message: '$error');
+          },
+        );
   }
 
-  Future<void> stop() async {
+  /// Stops the captions. [remember]: they stay off at the next start
+  /// (false when the app quits: they come back then).
+  Future<void> stop({bool remember = true}) async {
+    _restart?.cancel();
+    if (remember) _rememberOn(false);
+    _session = null;
+    await _stopSession();
+  }
+
+  void _rememberOn(bool on) {
+    final settings = ref.read(settingsProvider.notifier);
+    if (ref.read(settingsProvider).captionsOn != on) settings.update((s) => s.copyWith(captionsOn: on));
+  }
+
+  Future<void> _stopSession() async {
     await _subscription?.cancel();
     _subscription = null;
     if (state.active) {
@@ -224,6 +341,55 @@ class CaptionController extends Notifier<CaptionState> {
   Future<void> toggle() => state.active ? stop() : start();
 
   void clear() => state = state.copyWith(lines: const []);
+
+  /// Clears the captions, the kept history and the translator's context.
+  Future<void> clearContext() async {
+    history.clear();
+    state = state.copyWith(lines: const []);
+    await rs.clearLiveContext();
+    settingsChannel.invokeMethod('caption_status', statusMap(state)).catchError((_) => null);
+  }
+
+  /// The kept history as text: time, line, translation.
+  String historyText() {
+    String two(int v) => v.toString().padLeft(2, '0');
+    final out = StringBuffer();
+    for (final h in history) {
+      final t = h.time;
+      out.writeln(
+        '[${t.year}-${two(t.month)}-${two(t.day)} ${two(t.hour)}:${two(t.minute)}:${two(t.second)}] ${h.source}',
+      );
+      if (h.translation.isNotEmpty) out.writeln('    ${h.translation}');
+    }
+    return out.toString();
+  }
+
+  /// Saves the kept history to a file the user picks.
+  Future<void> exportContext() async {
+    final now = DateTime.now();
+    String two(int v) => v.toString().padLeft(2, '0');
+    await FilePicker.saveFile(
+      fileName: 'captions-${now.year}${two(now.month)}${two(now.day)}-${two(now.hour)}${two(now.minute)}.txt',
+      bytes: utf8.encode(historyText()),
+      type: FileType.custom,
+      allowedExtensions: ['txt'],
+    );
+  }
+
+  void _remember(int id, String source) {
+    history.add(HistoryEntry(id: id, time: DateTime.now(), source: source));
+    if (history.length > maxHistory) history.removeRange(0, history.length - maxHistory);
+    settingsChannel.invokeMethod('caption_status', statusMap(state)).catchError((_) => null);
+  }
+
+  void _rememberTranslation(int id, String translation) {
+    for (var i = history.length - 1; i >= 0 && i >= history.length - 50; i--) {
+      if (history[i].id == id) {
+        history[i].translation = translation;
+        return;
+      }
+    }
+  }
 
   void _onEvent(rs.CaptionEvent e) {
     switch (e.kind) {
@@ -244,28 +410,36 @@ class CaptionController extends Notifier<CaptionState> {
       case rs.CaptionEventKind.level:
         state = state.copyWith(level: e.level);
       case rs.CaptionEventKind.partial:
-        _upsert(e.id.toInt(), (line) => line.copyWith(
-              source: e.text,
-              stableChars: e.stableChars,
-              startMs: e.startMs.toInt(),
-              endMs: e.endMs.toInt(),
-              asrMs: e.asrMs.toInt(),
-            ));
+        _upsert(
+          e.id.toInt(),
+          (line) => line.copyWith(
+            source: e.text,
+            stableChars: e.stableChars,
+            startMs: e.startMs.toInt(),
+            endMs: e.endMs.toInt(),
+            asrMs: e.asrMs.toInt(),
+          ),
+        );
       case rs.CaptionEventKind.final_:
         if (e.text.isEmpty) {
           state = state.copyWith(lines: state.lines.where((l) => l.id != e.id.toInt()).toList());
         } else {
-          _upsert(e.id.toInt(), (line) => line.copyWith(
-                source: e.text,
-                stableChars: e.text.length,
-                isFinal: true,
-                language: e.language,
-                startMs: e.startMs.toInt(),
-                endMs: e.endMs.toInt(),
-                asrMs: e.asrMs.toInt(),
-              ));
+          _remember(e.id.toInt(), e.text);
+          _upsert(
+            e.id.toInt(),
+            (line) => line.copyWith(
+              source: e.text,
+              stableChars: e.text.length,
+              isFinal: true,
+              language: e.language,
+              startMs: e.startMs.toInt(),
+              endMs: e.endMs.toInt(),
+              asrMs: e.asrMs.toInt(),
+            ),
+          );
         }
       case rs.CaptionEventKind.translation:
+        if (!e.partial && e.done && !e.sameLanguage) _rememberTranslation(e.id.toInt(), e.text);
         _upsert(e.id.toInt(), (line) {
           // A late partial translation never replaces a final one.
           if (e.partial && line.translationDone && !line.translationIsPartial) return line;

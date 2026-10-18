@@ -23,8 +23,8 @@ cuda = [
 flutter_rust_bridge = "=2.13.0"
 
 # local-multimodal-infra as a library: the ASR, chat (Qwen3 / Hy-MT2) and VAD
-# adapters on ONNX Runtime. Path dependencies while feat/library-api is
-# unpublished; switch to `git = ..., rev = ...` once it is pushed.
+# adapters on ONNX Runtime. Path dependencies: its main branch checked out
+# beside this repository (CI pins the commit).
 local-core = { path = "../../local-multimodal-infra/crates/foundation/core" }
 local-error = { path = "../../local-multimodal-infra/crates/foundation/error" }
 local-backend-ort = { path = "../../local-multimodal-infra/crates/inference/backend-ort" }

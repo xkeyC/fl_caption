@@ -27,19 +27,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   AnyhowException dco_decode_AnyhowException(dynamic raw);
 
   @protected
-  RustStreamSink<CaptionEvent> dco_decode_StreamSink_caption_event_Sse(
-    dynamic raw,
-  );
+  RustStreamSink<CaptionEvent> dco_decode_StreamSink_caption_event_Sse(dynamic raw);
 
   @protected
-  RustStreamSink<DownloadEvent> dco_decode_StreamSink_download_event_Sse(
-    dynamic raw,
-  );
+  RustStreamSink<DownloadEvent> dco_decode_StreamSink_download_event_Sse(dynamic raw);
 
   @protected
-  RustStreamSink<FileJobEvent> dco_decode_StreamSink_file_job_event_Sse(
-    dynamic raw,
-  );
+  RustStreamSink<FileJobEvent> dco_decode_StreamSink_file_job_event_Sse(dynamic raw);
 
   @protected
   String dco_decode_String(dynamic raw);
@@ -153,9 +147,7 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   String? dco_decode_opt_String(dynamic raw);
 
   @protected
-  TranslationSettings? dco_decode_opt_box_autoadd_translation_settings(
-    dynamic raw,
-  );
+  TranslationSettings? dco_decode_opt_box_autoadd_translation_settings(dynamic raw);
 
   @protected
   ReplacementRule dco_decode_replacement_rule(dynamic raw);
@@ -191,19 +183,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   AnyhowException sse_decode_AnyhowException(SseDeserializer deserializer);
 
   @protected
-  RustStreamSink<CaptionEvent> sse_decode_StreamSink_caption_event_Sse(
-    SseDeserializer deserializer,
-  );
+  RustStreamSink<CaptionEvent> sse_decode_StreamSink_caption_event_Sse(SseDeserializer deserializer);
 
   @protected
-  RustStreamSink<DownloadEvent> sse_decode_StreamSink_download_event_Sse(
-    SseDeserializer deserializer,
-  );
+  RustStreamSink<DownloadEvent> sse_decode_StreamSink_download_event_Sse(SseDeserializer deserializer);
 
   @protected
-  RustStreamSink<FileJobEvent> sse_decode_StreamSink_file_job_event_Sse(
-    SseDeserializer deserializer,
-  );
+  RustStreamSink<FileJobEvent> sse_decode_StreamSink_file_job_event_Sse(SseDeserializer deserializer);
 
   @protected
   String sse_decode_String(SseDeserializer deserializer);
@@ -221,19 +207,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   bool sse_decode_bool(SseDeserializer deserializer);
 
   @protected
-  FileJobSettings sse_decode_box_autoadd_file_job_settings(
-    SseDeserializer deserializer,
-  );
+  FileJobSettings sse_decode_box_autoadd_file_job_settings(SseDeserializer deserializer);
 
   @protected
-  LiveSettings sse_decode_box_autoadd_live_settings(
-    SseDeserializer deserializer,
-  );
+  LiveSettings sse_decode_box_autoadd_live_settings(SseDeserializer deserializer);
 
   @protected
-  TranslationSettings sse_decode_box_autoadd_translation_settings(
-    SseDeserializer deserializer,
-  );
+  TranslationSettings sse_decode_box_autoadd_translation_settings(SseDeserializer deserializer);
 
   @protected
   CaptionEvent sse_decode_caption_event(SseDeserializer deserializer);
@@ -278,17 +258,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<AudioDevice> sse_decode_list_audio_device(SseDeserializer deserializer);
 
   @protected
-  List<GlossaryTerm> sse_decode_list_glossary_term(
-    SseDeserializer deserializer,
-  );
+  List<GlossaryTerm> sse_decode_list_glossary_term(SseDeserializer deserializer);
 
   @protected
   List<GpuInfo> sse_decode_list_gpu_info(SseDeserializer deserializer);
 
   @protected
-  List<LanguageInfo> sse_decode_list_language_info(
-    SseDeserializer deserializer,
-  );
+  List<LanguageInfo> sse_decode_list_language_info(SseDeserializer deserializer);
 
   @protected
   List<LoadedModel> sse_decode_list_loaded_model(SseDeserializer deserializer);
@@ -303,9 +279,7 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
 
   @protected
-  List<ReplacementRule> sse_decode_list_replacement_rule(
-    SseDeserializer deserializer,
-  );
+  List<ReplacementRule> sse_decode_list_replacement_rule(SseDeserializer deserializer);
 
   @protected
   LiveSettings sse_decode_live_settings(SseDeserializer deserializer);
@@ -329,9 +303,7 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   String? sse_decode_opt_String(SseDeserializer deserializer);
 
   @protected
-  TranslationSettings? sse_decode_opt_box_autoadd_translation_settings(
-    SseDeserializer deserializer,
-  );
+  TranslationSettings? sse_decode_opt_box_autoadd_translation_settings(SseDeserializer deserializer);
 
   @protected
   ReplacementRule sse_decode_replacement_rule(SseDeserializer deserializer);
@@ -343,9 +315,7 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   SubtitleLines sse_decode_subtitle_lines(SseDeserializer deserializer);
 
   @protected
-  TranslationSettings sse_decode_translation_settings(
-    SseDeserializer deserializer,
-  );
+  TranslationSettings sse_decode_translation_settings(SseDeserializer deserializer);
 
   @protected
   TranslationTest sse_decode_translation_test(SseDeserializer deserializer);
@@ -366,76 +336,46 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_decode_unit(SseDeserializer deserializer);
 
   @protected
-  void sse_encode_AnyhowException(
-    AnyhowException self,
-    SseSerializer serializer,
-  );
+  void sse_encode_AnyhowException(AnyhowException self, SseSerializer serializer);
 
   @protected
-  void sse_encode_StreamSink_caption_event_Sse(
-    RustStreamSink<CaptionEvent> self,
-    SseSerializer serializer,
-  );
+  void sse_encode_StreamSink_caption_event_Sse(RustStreamSink<CaptionEvent> self, SseSerializer serializer);
 
   @protected
-  void sse_encode_StreamSink_download_event_Sse(
-    RustStreamSink<DownloadEvent> self,
-    SseSerializer serializer,
-  );
+  void sse_encode_StreamSink_download_event_Sse(RustStreamSink<DownloadEvent> self, SseSerializer serializer);
 
   @protected
-  void sse_encode_StreamSink_file_job_event_Sse(
-    RustStreamSink<FileJobEvent> self,
-    SseSerializer serializer,
-  );
+  void sse_encode_StreamSink_file_job_event_Sse(RustStreamSink<FileJobEvent> self, SseSerializer serializer);
 
   @protected
   void sse_encode_String(String self, SseSerializer serializer);
 
   @protected
-  void sse_encode_api_prompt_style(
-    ApiPromptStyle self,
-    SseSerializer serializer,
-  );
+  void sse_encode_api_prompt_style(ApiPromptStyle self, SseSerializer serializer);
 
   @protected
   void sse_encode_audio_device(AudioDevice self, SseSerializer serializer);
 
   @protected
-  void sse_encode_audio_source_kind(
-    AudioSourceKind self,
-    SseSerializer serializer,
-  );
+  void sse_encode_audio_source_kind(AudioSourceKind self, SseSerializer serializer);
 
   @protected
   void sse_encode_bool(bool self, SseSerializer serializer);
 
   @protected
-  void sse_encode_box_autoadd_file_job_settings(
-    FileJobSettings self,
-    SseSerializer serializer,
-  );
+  void sse_encode_box_autoadd_file_job_settings(FileJobSettings self, SseSerializer serializer);
 
   @protected
-  void sse_encode_box_autoadd_live_settings(
-    LiveSettings self,
-    SseSerializer serializer,
-  );
+  void sse_encode_box_autoadd_live_settings(LiveSettings self, SseSerializer serializer);
 
   @protected
-  void sse_encode_box_autoadd_translation_settings(
-    TranslationSettings self,
-    SseSerializer serializer,
-  );
+  void sse_encode_box_autoadd_translation_settings(TranslationSettings self, SseSerializer serializer);
 
   @protected
   void sse_encode_caption_event(CaptionEvent self, SseSerializer serializer);
 
   @protected
-  void sse_encode_caption_event_kind(
-    CaptionEventKind self,
-    SseSerializer serializer,
-  );
+  void sse_encode_caption_event_kind(CaptionEventKind self, SseSerializer serializer);
 
   @protected
   void sse_encode_download_event(DownloadEvent self, SseSerializer serializer);
@@ -447,16 +387,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_file_job_event(FileJobEvent self, SseSerializer serializer);
 
   @protected
-  void sse_encode_file_job_event_kind(
-    FileJobEventKind self,
-    SseSerializer serializer,
-  );
+  void sse_encode_file_job_event_kind(FileJobEventKind self, SseSerializer serializer);
 
   @protected
-  void sse_encode_file_job_settings(
-    FileJobSettings self,
-    SseSerializer serializer,
-  );
+  void sse_encode_file_job_settings(FileJobSettings self, SseSerializer serializer);
 
   @protected
   void sse_encode_file_job_stage(FileJobStage self, SseSerializer serializer);
@@ -477,55 +411,31 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_list_String(List<String> self, SseSerializer serializer);
 
   @protected
-  void sse_encode_list_audio_device(
-    List<AudioDevice> self,
-    SseSerializer serializer,
-  );
+  void sse_encode_list_audio_device(List<AudioDevice> self, SseSerializer serializer);
 
   @protected
-  void sse_encode_list_glossary_term(
-    List<GlossaryTerm> self,
-    SseSerializer serializer,
-  );
+  void sse_encode_list_glossary_term(List<GlossaryTerm> self, SseSerializer serializer);
 
   @protected
   void sse_encode_list_gpu_info(List<GpuInfo> self, SseSerializer serializer);
 
   @protected
-  void sse_encode_list_language_info(
-    List<LanguageInfo> self,
-    SseSerializer serializer,
-  );
+  void sse_encode_list_language_info(List<LanguageInfo> self, SseSerializer serializer);
 
   @protected
-  void sse_encode_list_loaded_model(
-    List<LoadedModel> self,
-    SseSerializer serializer,
-  );
+  void sse_encode_list_loaded_model(List<LoadedModel> self, SseSerializer serializer);
 
   @protected
-  void sse_encode_list_model_info(
-    List<ModelInfo> self,
-    SseSerializer serializer,
-  );
+  void sse_encode_list_model_info(List<ModelInfo> self, SseSerializer serializer);
 
   @protected
-  void sse_encode_list_model_path(
-    List<ModelPath> self,
-    SseSerializer serializer,
-  );
+  void sse_encode_list_model_path(List<ModelPath> self, SseSerializer serializer);
 
   @protected
-  void sse_encode_list_prim_u_8_strict(
-    Uint8List self,
-    SseSerializer serializer,
-  );
+  void sse_encode_list_prim_u_8_strict(Uint8List self, SseSerializer serializer);
 
   @protected
-  void sse_encode_list_replacement_rule(
-    List<ReplacementRule> self,
-    SseSerializer serializer,
-  );
+  void sse_encode_list_replacement_rule(List<ReplacementRule> self, SseSerializer serializer);
 
   @protected
   void sse_encode_live_settings(LiveSettings self, SseSerializer serializer);
@@ -549,16 +459,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_opt_String(String? self, SseSerializer serializer);
 
   @protected
-  void sse_encode_opt_box_autoadd_translation_settings(
-    TranslationSettings? self,
-    SseSerializer serializer,
-  );
+  void sse_encode_opt_box_autoadd_translation_settings(TranslationSettings? self, SseSerializer serializer);
 
   @protected
-  void sse_encode_replacement_rule(
-    ReplacementRule self,
-    SseSerializer serializer,
-  );
+  void sse_encode_replacement_rule(ReplacementRule self, SseSerializer serializer);
 
   @protected
   void sse_encode_runtime_info(RuntimeInfo self, SseSerializer serializer);
@@ -567,22 +471,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_subtitle_lines(SubtitleLines self, SseSerializer serializer);
 
   @protected
-  void sse_encode_translation_settings(
-    TranslationSettings self,
-    SseSerializer serializer,
-  );
+  void sse_encode_translation_settings(TranslationSettings self, SseSerializer serializer);
 
   @protected
-  void sse_encode_translation_test(
-    TranslationTest self,
-    SseSerializer serializer,
-  );
+  void sse_encode_translation_test(TranslationTest self, SseSerializer serializer);
 
   @protected
-  void sse_encode_translator_backend(
-    TranslatorBackend self,
-    SseSerializer serializer,
-  );
+  void sse_encode_translator_backend(TranslatorBackend self, SseSerializer serializer);
 
   @protected
   void sse_encode_u_32(int self, SseSerializer serializer);
@@ -600,14 +495,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 // Section: wire_class
 
 class RustLibWire implements BaseWire {
-  factory RustLibWire.fromExternalLibrary(ExternalLibrary lib) =>
-      RustLibWire(lib.ffiDynamicLibrary);
+  factory RustLibWire.fromExternalLibrary(ExternalLibrary lib) => RustLibWire(lib.ffiDynamicLibrary);
 
   /// Holds the symbol lookup function.
-  final ffi.Pointer<T> Function<T extends ffi.NativeType>(String symbolName)
-  _lookup;
+  final ffi.Pointer<T> Function<T extends ffi.NativeType>(String symbolName) _lookup;
 
   /// The symbols are looked up in [dynamicLibrary].
-  RustLibWire(ffi.DynamicLibrary dynamicLibrary)
-    : _lookup = dynamicLibrary.lookup;
+  RustLibWire(ffi.DynamicLibrary dynamicLibrary) : _lookup = dynamicLibrary.lookup;
 }

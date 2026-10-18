@@ -222,12 +222,16 @@ fn run_job(
             .recognize(&utterance.samples, &config.asr_options)?;
         let mut recognized = recognized;
         recognized.text = apply_replacements(&recognized.text, &config.replacements);
-        for cue in subtitle::segment_cues(
+        for mut cue in subtitle::segment_cues(
             samples_to_ms(utterance.start),
             samples_to_ms(utterance.end),
             &recognized,
             &config.rules,
         ) {
+            // Token texts are the recognizer's own: the corrections go on
+            // the cues as well.
+            cue.text = apply_replacements(&cue.text, &config.replacements);
+            cue.sentence = apply_replacements(&cue.sentence, &config.replacements);
             emit(FileEvent::Cue {
                 index: cues.len(),
                 cue: cue.clone(),
@@ -268,7 +272,14 @@ fn run_job(
 
     if let Some((backend, translator_config)) = &config.translation {
         if config.lines != Lines::Source {
-            translate_cues(backend, translator_config, &mut cues, cancel, emit)?;
+            translate_cues(
+                backend,
+                translator_config,
+                &config.rules,
+                &mut cues,
+                cancel,
+                emit,
+            )?;
         }
     }
 
@@ -302,6 +313,7 @@ fn run_job(
 fn translate_cues(
     backend: &BackendSetup,
     config: &TranslatorConfig,
+    rules: &CueRules,
     cues: &mut [Cue],
     cancel: &AtomicBool,
     emit: &mut dyn FnMut(FileEvent),
@@ -322,23 +334,51 @@ fn translate_cues(
     };
     let mut translator = Translator::new(backend, config.clone());
     let total = cues.len() as u64;
-    for (index, cue) in cues.iter_mut().enumerate() {
+    // One request per sentence; its translation is split over its cues.
+    let mut start = 0;
+    while start < cues.len() {
         if cancel.load(Ordering::Relaxed) {
             bail!("cancelled");
         }
+        let key = cues[start].sentence_key;
+        let end = start
+            + cues[start..]
+                .iter()
+                .take_while(|cue| cue.sentence_key == key)
+                .count();
+        let sentence = if cues[start].sentence.is_empty() {
+            cues[start..end]
+                .iter()
+                .map(|cue| cue.text.as_str())
+                .collect::<Vec<_>>()
+                .join(" ")
+        } else {
+            cues[start].sentence.clone()
+        };
         let translation = translator
-            .translate(&cue.text, true, &mut |_| !cancel.load(Ordering::Relaxed))?
+            .translate(&sentence, true, None, &mut |_| {
+                !cancel.load(Ordering::Relaxed)
+            })?
             .ok_or_else(|| anyhow!("cancelled"))?;
-        cue.translation = Some(translation.text);
-        emit(FileEvent::Cue {
-            index,
-            cue: cue.clone(),
-        });
+        let weights: Vec<usize> = cues[start..end]
+            .iter()
+            .map(|cue| crate::engine::lang::width(&cue.text).max(1))
+            .collect();
+        let pieces = subtitle::split_translation(&translation.text, &weights, rules);
+        for (offset, piece) in pieces.into_iter().enumerate() {
+            let index = start + offset;
+            cues[index].translation = Some(piece);
+            emit(FileEvent::Cue {
+                index,
+                cue: cues[index].clone(),
+            });
+        }
         emit(FileEvent::Progress {
             stage: Stage::Translating,
-            done: index as u64 + 1,
+            done: end as u64,
             total,
         });
+        start = end;
     }
     Ok(())
 }

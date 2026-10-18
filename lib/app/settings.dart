@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import 'windows.dart';
+
 /// A glossary entry: a term, its translation, and whether it is also
 /// given to the speech model as a hotword (Fun-ASR-Nano).
 @immutable
@@ -16,20 +18,20 @@ class GlossaryEntry {
   final bool enabled;
 
   GlossaryEntry copyWith({String? source, String? target, bool? hotword, bool? enabled}) => GlossaryEntry(
-        source: source ?? this.source,
-        target: target ?? this.target,
-        hotword: hotword ?? this.hotword,
-        enabled: enabled ?? this.enabled,
-      );
+    source: source ?? this.source,
+    target: target ?? this.target,
+    hotword: hotword ?? this.hotword,
+    enabled: enabled ?? this.enabled,
+  );
 
   Map<String, dynamic> toJson() => {'source': source, 'target': target, 'hotword': hotword, 'enabled': enabled};
 
   factory GlossaryEntry.fromJson(Map<String, dynamic> json) => GlossaryEntry(
-        source: json['source'] as String? ?? '',
-        target: json['target'] as String? ?? '',
-        hotword: json['hotword'] as bool? ?? true,
-        enabled: json['enabled'] as bool? ?? true,
-      );
+    source: json['source'] as String? ?? '',
+    target: json['target'] as String? ?? '',
+    hotword: json['hotword'] as bool? ?? true,
+    enabled: json['enabled'] as bool? ?? true,
+  );
 }
 
 /// A correction applied to recognized text.
@@ -47,10 +49,10 @@ class ReplacementEntry {
   Map<String, dynamic> toJson() => {'from': from, 'to': to, 'enabled': enabled};
 
   factory ReplacementEntry.fromJson(Map<String, dynamic> json) => ReplacementEntry(
-        from: json['from'] as String? ?? '',
-        to: json['to'] as String? ?? '',
-        enabled: json['enabled'] as bool? ?? true,
-      );
+    from: json['from'] as String? ?? '',
+    to: json['to'] as String? ?? '',
+    enabled: json['enabled'] as bool? ?? true,
+  );
 }
 
 enum TranslatorKind { local, api }
@@ -78,6 +80,7 @@ class AppSettings {
     this.minSilenceMs = 500,
     this.maxSegmentMs = 12000,
     this.partialIntervalMs = 400,
+    this.autoGain = false,
     this.translationEnabled = true,
     this.translator = TranslatorKind.local,
     this.localTranslator = 'hy-mt2-1.8b-int4-onnx',
@@ -111,7 +114,7 @@ class AppSettings {
     this.maxCueWidth = 44,
     this.stripEndPunctuation = true,
     this.ffmpegPath = '',
-    this.startInOverlay = false,
+    this.captionsOn = false,
   });
 
   final String uiLanguage;
@@ -130,6 +133,9 @@ class AppSettings {
   final int minSilenceMs;
   final int maxSegmentMs;
   final int partialIntervalMs;
+
+  /// Boost quiet input before the VAD (off: it can merge sentences).
+  final bool autoGain;
 
   final bool translationEnabled;
   final TranslatorKind translator;
@@ -172,7 +178,8 @@ class AppSettings {
   final bool stripEndPunctuation;
   final String ffmpegPath;
 
-  final bool startInOverlay;
+  /// Captions were running when the app last quit: start them again.
+  final bool captionsOn;
 
   List<String> get hotwords =>
       glossary.where((e) => e.enabled && e.hotword && e.source.trim().isNotEmpty).map((e) => e.source.trim()).toList();
@@ -191,6 +198,7 @@ class AppSettings {
     int? minSilenceMs,
     int? maxSegmentMs,
     int? partialIntervalMs,
+    bool? autoGain,
     bool? translationEnabled,
     TranslatorKind? translator,
     String? localTranslator,
@@ -224,7 +232,7 @@ class AppSettings {
     int? maxCueWidth,
     bool? stripEndPunctuation,
     String? ffmpegPath,
-    bool? startInOverlay,
+    bool? captionsOn,
   }) {
     return AppSettings(
       uiLanguage: uiLanguage ?? this.uiLanguage,
@@ -240,6 +248,7 @@ class AppSettings {
       minSilenceMs: minSilenceMs ?? this.minSilenceMs,
       maxSegmentMs: maxSegmentMs ?? this.maxSegmentMs,
       partialIntervalMs: partialIntervalMs ?? this.partialIntervalMs,
+      autoGain: autoGain ?? this.autoGain,
       translationEnabled: translationEnabled ?? this.translationEnabled,
       translator: translator ?? this.translator,
       localTranslator: localTranslator ?? this.localTranslator,
@@ -273,60 +282,61 @@ class AppSettings {
       maxCueWidth: maxCueWidth ?? this.maxCueWidth,
       stripEndPunctuation: stripEndPunctuation ?? this.stripEndPunctuation,
       ffmpegPath: ffmpegPath ?? this.ffmpegPath,
-      startInOverlay: startInOverlay ?? this.startInOverlay,
+      captionsOn: captionsOn ?? this.captionsOn,
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'version': 2,
-        'uiLanguage': uiLanguage,
-        'modelsDir': modelsDir,
-        'importedModels': importedModels,
-        'hfEndpoint': hfEndpoint,
-        'asrModel': asrModel,
-        'asrGpu': asrGpu,
-        'audioSource': audioSource,
-        'deviceId': deviceId,
-        'asrLanguage': asrLanguage,
-        'vadThreshold': vadThreshold,
-        'minSilenceMs': minSilenceMs,
-        'maxSegmentMs': maxSegmentMs,
-        'partialIntervalMs': partialIntervalMs,
-        'translationEnabled': translationEnabled,
-        'translator': translator.name,
-        'localTranslator': localTranslator,
-        'localGpu': localGpu,
-        'contextTokens': contextTokens,
-        'apiBaseUrl': apiBaseUrl,
-        'apiKey': apiKey,
-        'apiModel': apiModel,
-        'apiStyle': apiStyle.name,
-        'targetLanguage': targetLanguage,
-        'background': background,
-        'contextLines': contextLines,
-        'temperature': temperature,
-        'translatePartials': translatePartials,
-        'skipSameLanguage': skipSameLanguage,
-        'glossary': glossary.map((e) => e.toJson()).toList(),
-        'replacements': replacements.map((e) => e.toJson()).toList(),
-        'captionLines': captionLines.name,
-        'translationFirst': translationFirst,
-        'historyLines': historyLines,
-        'sourceFontSize': sourceFontSize,
-        'translationFontSize': translationFontSize,
-        'backgroundOpacity': backgroundOpacity,
-        'textColor': textColor,
-        'showStatus': showStatus,
-        'overlayBounds': overlayBounds,
-        'fileFormats': fileFormats,
-        'fileLines': fileLines.name,
-        'fileOutputDir': fileOutputDir,
-        'maxCueMs': maxCueMs,
-        'maxCueWidth': maxCueWidth,
-        'stripEndPunctuation': stripEndPunctuation,
-        'ffmpegPath': ffmpegPath,
-        'startInOverlay': startInOverlay,
-      };
+    'version': 2,
+    'uiLanguage': uiLanguage,
+    'modelsDir': modelsDir,
+    'importedModels': importedModels,
+    'hfEndpoint': hfEndpoint,
+    'asrModel': asrModel,
+    'asrGpu': asrGpu,
+    'audioSource': audioSource,
+    'deviceId': deviceId,
+    'asrLanguage': asrLanguage,
+    'vadThreshold': vadThreshold,
+    'minSilenceMs': minSilenceMs,
+    'maxSegmentMs': maxSegmentMs,
+    'partialIntervalMs': partialIntervalMs,
+    'autoGain': autoGain,
+    'translationEnabled': translationEnabled,
+    'translator': translator.name,
+    'localTranslator': localTranslator,
+    'localGpu': localGpu,
+    'contextTokens': contextTokens,
+    'apiBaseUrl': apiBaseUrl,
+    'apiKey': apiKey,
+    'apiModel': apiModel,
+    'apiStyle': apiStyle.name,
+    'targetLanguage': targetLanguage,
+    'background': background,
+    'contextLines': contextLines,
+    'temperature': temperature,
+    'translatePartials': translatePartials,
+    'skipSameLanguage': skipSameLanguage,
+    'glossary': glossary.map((e) => e.toJson()).toList(),
+    'replacements': replacements.map((e) => e.toJson()).toList(),
+    'captionLines': captionLines.name,
+    'translationFirst': translationFirst,
+    'historyLines': historyLines,
+    'sourceFontSize': sourceFontSize,
+    'translationFontSize': translationFontSize,
+    'backgroundOpacity': backgroundOpacity,
+    'textColor': textColor,
+    'showStatus': showStatus,
+    'overlayBounds': overlayBounds,
+    'fileFormats': fileFormats,
+    'fileLines': fileLines.name,
+    'fileOutputDir': fileOutputDir,
+    'maxCueMs': maxCueMs,
+    'maxCueWidth': maxCueWidth,
+    'stripEndPunctuation': stripEndPunctuation,
+    'ffmpegPath': ffmpegPath,
+    'captionsOn': captionsOn,
+  };
 
   factory AppSettings.fromJson(Map<String, dynamic> j) {
     const d = AppSettings();
@@ -341,10 +351,8 @@ class AppSettings {
     E pickEnum<E extends Enum>(String key, List<E> values, E fallback) =>
         values.where((v) => v.name == j[key]).firstOrNull ?? fallback;
 
-    List<T> list<T>(String key, T Function(Map<String, dynamic>) parse) => (j[key] as List? ?? const [])
-        .whereType<Map>()
-        .map((e) => parse(Map<String, dynamic>.from(e)))
-        .toList();
+    List<T> list<T>(String key, T Function(Map<String, dynamic>) parse) =>
+        (j[key] as List? ?? const []).whereType<Map>().map((e) => parse(Map<String, dynamic>.from(e))).toList();
 
     return AppSettings(
       uiLanguage: pick('uiLanguage', d.uiLanguage),
@@ -360,6 +368,7 @@ class AppSettings {
       minSilenceMs: pick('minSilenceMs', d.minSilenceMs),
       maxSegmentMs: pick('maxSegmentMs', d.maxSegmentMs),
       partialIntervalMs: pick('partialIntervalMs', d.partialIntervalMs),
+      autoGain: pick('autoGain', d.autoGain),
       translationEnabled: pick('translationEnabled', d.translationEnabled),
       translator: pickEnum('translator', TranslatorKind.values, d.translator),
       localTranslator: pick('localTranslator', d.localTranslator),
@@ -393,7 +402,7 @@ class AppSettings {
       maxCueWidth: pick('maxCueWidth', d.maxCueWidth),
       stripEndPunctuation: pick('stripEndPunctuation', d.stripEndPunctuation),
       ffmpegPath: pick('ffmpegPath', d.ffmpegPath),
-      startInOverlay: pick('startInOverlay', d.startInOverlay),
+      captionsOn: pick('captionsOn', d.captionsOn),
     );
   }
 }
@@ -415,11 +424,28 @@ final appPathsProvider = Provider<AppPaths>((ref) => throw UnimplementedError('o
 final initialSettingsProvider = Provider<AppSettings>((ref) => throw UnimplementedError('overridden in main'));
 
 class SettingsNotifier extends Notifier<AppSettings> {
+  /// Set in the settings window: every change also goes to the main window
+  /// (which runs the captions).
+  static bool sendToMainWindow = false;
+
   @override
   AppSettings build() => ref.read(initialSettingsProvider);
 
   void update(AppSettings Function(AppSettings) change) {
     state = change(state);
+    // Only the main window writes the file: this window's copy of what the
+    // main window owns (bar position, caption state) may be older.
+    if (sendToMainWindow) {
+      mainChannel.invokeMethod('settings_changed', jsonEncode(state.toJson())).catchError((_) => null);
+    } else {
+      _save();
+    }
+  }
+
+  /// Settings changed in the settings window. The caption bar keeps its own
+  /// position and caption state (the other window's copy may be older).
+  void receive(AppSettings settings) {
+    state = settings.copyWith(overlayBounds: state.overlayBounds, captionsOn: state.captionsOn);
     _save();
   }
 

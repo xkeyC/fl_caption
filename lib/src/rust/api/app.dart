@@ -11,38 +11,24 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 /// Call once at start-up. `search_roots`: directories holding `runtime/`
 /// besides the executable's (the working directory during development).
-Future<RuntimeInfo> initEngine({
-  required String logDir,
-  required List<String> searchRoots,
-}) => RustLib.instance.api.crateApiAppInitEngine(
-  logDir: logDir,
-  searchRoots: searchRoots,
-);
+Future<RuntimeInfo> initEngine({required String logDir, required List<String> searchRoots}) =>
+    RustLib.instance.api.crateApiAppInitEngine(logDir: logDir, searchRoots: searchRoots);
 
 Future<List<GpuInfo>> gpuInfo() => RustLib.instance.api.crateApiAppGpuInfo();
 
 /// Where models are kept; `imported`: models used from directories
 /// elsewhere. `hf_endpoint`: a Hugging Face mirror (e.g.
 /// https://hf-mirror.com), empty for huggingface.co.
-Future<void> configureModels({
-  required String root,
-  required List<ModelPath> imported,
-  required String hfEndpoint,
-}) => RustLib.instance.api.crateApiAppConfigureModels(
-  root: root,
-  imported: imported,
-  hfEndpoint: hfEndpoint,
-);
+void configureModels({required String root, required List<ModelPath> imported, required String hfEndpoint}) =>
+    RustLib.instance.api.crateApiAppConfigureModels(root: root, imported: imported, hfEndpoint: hfEndpoint);
 
 List<LanguageInfo> languages() => RustLib.instance.api.crateApiAppLanguages();
 
-Future<List<AudioDevice>> audioDevices() =>
-    RustLib.instance.api.crateApiAppAudioDevices();
+Future<List<AudioDevice>> audioDevices() => RustLib.instance.api.crateApiAppAudioDevices();
 
 /// ffmpeg for formats symphonia cannot read: the configured one, beside the
 /// executable, or on PATH.
-Future<String?> findFfmpeg({String? configured}) =>
-    RustLib.instance.api.crateApiAppFindFfmpeg(configured: configured);
+Future<String?> findFfmpeg({String? configured}) => RustLib.instance.api.crateApiAppFindFfmpeg(configured: configured);
 
 class AudioDevice {
   final String id;
@@ -50,16 +36,10 @@ class AudioDevice {
   final AudioSourceKind kind;
   final bool isDefault;
 
-  const AudioDevice({
-    required this.id,
-    required this.name,
-    required this.kind,
-    required this.isDefault,
-  });
+  const AudioDevice({required this.id, required this.name, required this.kind, required this.isDefault});
 
   @override
-  int get hashCode =>
-      id.hashCode ^ name.hashCode ^ kind.hashCode ^ isDefault.hashCode;
+  int get hashCode => id.hashCode ^ name.hashCode ^ kind.hashCode ^ isDefault.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -80,16 +60,10 @@ class GpuInfo {
   final BigInt usedMb;
   final String driver;
 
-  const GpuInfo({
-    required this.name,
-    required this.totalMb,
-    required this.usedMb,
-    required this.driver,
-  });
+  const GpuInfo({required this.name, required this.totalMb, required this.usedMb, required this.driver});
 
   @override
-  int get hashCode =>
-      name.hashCode ^ totalMb.hashCode ^ usedMb.hashCode ^ driver.hashCode;
+  int get hashCode => name.hashCode ^ totalMb.hashCode ^ usedMb.hashCode ^ driver.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -108,16 +82,10 @@ class LanguageInfo {
   final String en;
   final String native;
 
-  const LanguageInfo({
-    required this.code,
-    required this.zh,
-    required this.en,
-    required this.native,
-  });
+  const LanguageInfo({required this.code, required this.zh, required this.en, required this.native});
 
   @override
-  int get hashCode =>
-      code.hashCode ^ zh.hashCode ^ en.hashCode ^ native.hashCode;
+  int get hashCode => code.hashCode ^ zh.hashCode ^ en.hashCode ^ native.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -142,10 +110,7 @@ class ModelPath {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is ModelPath &&
-          runtimeType == other.runtimeType &&
-          id == other.id &&
-          dir == other.dir;
+      other is ModelPath && runtimeType == other.runtimeType && id == other.id && dir == other.dir;
 }
 
 class RuntimeInfo {

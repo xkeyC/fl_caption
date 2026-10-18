@@ -1,8 +1,10 @@
 //! Cuts a 16 kHz stream into utterances with Silero VAD (infra's port of
 //! the reference `VADIterator`), keeping the audio of the utterance in
-//! progress for partial recognition. An utterance longer than the maximum
-//! is cut at its quietest window of the last seconds, so long speech with
-//! no pause still produces captions in time.
+//! progress for partial recognition. The longer an utterance gets, the
+//! shorter the pause that ends it (fast speakers rarely pause as long as
+//! the configured silence), and one longer than the maximum is cut at its
+//! quietest window of the last seconds, so long speech with no pause still
+//! produces captions in time.
 
 use super::SAMPLE_RATE;
 use anyhow::{anyhow, Result};
@@ -18,6 +20,8 @@ pub struct SegmenterConfig {
     pub max_segment_ms: usize,
     /// Shorter utterances (clicks, breaths) are dropped.
     pub min_segment_ms: usize,
+    /// End long utterances at shorter pauses (live captions).
+    pub early_cut: bool,
 }
 
 impl SegmenterConfig {
@@ -28,6 +32,7 @@ impl SegmenterConfig {
             speech_pad_ms: 100,
             max_segment_ms: 12_000,
             min_segment_ms: 250,
+            early_cut: true,
         }
     }
 
@@ -38,6 +43,7 @@ impl SegmenterConfig {
             speech_pad_ms: 120,
             max_segment_ms: 15_000,
             min_segment_ms: 200,
+            early_cut: false,
         }
     }
 }
@@ -65,6 +71,8 @@ pub struct Segmenter {
     probabilities: VecDeque<(usize, f32)>,
     reset_after_speech: bool,
     reset_at: Option<usize>,
+    /// Samples of the current run of quiet windows within the utterance.
+    quiet: usize,
 }
 
 /// Audio kept before an utterance (the VAD's start padding reaches back).
@@ -73,8 +81,28 @@ const PRE_ROLL: usize = SAMPLE_RATE;
 const CUT_SEARCH: usize = SAMPLE_RATE * 3;
 /// ...but leaves at least this much in the utterance.
 const CUT_MIN_KEEP: usize = SAMPLE_RATE * 2;
+/// A cut where the text ended a sentence lands on the quietest window this
+/// close to the estimated time...
+const CUT_SNAP: usize = SAMPLE_RATE * 4 / 10;
+/// ...keeping at least this much on each side.
+const CUT_SNAP_KEEP: usize = SAMPLE_RATE * 3 / 10;
 /// Silence after an utterance ends before the VAD state is reset.
 const RESET_AFTER_SILENCE: usize = SAMPLE_RATE * 3 / 10;
+/// Below the threshold by this much, a window is a pause (the VAD's own
+/// end-of-speech margin).
+const QUIET_MARGIN: f32 = 0.15;
+
+/// The pause that ends an utterance of `length` samples early, before the
+/// configured silence: none at first, then shorter as it nears `max`.
+fn early_pause(length: usize, max: usize) -> Option<usize> {
+    let ms = match length * 100 / max.max(1) {
+        0..35 => return None,
+        35..60 => 240,
+        60..80 => 160,
+        _ => 96,
+    };
+    Some(ms * SAMPLE_RATE / 1000)
+}
 
 impl Segmenter {
     pub fn new(model: &Path, config: SegmenterConfig) -> Result<Self> {
@@ -95,6 +123,7 @@ impl Segmenter {
             probabilities: VecDeque::new(),
             reset_after_speech: std::env::var_os("FL_CAPTION_VAD_NO_RESET").is_none(),
             reset_at: None,
+            quiet: 0,
         })
     }
 
@@ -113,10 +142,13 @@ impl Segmenter {
             offset += WINDOW;
             self.fed += WINDOW;
             self.probabilities.push_back((self.fed, probability));
+            // Kept for a whole utterance (cuts where its text ended a
+            // sentence look back that far).
+            let history = CUT_SEARCH.max(self.config.max_segment_ms * SAMPLE_RATE / 1000) + WINDOW;
             while self
                 .probabilities
                 .front()
-                .is_some_and(|(end, _)| self.fed - end > CUT_SEARCH + WINDOW)
+                .is_some_and(|(end, _)| self.fed - end > history)
             {
                 self.probabilities.pop_front();
             }
@@ -145,11 +177,28 @@ impl Segmenter {
             }
             let max = self.config.max_segment_ms * SAMPLE_RATE / 1000;
             if let Some(start) = self.current {
-                if self.fed - start > max {
+                if probability < self.config.threshold - QUIET_MARGIN {
+                    self.quiet += WINDOW;
+                } else {
+                    self.quiet = 0;
+                }
+                let early = self.config.early_cut
+                    && early_pause(self.fed - start, max).is_some_and(|pause| self.quiet >= pause);
+                if early {
+                    // Cut in the middle of the pause; the speech goes on in
+                    // a new utterance.
+                    let at = self.fed - self.quiet / 2;
+                    ended.extend(self.cut(start, at));
+                    self.current = Some(at);
+                    self.quiet = 0;
+                } else if self.fed - start > max {
                     let at = self.quietest_after(start + CUT_MIN_KEEP);
                     ended.extend(self.cut(start, at));
                     self.current = Some(at);
+                    self.quiet = 0;
                 }
+            } else {
+                self.quiet = 0;
             }
         }
         self.pending.drain(..offset);
@@ -163,6 +212,27 @@ impl Segmenter {
         let from = start.saturating_sub(self.audio_start);
         let to = (self.fed - self.audio_start).min(self.audio.len());
         (to > from).then(|| (start, &self.audio[from..to]))
+    }
+
+    /// Ends the open utterance near `at` (an absolute sample position where
+    /// its text finished a sentence), at the quietest window within
+    /// [`CUT_SNAP`]; the speech goes on as a new utterance. `None` when that
+    /// would leave too little on either side.
+    pub fn cut_near(&mut self, at: usize) -> Option<Utterance> {
+        let start = self.current?;
+        let low = at.saturating_sub(CUT_SNAP).max(start + CUT_SNAP_KEEP);
+        let high = (at + CUT_SNAP).min(self.fed.saturating_sub(CUT_SNAP_KEEP));
+        let cut_at = self
+            .probabilities
+            .iter()
+            .map(|&(end, probability)| (end - WINDOW / 2, probability))
+            .filter(|&(mid, _)| mid >= low && mid <= high)
+            .min_by(|a, b| a.1.total_cmp(&b.1))?
+            .0;
+        let utterance = self.cut(start, cut_at)?;
+        self.current = Some(cut_at);
+        self.quiet = 0;
+        Some(utterance)
     }
 
     /// Ends the stream: the open utterance, if any.
@@ -187,6 +257,7 @@ impl Segmenter {
         self.current = None;
         self.probabilities.clear();
         self.reset_at = None;
+        self.quiet = 0;
     }
 
     fn quietest_after(&self, earliest: usize) -> usize {

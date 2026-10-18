@@ -19,7 +19,8 @@ pub enum AsrEngine {
 pub struct AsrOptions {
     /// Fun-ASR-Nano only.
     pub hotwords: Vec<String>,
-    /// Fun-ASR-Nano only: `zh`, `en`, `ja` (others: any).
+    /// The spoken language: Fun-ASR-Nano knows `zh`, `en`, `ja`, SenseVoice
+    /// also `yue`, `ko` (others, or none: detected).
     pub language: Option<String>,
 }
 
@@ -123,7 +124,13 @@ impl AsrEngine {
     /// One speech segment (16 kHz mono).
     pub fn recognize(&mut self, samples: &[f32], options: &AsrOptions) -> Result<Recognized> {
         let recognized = match self {
-            Self::SenseVoice(adapter) => adapter.recognize_samples(samples),
+            Self::SenseVoice(adapter) => {
+                let language = options
+                    .language
+                    .as_deref()
+                    .filter(|language| matches!(*language, "zh" | "en" | "yue" | "ja" | "ko"));
+                adapter.recognize_samples_with_language(samples, language)
+            }
             Self::Nano(adapter) => {
                 let mut params = BTreeMap::new();
                 let hotwords: Vec<&str> = options

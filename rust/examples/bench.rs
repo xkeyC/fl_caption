@@ -174,6 +174,7 @@ fn main() {
                 replacements: Vec::new(),
                 translation,
                 file_source: Some(PathBuf::from(&args[2])),
+                remote_source: None,
             };
             let started = Instant::now();
             // Audio time 0 is when the session starts running (models

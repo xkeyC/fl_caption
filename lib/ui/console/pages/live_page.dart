@@ -10,6 +10,7 @@ import '../../../src/rust/api/models.dart' as rs;
 import '../../theme.dart';
 import '../../widgets.dart';
 import '../console_shell.dart';
+import 'mobile_page.dart' show mobileStatusProvider;
 import 'models_page.dart' show GpuCard;
 
 /// Listed again whenever the home page is shown (devices come and go).
@@ -258,6 +259,21 @@ class _InputRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final s = ref.watch(settingsProvider);
+    final phone = ref.watch(mobileStatusProvider.select((m) => m.client));
+    if (phone.isNotEmpty) {
+      return SettingRow(
+        label: tr('输入设备', 'Audio input'),
+        description: tr(
+          '手机 App 已接入，电脑暂停录音；断开后恢复',
+          'The phone app is connected: this computer stops recording until it leaves',
+        ),
+        child: Choice<String>(
+          value: 'phone',
+          items: [('phone', '${tr('手机 App', 'Phone app')} · $phone')],
+          onChanged: null,
+        ),
+      );
+    }
     final devices = ref.watch(audioDevicesProvider).value ?? const [];
     final system = tr('系统声音', 'System audio');
     final microphone = tr('麦克风', 'Microphone');

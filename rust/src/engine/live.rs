@@ -63,6 +63,9 @@ pub struct LiveConfig {
     /// Plays this file into the pipeline at real-time pace instead of
     /// capturing (tests and demos).
     pub file_source: Option<PathBuf>,
+    /// Listens to audio another device sends ([`capture::push_remote`])
+    /// instead of capturing; the device's name.
+    pub remote_source: Option<String>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -459,6 +462,8 @@ fn translation_worker(mut translator: Translator, jobs: Arc<Jobs>, emit: Emit) {
 /// Silence fed to the VAD when the device delivers nothing (WASAPI
 /// loopback is silent while nothing plays), so an utterance still ends.
 const GAP_FILL: Duration = Duration::from_millis(250);
+/// The same for audio sent over the network, which arrives less evenly.
+const REMOTE_GAP_FILL: Duration = Duration::from_millis(1000);
 /// Partials start once an utterance is this long.
 const MIN_PARTIAL_SAMPLES: usize = SAMPLE_RATE * 6 / 10;
 /// Without the VAD, speech has stopped once the recognized text has not
@@ -504,9 +509,15 @@ fn run(
     pool::release_unused();
     let target = config.translation.as_ref().map(|t| t.config.target.clone());
 
-    let (capture, rx) = match &config.file_source {
-        Some(path) => capture::play_file(path)?,
-        None => capture::start(config.source, config.device.as_deref())?,
+    let (capture, rx) = match (&config.file_source, &config.remote_source) {
+        (Some(path), _) => capture::play_file(path)?,
+        (None, Some(name)) => capture::remote(name),
+        (None, None) => capture::start(config.source, config.device.as_deref())?,
+    };
+    let gap_fill = if config.remote_source.is_some() {
+        REMOTE_GAP_FILL
+    } else {
+        GAP_FILL
     };
     state(LiveState::Running, "", provider, &capture.device_name);
 
@@ -610,11 +621,11 @@ fn run(
                 chunk
             }
             Err(RecvTimeoutError::Timeout) => {
-                if last_audio.elapsed() < GAP_FILL {
+                if last_audio.elapsed() < gap_fill {
                     continue;
                 }
                 last_audio = Instant::now();
-                vec![0.0; SAMPLE_RATE * GAP_FILL.as_millis() as usize / 1000]
+                vec![0.0; SAMPLE_RATE * gap_fill.as_millis() as usize / 1000]
             }
             Err(RecvTimeoutError::Disconnected) => break Err(anyhow!("the audio device stopped")),
         };

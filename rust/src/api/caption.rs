@@ -121,6 +121,9 @@ pub struct LiveSettings {
     pub source: AudioSourceKind,
     pub device_id: Option<String>,
     pub vad_model_path: String,
+    /// Listen to audio the mobile app sends (`push_mobile_audio`) instead of
+    /// capturing; the phone's name.
+    pub remote_device: Option<String>,
     /// Off: every sound counts as speech; lines end after a finished
     /// sentence of their text, or at the longest allowed.
     pub vad_enabled: bool,
@@ -329,6 +332,7 @@ pub fn start_live(settings: LiveSettings, sink: StreamSink<CaptionEvent>) {
                 skip_same_language: translation.skip_same_language,
             }),
         file_source: std::env::var_os("FL_CAPTION_LIVE_FILE").map(PathBuf::from),
+        remote_source: settings.remote_device.clone(),
     };
     live::start(
         config,
@@ -340,6 +344,13 @@ pub fn start_live(settings: LiveSettings, sink: StreamSink<CaptionEvent>) {
 
 fn device_id_or_none(id: Option<String>) -> Option<String> {
     id.filter(|id| !id.is_empty())
+}
+
+/// Audio from the mobile app: 16 kHz mono 16-bit little-endian PCM for the
+/// session started with `remote_device`; `false` when none is listening.
+#[flutter_rust_bridge::frb(sync)]
+pub fn push_mobile_audio(pcm: Vec<u8>) -> bool {
+    crate::engine::capture::push_remote(&pcm)
 }
 
 pub fn stop_live() {

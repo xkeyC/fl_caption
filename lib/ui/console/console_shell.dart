@@ -11,6 +11,7 @@ import 'pages/appearance_page.dart';
 import 'pages/files_page.dart';
 import 'pages/glossary_page.dart';
 import 'pages/live_page.dart';
+import 'pages/mobile_page.dart';
 import 'pages/models_page.dart';
 import 'pages/translation_page.dart';
 
@@ -32,6 +33,7 @@ final _pages = [
   _Page(FluentIcons.dictionary, () => tr('术语', 'Glossary'), () => const GlossaryPage()),
   _Page(FluentIcons.processing, () => tr('模型', 'Models'), () => const ModelsPage()),
   _Page(FluentIcons.color, () => tr('外观', 'Style'), () => const AppearancePage()),
+  _Page(FluentIcons.cell_phone, () => tr('移动 App', 'Mobile'), () => const MobilePage()),
   _Page(FluentIcons.info, () => tr('关于', 'About'), () => const AboutPage()),
 ];
 

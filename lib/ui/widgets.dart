@@ -133,7 +133,9 @@ class Choice<T> extends StatelessWidget {
 
   final T value;
   final List<(T, String)> items;
-  final ValueChanged<T> onChanged;
+
+  /// `null`: shown greyed out.
+  final ValueChanged<T>? onChanged;
   final double width;
 
   @override
@@ -151,9 +153,11 @@ class Choice<T> extends StatelessWidget {
               child: Text(label, overflow: TextOverflow.ellipsis),
             ),
         ],
-        onChanged: (v) {
-          if (v != null) onChanged(v);
-        },
+        onChanged: onChanged == null
+            ? null
+            : (v) {
+                if (v != null) onChanged!(v);
+              },
       ),
     );
   }

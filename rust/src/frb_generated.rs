@@ -39,7 +39,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.13.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1295179569;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -498248414;
 
 // Section: executor
 
@@ -544,6 +544,36 @@ fn wire__crate__api__models__loaded_models_impl(
                     std::result::Result::Ok(output_ok)
                 })())
             }
+        },
+    )
+}
+fn wire__crate__api__caption__push_mobile_audio_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "push_mobile_audio",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_pcm = <Vec<u8>>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse::<_, ()>((move || {
+                let output_ok = Ok::<_, ()>(crate::api::caption::push_mobile_audio(api_pcm))?;
+                std::result::Result::Ok(output_ok)
+            })())
         },
     )
 }
@@ -1298,6 +1328,7 @@ impl SseDecode for crate::api::caption::LiveSettings {
         let mut var_source = <crate::api::app::AudioSourceKind>::sse_decode(deserializer);
         let mut var_deviceId = <Option<String>>::sse_decode(deserializer);
         let mut var_vadModelPath = <String>::sse_decode(deserializer);
+        let mut var_remoteDevice = <Option<String>>::sse_decode(deserializer);
         let mut var_vadEnabled = <bool>::sse_decode(deserializer);
         let mut var_vadThreshold = <f32>::sse_decode(deserializer);
         let mut var_minSilenceMs = <u32>::sse_decode(deserializer);
@@ -1316,6 +1347,7 @@ impl SseDecode for crate::api::caption::LiveSettings {
             source: var_source,
             device_id: var_deviceId,
             vad_model_path: var_vadModelPath,
+            remote_device: var_remoteDevice,
             vad_enabled: var_vadEnabled,
             vad_threshold: var_vadThreshold,
             min_silence_ms: var_minSilenceMs,
@@ -1617,13 +1649,13 @@ fn pde_ffi_dispatcher_primary_impl(
         11 => wire__crate__api__app__init_engine_impl(port, ptr, rust_vec_len, data_len),
         13 => wire__crate__api__models__list_models_impl(port, ptr, rust_vec_len, data_len),
         15 => wire__crate__api__models__loaded_models_impl(port, ptr, rust_vec_len, data_len),
-        16 => wire__crate__api__caption__start_live_impl(port, ptr, rust_vec_len, data_len),
-        17 => wire__crate__api__caption__stop_live_impl(port, ptr, rust_vec_len, data_len),
-        18 => wire__crate__api__caption__test_translation_impl(port, ptr, rust_vec_len, data_len),
-        19 => wire__crate__api__caption__transcribe_file_impl(port, ptr, rust_vec_len, data_len),
-        20 => wire__crate__api__models__unload_models_impl(port, ptr, rust_vec_len, data_len),
-        21 => wire__crate__api__caption__update_live_impl(port, ptr, rust_vec_len, data_len),
-        22 => wire__crate__api__models__validate_model_dir_impl(port, ptr, rust_vec_len, data_len),
+        17 => wire__crate__api__caption__start_live_impl(port, ptr, rust_vec_len, data_len),
+        18 => wire__crate__api__caption__stop_live_impl(port, ptr, rust_vec_len, data_len),
+        19 => wire__crate__api__caption__test_translation_impl(port, ptr, rust_vec_len, data_len),
+        20 => wire__crate__api__caption__transcribe_file_impl(port, ptr, rust_vec_len, data_len),
+        21 => wire__crate__api__models__unload_models_impl(port, ptr, rust_vec_len, data_len),
+        22 => wire__crate__api__caption__update_live_impl(port, ptr, rust_vec_len, data_len),
+        23 => wire__crate__api__models__validate_model_dir_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -1639,6 +1671,7 @@ fn pde_ffi_dispatcher_sync_impl(
         5 => wire__crate__api__app__configure_models_impl(ptr, rust_vec_len, data_len),
         12 => wire__crate__api__app__languages_impl(ptr, rust_vec_len, data_len),
         14 => wire__crate__api__caption__live_running_impl(ptr, rust_vec_len, data_len),
+        16 => wire__crate__api__caption__push_mobile_audio_impl(ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -1982,6 +2015,7 @@ impl flutter_rust_bridge::IntoDart for crate::api::caption::LiveSettings {
             self.source.into_into_dart().into_dart(),
             self.device_id.into_into_dart().into_dart(),
             self.vad_model_path.into_into_dart().into_dart(),
+            self.remote_device.into_into_dart().into_dart(),
             self.vad_enabled.into_into_dart().into_dart(),
             self.vad_threshold.into_into_dart().into_dart(),
             self.min_silence_ms.into_into_dart().into_dart(),
@@ -2655,6 +2689,7 @@ impl SseEncode for crate::api::caption::LiveSettings {
         <crate::api::app::AudioSourceKind>::sse_encode(self.source, serializer);
         <Option<String>>::sse_encode(self.device_id, serializer);
         <String>::sse_encode(self.vad_model_path, serializer);
+        <Option<String>>::sse_encode(self.remote_device, serializer);
         <bool>::sse_encode(self.vad_enabled, serializer);
         <f32>::sse_encode(self.vad_threshold, serializer);
         <u32>::sse_encode(self.min_silence_ms, serializer);

@@ -181,6 +181,37 @@ class CaptionController extends Notifier<CaptionState> {
   /// The settings the running session started with.
   AppSettings? _session;
 
+  /// Added to a session's line ids: every session numbers its lines from 1,
+  /// and the lines of earlier sessions are still shown.
+  int _idBase = 0;
+
+  int _lineId(rs.CaptionEvent e) => _idBase + e.id.toInt();
+
+  /// The phone the running session listens to (the mobile app), if any.
+  String? _remote;
+  String? get remote => _remote;
+
+  /// The connected phone: while it is set, captions take its audio, never
+  /// the computer's.
+  String? _phone;
+
+  /// A phone connected ([name]) or left (`null`). It stops captions from
+  /// the computer's audio; when it leaves, its captions stop and the
+  /// computer's come back if they were on.
+  Future<void> setPhone(String? name) async {
+    if (name == _phone) return;
+    _phone = name;
+    if (name != null) {
+      // Also the session of a phone this one replaces.
+      if (state.active) await stop(remember: false);
+    } else {
+      if (_remote != null) await stop();
+      state = state.copyWith(device: '');
+      if (ref.read(settingsProvider).captionsOn) await start();
+    }
+    _pushStatus();
+  }
+
   /// Audio input and segmentation: a running session restarts at once
   /// (its models stay loaded).
   static bool _needsRestart(AppSettings a, AppSettings b) =>
@@ -275,9 +306,13 @@ class CaptionController extends Notifier<CaptionState> {
     'lastError': s.lastError,
     'lines': history.length,
     'pending': modelsPending,
+    'remote': _remote ?? '',
   };
 
-  Future<void> start() async {
+  /// Starts captions: from the computer's audio, or from the phone named
+  /// [remote] (the mobile app sends its audio; restarts keep listening to
+  /// it until [stop]).
+  Future<void> start({String? remote}) async {
     // Without ONNX Runtime nothing can load (the caption bar shows why).
     if (ref.read(runtimeInfoProvider).error != null) return;
     _restart?.cancel();
@@ -285,7 +320,10 @@ class CaptionController extends Notifier<CaptionState> {
     // loaded for this one.
     await _subscription?.cancel();
     _subscription = null;
-    _rememberOn(true);
+    if (remote != null) _remote = remote;
+    _remote ??= _phone;
+    // Only the computer's own captions come back at the next launch.
+    if (_remote == null) _rememberOn(true);
     final s = ref.read(settingsProvider);
     _session = s;
     final paths = ref.read(appPathsProvider);
@@ -296,6 +334,7 @@ class CaptionController extends Notifier<CaptionState> {
       source: s.audioSource == 'microphone' ? rs_app.AudioSourceKind.microphone : rs_app.AudioSourceKind.system,
       deviceId: s.deviceId.isEmpty ? null : s.deviceId,
       vadModelPath: paths.vadModel,
+      remoteDevice: _remote,
       vadEnabled: s.vadEnabled,
       vadThreshold: s.vadThreshold,
       minSilenceMs: s.minSilenceMs,
@@ -307,6 +346,7 @@ class CaptionController extends Notifier<CaptionState> {
       replacements: replacementRulesOf(s),
       translation: translationSettingsOf(s),
     );
+    _idBase = state.lines.isEmpty ? _idBase : state.lines.last.id;
     _subscription = rs
         .startLive(settings: settings)
         .listen(
@@ -321,8 +361,9 @@ class CaptionController extends Notifier<CaptionState> {
   /// (false when the app quits: they come back then).
   Future<void> stop({bool remember = true}) async {
     _restart?.cancel();
-    if (remember) _rememberOn(false);
+    if (remember && _remote == null) _rememberOn(false);
     _session = null;
+    _remote = null;
     await _stopSession();
   }
 
@@ -413,7 +454,7 @@ class CaptionController extends Notifier<CaptionState> {
         state = state.copyWith(level: e.level);
       case rs.CaptionEventKind.partial:
         _upsert(
-          e.id.toInt(),
+          _lineId(e),
           (line) => line.copyWith(
             source: e.text,
             stableChars: e.stableChars,
@@ -424,11 +465,11 @@ class CaptionController extends Notifier<CaptionState> {
         );
       case rs.CaptionEventKind.final_:
         if (e.text.isEmpty) {
-          state = state.copyWith(lines: state.lines.where((l) => l.id != e.id.toInt()).toList());
+          state = state.copyWith(lines: state.lines.where((l) => l.id != _lineId(e)).toList());
         } else {
-          _remember(e.id.toInt(), e.text);
+          _remember(_lineId(e), e.text);
           _upsert(
-            e.id.toInt(),
+            _lineId(e),
             (line) => line.copyWith(
               source: e.text,
               stableChars: e.text.length,
@@ -441,8 +482,8 @@ class CaptionController extends Notifier<CaptionState> {
           );
         }
       case rs.CaptionEventKind.translation:
-        if (!e.partial && e.done && !e.sameLanguage) _rememberTranslation(e.id.toInt(), e.text);
-        _upsert(e.id.toInt(), (line) {
+        if (!e.partial && e.done && !e.sameLanguage) _rememberTranslation(_lineId(e), e.text);
+        _upsert(_lineId(e), (line) {
           // A late partial translation never replaces a final one.
           if (e.partial && line.translationDone && !line.translationIsPartial) return line;
           return line.copyWith(

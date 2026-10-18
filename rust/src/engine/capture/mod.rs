@@ -6,7 +6,7 @@ mod pipewire;
 mod wasapi;
 
 use anyhow::Result;
-use std::sync::mpsc;
+use std::sync::{mpsc, Mutex};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SourceKind {
@@ -72,6 +72,37 @@ pub fn start(
         let _ = (kind, device);
         anyhow::bail!("audio capture is not supported on this platform")
     }
+}
+
+/// Where audio another device sends (the mobile app) goes while a session
+/// listens to it.
+static REMOTE: Mutex<Option<mpsc::Sender<Vec<f32>>>> = Mutex::new(None);
+
+/// Audio pushed from another device (the mobile app, over the network) with
+/// [`push_remote`], already 16 kHz mono. `name` is shown as the device.
+pub fn remote(name: &str) -> (Capture, mpsc::Receiver<Vec<f32>>) {
+    let (tx, rx) = mpsc::channel();
+    *REMOTE.lock().unwrap_or_else(|e| e.into_inner()) = Some(tx);
+    let capture = Capture::new(name.to_string(), 16_000, || {
+        *REMOTE.lock().unwrap_or_else(|e| e.into_inner()) = None;
+    });
+    (capture, rx)
+}
+
+/// Feeds 16 kHz mono 16-bit little-endian PCM to the session listening to
+/// [`remote`] audio; `false` when none is.
+pub fn push_remote(pcm16le: &[u8]) -> bool {
+    let guard = REMOTE.lock().unwrap_or_else(|e| e.into_inner());
+    let Some(tx) = guard.as_ref() else {
+        return false;
+    };
+    let samples = pcm16le
+        .as_chunks::<2>()
+        .0
+        .iter()
+        .map(|b| i16::from_le_bytes(*b) as f32 / 32768.0)
+        .collect();
+    tx.send(samples).is_ok()
 }
 
 /// Mixes interleaved frames down to mono.

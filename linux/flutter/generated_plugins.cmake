@@ -6,6 +6,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   desktop_drop
   desktop_multi_window
   flutter_acrylic
+  record_linux
   screen_retriever_linux
   url_launcher_linux
   window_manager

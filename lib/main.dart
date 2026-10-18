@@ -11,6 +11,7 @@ import 'package:window_manager/window_manager.dart';
 
 import 'app/captions.dart';
 import 'app/i18n.dart';
+import 'app/mobile_server.dart';
 import 'app/models.dart';
 import 'app/remote_status.dart';
 import 'app/settings.dart';
@@ -21,11 +22,16 @@ import 'src/rust/api/app.dart' as rs_app;
 import 'src/rust/frb_generated.dart';
 import 'ui/aurora_background.dart';
 import 'ui/console/console_shell.dart';
+import 'ui/console/pages/mobile_page.dart' show mobileStatusProvider;
+import 'mobile/mobile_app.dart';
 import 'ui/overlay/caption_overlay.dart';
 import 'ui/theme.dart';
 
 Future<void> main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
+  // The phone app only records and shows captions; the desktop runs the
+  // models.
+  if (Platform.isAndroid) return runMobileApp();
   await windowManager.ensureInitialized();
   final window = await WindowController.fromCurrentEngine();
   final type = windowTypeOf(window.arguments);
@@ -76,6 +82,8 @@ Future<void> _runCaptionWindow(ProviderContainer container, AppSettings settings
   await container.read(overlayProvider.notifier).setUp();
   await windowManager.show();
   await AppTray.install(container);
+  // The LAN server for the mobile app (follows the settings).
+  container.read(mobileServerProvider);
 
   final captions = container.read(captionProvider.notifier);
   await mainChannel.setMethodCallHandler((call) async {
@@ -96,6 +104,8 @@ Future<void> _runCaptionWindow(ProviderContainer container, AppSettings settings
         await captions.clearContext();
       case 'context_export':
         await captions.exportContext();
+      case 'mobile_status':
+        return container.read(mobileServerProvider).toMap();
     }
     return null;
   });
@@ -136,7 +146,14 @@ FluentApp _fluentApp({required Widget home, Widget Function(Widget child)? backg
     color: Colors.transparent,
     builder: (context, child) => MediaQuery(
       data: MediaQuery.of(context).copyWith(textScaler: TextScaler.noScaling),
-      child: background == null ? child ?? const SizedBox() : background(child ?? const SizedBox()),
+      // Kept out of the accessibility tree on Windows: with a UI Automation
+      // client running, the engine's accessibility bridge loses track of the
+      // two windows' trees ("will not be in the tree") and then crashes
+      // inside flutter_windows.dll.
+      child: ExcludeSemantics(
+        excluding: Platform.isWindows,
+        child: background == null ? child ?? const SizedBox() : background(child ?? const SizedBox()),
+      ),
     ),
     home: home,
   );
@@ -218,6 +235,8 @@ Future<void> _runSettingsWindow(WindowController window, ProviderContainer conta
         container.read(remoteStatusProvider.notifier).receive(Map<String, dynamic>.from(call.arguments as Map));
       case 'select_page':
         container.read(consolePageProvider.notifier).select(call.arguments as int);
+      case 'mobile_status':
+        container.read(mobileStatusProvider.notifier).receive(Map<String, dynamic>.from(call.arguments as Map));
     }
     return null;
   });

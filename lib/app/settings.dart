@@ -116,6 +116,9 @@ class AppSettings {
     this.stripEndPunctuation = true,
     this.ffmpegPath = '',
     this.captionsOn = false,
+    this.mobileEnabled = false,
+    this.mobilePort = 47720,
+    this.mobilePassword = '',
   });
 
   final String uiLanguage;
@@ -185,6 +188,14 @@ class AppSettings {
   /// Captions were running when the app last quit: start them again.
   final bool captionsOn;
 
+  /// The LAN server the mobile app connects to (it sends its microphone
+  /// audio and shows the captions).
+  final bool mobileEnabled;
+  final int mobilePort;
+
+  /// Empty: no password.
+  final String mobilePassword;
+
   List<String> get hotwords =>
       glossary.where((e) => e.enabled && e.hotword && e.source.trim().isNotEmpty).map((e) => e.source.trim()).toList();
 
@@ -238,6 +249,9 @@ class AppSettings {
     bool? stripEndPunctuation,
     String? ffmpegPath,
     bool? captionsOn,
+    bool? mobileEnabled,
+    int? mobilePort,
+    String? mobilePassword,
   }) {
     return AppSettings(
       uiLanguage: uiLanguage ?? this.uiLanguage,
@@ -289,6 +303,9 @@ class AppSettings {
       stripEndPunctuation: stripEndPunctuation ?? this.stripEndPunctuation,
       ffmpegPath: ffmpegPath ?? this.ffmpegPath,
       captionsOn: captionsOn ?? this.captionsOn,
+      mobileEnabled: mobileEnabled ?? this.mobileEnabled,
+      mobilePort: mobilePort ?? this.mobilePort,
+      mobilePassword: mobilePassword ?? this.mobilePassword,
     );
   }
 
@@ -343,6 +360,9 @@ class AppSettings {
     'stripEndPunctuation': stripEndPunctuation,
     'ffmpegPath': ffmpegPath,
     'captionsOn': captionsOn,
+    'mobileEnabled': mobileEnabled,
+    'mobilePort': mobilePort,
+    'mobilePassword': mobilePassword,
   };
 
   factory AppSettings.fromJson(Map<String, dynamic> j) {
@@ -411,6 +431,9 @@ class AppSettings {
       stripEndPunctuation: pick('stripEndPunctuation', d.stripEndPunctuation),
       ffmpegPath: pick('ffmpegPath', d.ffmpegPath),
       captionsOn: pick('captionsOn', d.captionsOn),
+      mobileEnabled: pick('mobileEnabled', d.mobileEnabled),
+      mobilePort: pick('mobilePort', d.mobilePort),
+      mobilePassword: pick('mobilePassword', d.mobilePassword),
     );
   }
 }

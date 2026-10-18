@@ -16,6 +16,10 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 Stream<CaptionEvent> startLive({required LiveSettings settings}) =>
     RustLib.instance.api.crateApiCaptionStartLive(settings: settings);
 
+/// Audio from the mobile app: 16 kHz mono 16-bit little-endian PCM for the
+/// session started with `remote_device`; `false` when none is listening.
+bool pushMobileAudio({required List<int> pcm}) => RustLib.instance.api.crateApiCaptionPushMobileAudio(pcm: pcm);
+
 Future<void> stopLive() => RustLib.instance.api.crateApiCaptionStopLive();
 
 /// Makes the running session's translator forget the earlier lines.
@@ -337,6 +341,10 @@ class LiveSettings {
   final String? deviceId;
   final String vadModelPath;
 
+  /// Listen to audio the mobile app sends (`push_mobile_audio`) instead of
+  /// capturing; the phone's name.
+  final String? remoteDevice;
+
   /// Off: every sound counts as speech; lines end after a finished
   /// sentence of their text, or at the longest allowed.
   final bool vadEnabled;
@@ -356,6 +364,7 @@ class LiveSettings {
     required this.source,
     this.deviceId,
     required this.vadModelPath,
+    this.remoteDevice,
     required this.vadEnabled,
     required this.vadThreshold,
     required this.minSilenceMs,
@@ -375,6 +384,7 @@ class LiveSettings {
       source.hashCode ^
       deviceId.hashCode ^
       vadModelPath.hashCode ^
+      remoteDevice.hashCode ^
       vadEnabled.hashCode ^
       vadThreshold.hashCode ^
       minSilenceMs.hashCode ^
@@ -396,6 +406,7 @@ class LiveSettings {
           source == other.source &&
           deviceId == other.deviceId &&
           vadModelPath == other.vadModelPath &&
+          remoteDevice == other.remoteDevice &&
           vadEnabled == other.vadEnabled &&
           vadThreshold == other.vadThreshold &&
           minSilenceMs == other.minSilenceMs &&

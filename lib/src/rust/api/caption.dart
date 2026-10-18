@@ -336,6 +336,10 @@ class LiveSettings {
   final AudioSourceKind source;
   final String? deviceId;
   final String vadModelPath;
+
+  /// Off: every sound counts as speech; lines end after a finished
+  /// sentence of their text, or at the longest allowed.
+  final bool vadEnabled;
   final double vadThreshold;
   final int minSilenceMs;
   final int maxSegmentMs;
@@ -352,6 +356,7 @@ class LiveSettings {
     required this.source,
     this.deviceId,
     required this.vadModelPath,
+    required this.vadEnabled,
     required this.vadThreshold,
     required this.minSilenceMs,
     required this.maxSegmentMs,
@@ -370,6 +375,7 @@ class LiveSettings {
       source.hashCode ^
       deviceId.hashCode ^
       vadModelPath.hashCode ^
+      vadEnabled.hashCode ^
       vadThreshold.hashCode ^
       minSilenceMs.hashCode ^
       maxSegmentMs.hashCode ^
@@ -390,6 +396,7 @@ class LiveSettings {
           source == other.source &&
           deviceId == other.deviceId &&
           vadModelPath == other.vadModelPath &&
+          vadEnabled == other.vadEnabled &&
           vadThreshold == other.vadThreshold &&
           minSilenceMs == other.minSilenceMs &&
           maxSegmentMs == other.maxSegmentMs &&

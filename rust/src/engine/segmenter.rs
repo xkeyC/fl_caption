@@ -14,6 +14,10 @@ use std::path::Path;
 
 #[derive(Debug, Clone, Copy)]
 pub struct SegmenterConfig {
+    /// Off: every window counts as speech (Silero is not run): an
+    /// utterance ends only where the caller cuts it (`cut_near`) or at the
+    /// maximum length.
+    pub vad: bool,
     pub threshold: f32,
     pub min_silence_ms: usize,
     pub speech_pad_ms: usize,
@@ -27,6 +31,7 @@ pub struct SegmenterConfig {
 impl SegmenterConfig {
     pub fn live() -> Self {
         Self {
+            vad: true,
             threshold: 0.5,
             min_silence_ms: 500,
             speech_pad_ms: 100,
@@ -38,6 +43,7 @@ impl SegmenterConfig {
 
     pub fn file() -> Self {
         Self {
+            vad: true,
             threshold: 0.5,
             min_silence_ms: 350,
             speech_pad_ms: 120,
@@ -135,10 +141,13 @@ impl Segmenter {
         let mut offset = 0;
         while self.pending.len() - offset >= WINDOW {
             let window = &self.pending[offset..offset + WINDOW];
-            let probability = self
-                .vad
-                .probability(window)
-                .map_err(|error| anyhow!("Silero VAD: {error}"))?;
+            let probability = if self.config.vad {
+                self.vad
+                    .probability(window)
+                    .map_err(|error| anyhow!("Silero VAD: {error}"))?
+            } else {
+                1.0
+            };
             offset += WINDOW;
             self.fed += WINDOW;
             self.probabilities.push_back((self.fed, probability));
@@ -192,7 +201,12 @@ impl Segmenter {
                     self.current = Some(at);
                     self.quiet = 0;
                 } else if self.fed - start > max {
-                    let at = self.quietest_after(start + CUT_MIN_KEEP);
+                    // Without the VAD no window is quieter than another.
+                    let at = if self.config.vad {
+                        self.quietest_after(start + CUT_MIN_KEEP)
+                    } else {
+                        self.fed
+                    };
                     ended.extend(self.cut(start, at));
                     self.current = Some(at);
                     self.quiet = 0;
@@ -222,6 +236,16 @@ impl Segmenter {
         let start = self.current?;
         let low = at.saturating_sub(CUT_SNAP).max(start + CUT_SNAP_KEEP);
         let high = (at + CUT_SNAP).min(self.fed.saturating_sub(CUT_SNAP_KEEP));
+        if !self.config.vad {
+            // No window is quieter than another: cut where asked.
+            if low > high {
+                return None;
+            }
+            let cut_at = at.clamp(low, high);
+            let utterance = self.cut(start, cut_at)?;
+            self.current = Some(cut_at);
+            return Some(utterance);
+        }
         let cut_at = self
             .probabilities
             .iter()

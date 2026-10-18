@@ -903,22 +903,23 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   LiveSettings dco_decode_live_settings(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 14) throw Exception('unexpected arr length: expect 14 but see ${arr.length}');
+    if (arr.length != 15) throw Exception('unexpected arr length: expect 15 but see ${arr.length}');
     return LiveSettings(
       asrModel: dco_decode_String(arr[0]),
       asrGpu: dco_decode_bool(arr[1]),
       source: dco_decode_audio_source_kind(arr[2]),
       deviceId: dco_decode_opt_String(arr[3]),
       vadModelPath: dco_decode_String(arr[4]),
-      vadThreshold: dco_decode_f_32(arr[5]),
-      minSilenceMs: dco_decode_u_32(arr[6]),
-      maxSegmentMs: dco_decode_u_32(arr[7]),
-      partialIntervalMs: dco_decode_u_32(arr[8]),
-      autoGain: dco_decode_bool(arr[9]),
-      hotwords: dco_decode_list_String(arr[10]),
-      asrLanguage: dco_decode_opt_String(arr[11]),
-      replacements: dco_decode_list_replacement_rule(arr[12]),
-      translation: dco_decode_opt_box_autoadd_translation_settings(arr[13]),
+      vadEnabled: dco_decode_bool(arr[5]),
+      vadThreshold: dco_decode_f_32(arr[6]),
+      minSilenceMs: dco_decode_u_32(arr[7]),
+      maxSegmentMs: dco_decode_u_32(arr[8]),
+      partialIntervalMs: dco_decode_u_32(arr[9]),
+      autoGain: dco_decode_bool(arr[10]),
+      hotwords: dco_decode_list_String(arr[11]),
+      asrLanguage: dco_decode_opt_String(arr[12]),
+      replacements: dco_decode_list_replacement_rule(arr[13]),
+      translation: dco_decode_opt_box_autoadd_translation_settings(arr[14]),
     );
   }
 
@@ -1502,6 +1503,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_source = sse_decode_audio_source_kind(deserializer);
     var var_deviceId = sse_decode_opt_String(deserializer);
     var var_vadModelPath = sse_decode_String(deserializer);
+    var var_vadEnabled = sse_decode_bool(deserializer);
     var var_vadThreshold = sse_decode_f_32(deserializer);
     var var_minSilenceMs = sse_decode_u_32(deserializer);
     var var_maxSegmentMs = sse_decode_u_32(deserializer);
@@ -1517,6 +1519,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       source: var_source,
       deviceId: var_deviceId,
       vadModelPath: var_vadModelPath,
+      vadEnabled: var_vadEnabled,
       vadThreshold: var_vadThreshold,
       minSilenceMs: var_minSilenceMs,
       maxSegmentMs: var_maxSegmentMs,
@@ -2067,6 +2070,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_audio_source_kind(self.source, serializer);
     sse_encode_opt_String(self.deviceId, serializer);
     sse_encode_String(self.vadModelPath, serializer);
+    sse_encode_bool(self.vadEnabled, serializer);
     sse_encode_f_32(self.vadThreshold, serializer);
     sse_encode_u_32(self.minSilenceMs, serializer);
     sse_encode_u_32(self.maxSegmentMs, serializer);

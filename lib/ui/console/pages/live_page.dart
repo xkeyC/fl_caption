@@ -332,16 +332,29 @@ class _AdvancedCard extends ConsumerWidget {
             format: (v) => '${v.round()} s',
             onChanged: (v) => update((s) => s.copyWith(maxSegmentMs: (v * 1000).round())),
           ),
-          SliderRow(
-            label: tr('语音检测阈值', 'Speech detection threshold'),
-            description: tr('越高越不容易把噪音当成语音', 'Higher ignores more noise'),
-            value: s.vadThreshold,
-            min: 0.2,
-            max: 0.9,
-            divisions: 14,
-            format: (v) => v.toStringAsFixed(2),
-            onChanged: (v) => update((s) => s.copyWith(vadThreshold: v)),
+          SwitchRow(
+            label: tr('语音检测（VAD）', 'Voice activity detection (VAD)'),
+            description: tr(
+              '关闭后所有声音都送去识别，按识别出的整句断句，定稿约慢 1 秒，安静时可能冒出零星单词；背景音很吵、人声常被漏掉时可以关掉',
+              'Off: everything heard is transcribed and lines end at finished sentences, about 1 s later, with the odd stray word in quiet passages; try it when loud background sound hides speech',
+            ),
+            value: s.vadEnabled,
+            onChanged: (v) => update((s) => s.copyWith(vadEnabled: v)),
           ),
+          if (s.vadEnabled)
+            SliderRow(
+              label: tr('语音检测阈值', 'Speech detection threshold'),
+              description: tr(
+                '越低越容易听到嘈杂背景里的人声，越高越不容易把噪音当成语音',
+                'Lower hears speech under loud background sound; higher ignores more noise',
+              ),
+              value: s.vadThreshold,
+              min: 0.05,
+              max: 0.95,
+              divisions: 18,
+              format: (v) => v.toStringAsFixed(2),
+              onChanged: (v) => update((s) => s.copyWith(vadThreshold: v)),
+            ),
           SwitchRow(
             label: tr('弱音增强', 'Boost quiet audio'),
             description: tr('音量很小时自动放大；可能把短停顿连成一句', 'Raises very quiet input; may join sentences across short pauses'),

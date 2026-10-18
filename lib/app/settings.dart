@@ -76,6 +76,7 @@ class AppSettings {
     this.audioSource = 'system',
     this.deviceId = '',
     this.asrLanguage = '',
+    this.vadEnabled = true,
     this.vadThreshold = 0.5,
     this.minSilenceMs = 500,
     this.maxSegmentMs = 12000,
@@ -129,6 +130,9 @@ class AppSettings {
   final String audioSource;
   final String deviceId;
   final String asrLanguage;
+
+  /// Off: everything heard is transcribed; lines end at finished sentences.
+  final bool vadEnabled;
   final double vadThreshold;
   final int minSilenceMs;
   final int maxSegmentMs;
@@ -194,6 +198,7 @@ class AppSettings {
     String? audioSource,
     String? deviceId,
     String? asrLanguage,
+    bool? vadEnabled,
     double? vadThreshold,
     int? minSilenceMs,
     int? maxSegmentMs,
@@ -244,6 +249,7 @@ class AppSettings {
       audioSource: audioSource ?? this.audioSource,
       deviceId: deviceId ?? this.deviceId,
       asrLanguage: asrLanguage ?? this.asrLanguage,
+      vadEnabled: vadEnabled ?? this.vadEnabled,
       vadThreshold: vadThreshold ?? this.vadThreshold,
       minSilenceMs: minSilenceMs ?? this.minSilenceMs,
       maxSegmentMs: maxSegmentMs ?? this.maxSegmentMs,
@@ -297,6 +303,7 @@ class AppSettings {
     'audioSource': audioSource,
     'deviceId': deviceId,
     'asrLanguage': asrLanguage,
+    'vadEnabled': vadEnabled,
     'vadThreshold': vadThreshold,
     'minSilenceMs': minSilenceMs,
     'maxSegmentMs': maxSegmentMs,
@@ -364,6 +371,7 @@ class AppSettings {
       audioSource: pick('audioSource', d.audioSource),
       deviceId: pick('deviceId', d.deviceId),
       asrLanguage: pick('asrLanguage', d.asrLanguage),
+      vadEnabled: pick('vadEnabled', d.vadEnabled),
       vadThreshold: pick('vadThreshold', d.vadThreshold),
       minSilenceMs: pick('minSilenceMs', d.minSilenceMs),
       maxSegmentMs: pick('maxSegmentMs', d.maxSegmentMs),

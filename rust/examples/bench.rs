@@ -163,7 +163,11 @@ fn main() {
                 source: capture::SourceKind::System,
                 device: None,
                 vad_model: vad(),
-                segmenter: SegmenterConfig::live(),
+                segmenter: SegmenterConfig {
+                    // FL_CAPTION_NO_VAD: every sound counts as speech.
+                    vad: std::env::var_os("FL_CAPTION_NO_VAD").is_none(),
+                    ..SegmenterConfig::live()
+                },
                 partial_interval_ms: 400,
                 auto_gain: std::env::var_os("FL_CAPTION_AGC").is_some(),
                 asr_options: asr_options(),

@@ -186,6 +186,7 @@ class CaptionController extends Notifier<CaptionState> {
   static bool _needsRestart(AppSettings a, AppSettings b) =>
       a.audioSource != b.audioSource ||
       a.deviceId != b.deviceId ||
+      a.vadEnabled != b.vadEnabled ||
       a.vadThreshold != b.vadThreshold ||
       a.minSilenceMs != b.minSilenceMs ||
       a.maxSegmentMs != b.maxSegmentMs ||
@@ -295,6 +296,7 @@ class CaptionController extends Notifier<CaptionState> {
       source: s.audioSource == 'microphone' ? rs_app.AudioSourceKind.microphone : rs_app.AudioSourceKind.system,
       deviceId: s.deviceId.isEmpty ? null : s.deviceId,
       vadModelPath: paths.vadModel,
+      vadEnabled: s.vadEnabled,
       vadThreshold: s.vadThreshold,
       minSilenceMs: s.minSilenceMs,
       maxSegmentMs: s.maxSegmentMs,

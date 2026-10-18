@@ -461,6 +461,10 @@ fn translation_worker(mut translator: Translator, jobs: Arc<Jobs>, emit: Emit) {
 const GAP_FILL: Duration = Duration::from_millis(250);
 /// Partials start once an utterance is this long.
 const MIN_PARTIAL_SAMPLES: usize = SAMPLE_RATE * 6 / 10;
+/// Without the VAD, speech has stopped once the recognized text has not
+/// grown (or stayed empty) for this much more audio. Growth, not equality:
+/// re-recognition keeps changing a word or a comma after speech ends.
+const TEXT_STALL_SAMPLES: usize = SAMPLE_RATE;
 
 fn run(
     config: LiveConfig,
@@ -512,6 +516,10 @@ fn run(
     let mut partial_cost = Duration::ZERO;
     let mut partial_for: Option<usize> = None;
     let mut previous_partial = String::new();
+    // Without the VAD: the most letters the open utterance's text has had,
+    // and how much audio it had when that last grew.
+    let mut text_letters = 0usize;
+    let mut text_since = 0usize;
     let mut level_sum = 0f32;
     let mut level_count = 0usize;
     let mut level_at = Instant::now();
@@ -538,7 +546,10 @@ fn run(
                 return;
             }
         };
-        let text = apply_replacements(&recognized.text, &replacements);
+        let text = heard(
+            apply_replacements(&recognized.text, &replacements),
+            config.segmenter.vad,
+        );
         if text.trim().is_empty() {
             // Clears the partial shown for it.
             emit(LiveEvent::Final {
@@ -642,6 +653,8 @@ fn run(
                     partial_for = Some(start);
                     next_id += 1;
                     previous_partial.clear();
+                    text_letters = 0;
+                    text_since = 0;
                 }
                 let id = next_id - 1;
                 let samples = samples.to_vec();
@@ -651,16 +664,42 @@ fn run(
                 last_partial = Instant::now();
                 match result {
                     Ok(recognized) => {
+                        // Without the VAD the text says when speech stopped:
+                        // unchanged for a while, the line ends where it last
+                        // changed (silence alone is dropped).
+                        let mut stalled = None;
+                        if !config.segmenter.vad {
+                            let letters = recognized
+                                .text
+                                .chars()
+                                .filter(|c| c.is_alphanumeric())
+                                .count();
+                            // A word or more (a letter or two may come and go).
+                            if letters > text_letters + 1 {
+                                text_letters = letters;
+                                text_since = samples.len();
+                            } else if samples.len() - text_since >= TEXT_STALL_SAMPLES {
+                                stalled = Some(if text_letters == 0 {
+                                    samples.len()
+                                } else {
+                                    text_since
+                                });
+                            }
+                        }
                         // A long line whose text already finished a sentence
                         // ends there (fast speech rarely pauses long enough).
-                        let cut = sentence_end(&recognized, samples.len(), max_samples)
+                        let cut = stalled
+                            .or_else(|| sentence_end(&recognized, samples.len(), max_samples))
                             .and_then(|at| segmenter.cut_near(start + at));
                         if let Some(utterance) = cut {
                             partial_for = None;
                             finish_utterance(utterance, id);
                             continue;
                         }
-                        let text = apply_replacements(&recognized.text, &replacements);
+                        let text = heard(
+                            apply_replacements(&recognized.text, &replacements),
+                            config.segmenter.vad,
+                        );
                         if !text.trim().is_empty() {
                             let stable_chars = previous_partial
                                 .chars()
@@ -706,6 +745,17 @@ fn run(
     }
     drop(asr);
     result
+}
+
+/// What recognition heard, as a caption. Without the VAD it also runs on
+/// silence and breaths, where it writes a stray letter or a lone mark:
+/// text with fewer than two letters or digits is dropped then.
+fn heard(text: String, vad: bool) -> String {
+    if !vad && text.chars().filter(|c| c.is_alphanumeric()).count() < 2 {
+        String::new()
+    } else {
+        text
+    }
 }
 
 /// Sentence ends in recognized text (a `.` only before a space or at the

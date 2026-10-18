@@ -1298,6 +1298,7 @@ impl SseDecode for crate::api::caption::LiveSettings {
         let mut var_source = <crate::api::app::AudioSourceKind>::sse_decode(deserializer);
         let mut var_deviceId = <Option<String>>::sse_decode(deserializer);
         let mut var_vadModelPath = <String>::sse_decode(deserializer);
+        let mut var_vadEnabled = <bool>::sse_decode(deserializer);
         let mut var_vadThreshold = <f32>::sse_decode(deserializer);
         let mut var_minSilenceMs = <u32>::sse_decode(deserializer);
         let mut var_maxSegmentMs = <u32>::sse_decode(deserializer);
@@ -1315,6 +1316,7 @@ impl SseDecode for crate::api::caption::LiveSettings {
             source: var_source,
             device_id: var_deviceId,
             vad_model_path: var_vadModelPath,
+            vad_enabled: var_vadEnabled,
             vad_threshold: var_vadThreshold,
             min_silence_ms: var_minSilenceMs,
             max_segment_ms: var_maxSegmentMs,
@@ -1980,6 +1982,7 @@ impl flutter_rust_bridge::IntoDart for crate::api::caption::LiveSettings {
             self.source.into_into_dart().into_dart(),
             self.device_id.into_into_dart().into_dart(),
             self.vad_model_path.into_into_dart().into_dart(),
+            self.vad_enabled.into_into_dart().into_dart(),
             self.vad_threshold.into_into_dart().into_dart(),
             self.min_silence_ms.into_into_dart().into_dart(),
             self.max_segment_ms.into_into_dart().into_dart(),
@@ -2652,6 +2655,7 @@ impl SseEncode for crate::api::caption::LiveSettings {
         <crate::api::app::AudioSourceKind>::sse_encode(self.source, serializer);
         <Option<String>>::sse_encode(self.device_id, serializer);
         <String>::sse_encode(self.vad_model_path, serializer);
+        <bool>::sse_encode(self.vad_enabled, serializer);
         <f32>::sse_encode(self.vad_threshold, serializer);
         <u32>::sse_encode(self.min_silence_ms, serializer);
         <u32>::sse_encode(self.max_segment_ms, serializer);

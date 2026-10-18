@@ -121,6 +121,9 @@ pub struct LiveSettings {
     pub source: AudioSourceKind,
     pub device_id: Option<String>,
     pub vad_model_path: String,
+    /// Off: every sound counts as speech; lines end after a finished
+    /// sentence of their text, or at the longest allowed.
+    pub vad_enabled: bool,
     pub vad_threshold: f32,
     pub min_silence_ms: u32,
     pub max_segment_ms: u32,
@@ -306,7 +309,8 @@ pub fn start_live(settings: LiveSettings, sink: StreamSink<CaptionEvent>) {
         device: device_id_or_none(settings.device_id.clone()),
         vad_model: PathBuf::from(&settings.vad_model_path),
         segmenter: SegmenterConfig {
-            threshold: settings.vad_threshold.clamp(0.1, 0.95),
+            vad: settings.vad_enabled,
+            threshold: settings.vad_threshold.clamp(0.05, 0.95),
             min_silence_ms: (settings.min_silence_ms as usize).clamp(100, 3000),
             max_segment_ms: (settings.max_segment_ms as usize).clamp(3000, 28_000),
             ..defaults

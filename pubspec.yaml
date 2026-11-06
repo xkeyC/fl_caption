@@ -35,7 +35,7 @@ dependencies:
   qr_flutter: ^4.1.0
   record: ^7.1.2
   web_socket_channel: ^3.0.3
-  mobile_scanner: ^7.4.2
+  mobile_scanner: ^7.5.0
   flutter_foreground_task: ^11.0.3
   shared_preferences: ^2.5.6
 

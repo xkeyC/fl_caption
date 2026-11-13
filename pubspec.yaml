@@ -17,7 +17,7 @@ dependencies:
   # Locked like StarCitizenToolBox: newer releases have too many bugs.
   fluent_ui: 4.16.1
   hooks_riverpod: ^3.4.3
-  flutter_hooks: ^0.21.3+1
+  flutter_hooks: ^0.21.4
   # The boyan01 fork desktop_multi_window needs (as StarCitizenToolBox).
   window_manager:
     git:
